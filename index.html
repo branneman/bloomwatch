@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bloomwatch — WCL Auth Spike</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: monospace; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+  label { display: block; margin-top: 1rem; }
+  input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
+  button { margin-top: 1rem; padding: 0.5rem 1rem; margin-right: 0.5rem; }
+  #log { white-space: pre-wrap; background: #111; color: #0f0; padding: 1rem; margin-top: 1.5rem; min-height: 4rem; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<h1>Bloomwatch — WCL Auth Spike</h1>
+<p>Diagnostic page for backlog story 001. Not the product — see <a href="docs/specs/wcl-auth-spike-design.md">the design spec</a>.</p>
+
+<label>WCL Client ID
+  <input type="text" id="client-id">
+</label>
+<label>WCL Client Secret (only needed if PKCE fails)
+  <input type="text" id="client-secret">
+</label>
+<button id="save-creds">Save credentials</button>
+
+<div id="log"></div>
+
+<script>
+const logEl = document.getElementById('log');
+function log(msg) {
+  logEl.textContent += (logEl.textContent ? '\n\n' : '') + msg;
+  console.log(msg);
+}
+
+document.getElementById('client-id').value = localStorage.getItem('wcl_client_id') || '';
+document.getElementById('client-secret').value = localStorage.getItem('wcl_client_secret') || '';
+
+document.getElementById('save-creds').addEventListener('click', () => {
+  localStorage.setItem('wcl_client_id', document.getElementById('client-id').value.trim());
+  localStorage.setItem('wcl_client_secret', document.getElementById('client-secret').value.trim());
+  log('Saved credentials to localStorage.');
+});
+</script>
+</body>
+</html>
