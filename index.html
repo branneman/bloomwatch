@@ -92,6 +92,51 @@ document.getElementById('connect-pkce').addEventListener('click', async () => {
   log('Redirecting to: ' + url);
   window.location.href = url;
 });
+
+// --- OAuth callback handling ---
+const TOKEN_URL = 'https://www.warcraftlogs.com/oauth/token';
+
+async function handleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+  if (!code) return;
+
+  const expectedState = sessionStorage.getItem('pkce_state');
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  history.replaceState({}, '', window.location.pathname);
+
+  if (state !== expectedState) {
+    log('ERROR: state mismatch.\nExpected: ' + expectedState + '\nGot: ' + state);
+    return;
+  }
+
+  const clientId = localStorage.getItem('wcl_client_id');
+  log('Exchanging code for token (PKCE, no secret)...');
+  try {
+    const resp = await fetch(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: clientId,
+        redirect_uri: redirectUri(),
+        code,
+        code_verifier: verifier,
+      }),
+    });
+    const bodyText = await resp.text();
+    log('Token endpoint responded ' + resp.status + ':\n' + bodyText);
+    if (!resp.ok) return;
+    const data = JSON.parse(bodyText);
+    sessionStorage.setItem('access_token', data.access_token);
+    sessionStorage.setItem('token_source', 'pkce');
+    log('Access token acquired via PKCE.');
+  } catch (err) {
+    log('FETCH ERROR during token exchange (possibly CORS): ' + err.message);
+  }
+}
+handleCallback();
 </script>
 </body>
 </html>
