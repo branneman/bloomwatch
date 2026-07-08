@@ -207,7 +207,8 @@ document.getElementById('fetch-casts').addEventListener('click', async () => {
 }`);
   if (!fightsResult) return;
   const fights = fightsResult.data.reportData.report.fights;
-  const firstFight = fights[0];
+  const firstFight = fights.find(f => f.endTime > f.startTime);
+  if (!firstFight) { log('ERROR: no fight with nonzero duration found in this report.\nFights: ' + JSON.stringify(fights)); return; }
   log('Using first fight: ' + firstFight.name + ' (id ' + firstFight.id + ')');
 
   const eventsResult = await graphql(`query {
