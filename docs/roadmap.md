@@ -26,11 +26,8 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 
 - Static single-page app, deployable via GitHub Pages. No server-side code.
 - Data source: **WCL API v2 (GraphQL)** — report metadata, fights, combatant info, casts/buffs/resources tables, and raw event streams.
-- Auth is the key unknown: WCL v2 requires OAuth2. Candidate approaches for a backend-less app, to be resolved in the Phase 0 spike:
-  1. User creates their own (free) WCL API client and the app runs an OAuth flow suited to public clients (PKCE), storing the token in `localStorage`.
-  2. User pastes client credentials; app performs the token exchange from the browser (viability depends on CORS on the WCL token endpoint).
-  3. Fallback: user pastes a bearer token obtained manually (documented one-liner).
-- Anniversary ("fresh") realm reports must be verified against the API host(s) — `fresh.` / `classic.` / `www.` subdomains may or may not share one API endpoint. Part of the spike.
+- Auth is resolved (Phase 0 spike, see `docs/wcl-auth.md`): Authorization Code + PKCE from the browser, no client secret, against WCL's OAuth endpoints. Token exchange happens entirely client-side via `fetch()`.
+- Anniversary ("fresh") realm reports resolve against `https://www.warcraftlogs.com/api/v2/user` (confirmed with report `4GYHZRdtL3bvhpc8`, see `docs/wcl-auth.md`) — a single host regardless of which subdomain the report link uses.
 - All heavy computation (event-stream analysis) happens in the browser per fight; results are cached in memory per report.
 
 ## Roadmap
