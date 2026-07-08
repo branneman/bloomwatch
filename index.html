@@ -25,6 +25,7 @@
 <button id="save-creds">Save credentials</button>
 <button id="connect-pkce">Connect (PKCE)</button>
 <button id="fetch-report">Fetch report 4GYHZRdtL3bvhpc8</button>
+<button id="fetch-casts">Fetch Dassz cast events (stretch)</button>
 
 <div id="log"></div>
 
@@ -179,6 +180,48 @@ document.getElementById('fetch-report').addEventListener('click', () => {
     }
   }
 }`);
+});
+
+// --- Query 2 (stretch): Dassz cast events ---
+document.getElementById('fetch-casts').addEventListener('click', async () => {
+  const actorsResult = await graphql(`query {
+  reportData {
+    report(code: "${REPORT_CODE}") {
+      masterData { actors(type: "Player") { id name type subType } }
+    }
+  }
+}`);
+  if (!actorsResult) return;
+
+  const actors = actorsResult.data.reportData.report.masterData.actors;
+  const dassz = actors.find(a => a.name === 'Dassz');
+  if (!dassz) { log('ERROR: no actor named Dassz in this report.\nActors: ' + JSON.stringify(actors)); return; }
+  log('Found Dassz: actor id ' + dassz.id);
+
+  const fightsResult = await graphql(`query {
+  reportData {
+    report(code: "${REPORT_CODE}") {
+      fights { id name }
+    }
+  }
+}`);
+  if (!fightsResult) return;
+  const fights = fightsResult.data.reportData.report.fights;
+  const firstFight = fights[0];
+  log('Using first fight: ' + firstFight.name + ' (id ' + firstFight.id + ')');
+
+  const eventsResult = await graphql(`query {
+  reportData {
+    report(code: "${REPORT_CODE}") {
+      events(fightIDs: [${firstFight.id}], sourceID: ${dassz.id}, dataType: Casts) {
+        data
+      }
+    }
+  }
+}`);
+  if (!eventsResult) return;
+  const events = eventsResult.data.reportData.report.events.data;
+  log('Cast events for Dassz in ' + firstFight.name + ':\n' + JSON.stringify(events, null, 2));
 });
 </script>
 </body>
