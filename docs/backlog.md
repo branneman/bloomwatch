@@ -1,0 +1,275 @@
+# Bloomwatch — Backlog
+
+*Keep your Lifeblooms rolling.*
+
+User stories, grouped by epic. Each story is intended to be independently implementable (one story ≈ one agent session). Thresholds listed are **defaults**, to be made configurable in 802.
+
+Conventions used below:
+
+- **Persona** is "a resto druid raider" unless stated otherwise.
+- "R/O/G" = red / orange / green judgement.
+- "Opener" = the first ~10 seconds of a pull (ramp-up window, excluded from steady-state metrics).
+- Spell IDs are *not* hardcoded in stories; they must be resolved from the report's `masterData.abilities` at runtime (ranks matter in TBC — one spell name maps to multiple ability IDs).
+
+---
+
+## Epic A — Foundation & data access
+
+### 001 — WCL API access spike
+As a developer, I want a proven, documented way to call the WCL v2 GraphQL API from a static GitHub Pages site, so that the entire no-backend architecture is validated before feature work starts.
+
+**Acceptance criteria**
+- A static page fetches fight metadata for a hardcoded report code, from GitHub Pages hosting (not localhost).
+- The auth approach (PKCE / client-credentials-from-browser / paste-a-token) is documented in the repo with its trade-offs.
+- Fresh-realm report codes (`fresh.warcraftlogs.com/reports/...`) are confirmed to resolve, and the correct API host is documented.
+- If no approach works without a backend, the spike concludes with a written recommendation instead of code.
+
+### 002 — Report URL input
+I want to paste any WCL report URL (`www.`, `classic.`, `fresh.` subdomains, with or without `#fight=` fragments) or a bare report code, so that I don't have to think about URL formats.
+
+**Acceptance criteria**
+- Valid inputs yield the 16-char report code; invalid inputs show a clear error.
+- A `#fight=N` fragment pre-selects that fight after load.
+
+### 003 — Fight list & selection
+I want to see the report's boss fights (name, pull number, kill/wipe, duration) and select one, so that I can analyze a specific pull.
+
+**Acceptance criteria**
+- Trash fights are excluded by default (toggle to include).
+- Kills and wipes are visually distinct; wipes show boss HP% reached.
+
+### 004 — Zone-wide selection
+I want to select a whole raid zone within the report (e.g. "SSC — all bosses"), so that I can get one aggregated report for a full raid night.
+
+**Acceptance criteria**
+- Zone selector lists only zones present in the report.
+- Selecting a zone selects all its boss fights; individual fights can be deselected.
+
+### 005 — Druid auto-detection & selection
+I want the app to detect all resto druids in the report and let me pick one (pre-selecting when there is only one), so that I immediately analyze the right player.
+
+**Acceptance criteria**
+- Detection uses combatant info (spec/talents) where available, with a fallback heuristic (druid class + healing spell casts).
+- Multiple druids → picker; single druid → auto-selected.
+
+### 006 — Event fetching & caching layer
+As a developer, I want a single data layer that fetches casts, buffs, heal events, resource data, deaths, and combatant info per fight, with pagination and in-memory caching, so that every metric module reads from one consistent source.
+
+**Acceptance criteria**
+- Handles WCL event pagination (`nextPageTimestamp`) transparently.
+- The same fight's events are never fetched twice in a session.
+- Rate-limit responses surface as a user-visible, retryable message.
+
+### 007 — Ability resolution table
+As a developer, I want a per-report lookup that maps ability IDs to (spell, rank) for all druid healing spells and relevant consumables, so that metric modules can be written against spell names and ranks instead of magic numbers.
+
+**Acceptance criteria**
+- Covers: Lifebloom, Rejuvenation, Regrowth, Healing Touch, Swiftmend, Nature's Swiftness, Tranquility, Innervate, mana potions, Dark/Demonic Runes.
+- Multiple ranks of one spell resolve to one logical spell with a rank attribute.
+
+---
+
+## Epic B — GCD economy
+
+### 101 — Active time & GCD utilization
+I want to see my active time and a GCD-utilization percentage (time spent on GCD / fight duration), so that I know how full my cast timeline actually was.
+
+**Acceptance criteria**
+- GCD cost per cast: 1.5 s for instants, actual cast time for cast-time spells (e.g. Regrowth 2 s); values > 100 % clamp to 100 %.
+- R/O/G defaults: green ≥ 85 %, orange 70–85 %, red < 70 %.
+- The metric card explains the ceiling (~40 casts/min at 0 haste).
+
+### 102 — Idle-gap detection
+I want a list of every gap > 1.7 s between my casts, with total dead time and the five longest gaps (timestamp + duration), so that I can find exactly where I froze.
+
+**Acceptance criteria**
+- Gaps are measured from end-of-GCD/cast to next cast start.
+- Each listed gap links to the corresponding timestamp in the WCL report.
+- R/O/G on total dead time as % of fight: green < 5 %, orange 5–15 %, red > 15 %.
+
+---
+
+## Epic C — Lifebloom discipline
+
+### 201 — LB3 uptime per target
+I want per-target uptime of 3-stack Lifebloom on my maintained targets, so that I can verify my core job: keeping LB3 rolling on tanks.
+
+**Acceptance criteria**
+- Stack state is reconstructed from applybuff / applybuffstack / refreshbuff / removebuff events.
+- "Maintained targets" = targets with ≥ 30 % LB uptime (filters out one-off casts).
+- R/O/G per target, measured from first reaching 3 stacks: green ≥ 90 %, orange 75–90 %, red < 75 %.
+
+### 202 — Refresh cadence histogram
+I want a histogram of intervals between my Lifebloom refreshes on 3-stacked targets, with median and early/late percentages, so that I can see whether I refresh too eagerly (wasted mana/GCDs) or too late (accidental blooms).
+
+**Acceptance criteria**
+- Only refreshes on targets already at 3 stacks count.
+- Buckets: < 5.5 s (early), 5.5–7 s (ideal), > 7 s (bloomed/late).
+- R/O/G on median: green 6–7 s, orange 5–6 s, red < 5 s. Late cases are judged via 203, not here.
+
+### 203 — Accidental bloom counter
+I want a count of accidental blooms (bloom fired, then the stack was immediately rebuilt), separated from probable intentional blooms, so that dropped stacks are visible as the concrete errors they are.
+
+**Acceptance criteria**
+- Bloom detection: the non-periodic (non-tick) Lifebloom heal event.
+- Heuristic "accidental": re-application of Lifebloom on the same target within 3 s of the bloom.
+- Each accidental bloom lists timestamp + target; R/O/G per fight: green 0, orange 1–2, red ≥ 3.
+
+### 204 — Re-stack tax
+I want to see how many GCDs and how much mana I spent rebuilding Lifebloom stacks after the opener, so that I can quantify the cost of dropped stacks.
+
+**Acceptance criteria**
+- Counts LB casts on targets at < 3 stacks, excluding the opener and excluding deliberate new-target ramps (first ramp per target is free).
+- Reported as casts + estimated mana; R/O/G scales with fight length.
+
+### 205 — Concurrent LB3 targets
+I want a timeline/summary of how many targets simultaneously had my LB3, so that maintaining multiple tanks is recognized as the skill it is.
+
+**Acceptance criteria**
+- Reports average and peak concurrent LB3 targets, and % of fight at each level.
+- Informational (no R/O/G) — the right number depends on assignments.
+
+---
+
+## Epic D — Spell discipline
+
+### 301 — HoT clip detection (Rejuvenation & Regrowth)
+I want a count of Rejuvenation/Regrowth refreshes that clipped remaining ticks, so that I stop wasting the tail of HoTs that should be allowed to expire.
+
+**Acceptance criteria**
+- A refresh counts as a clip if the existing aura had > 1 tick (> 3 s) remaining.
+- Clips consumed by Swiftmend are excluded (that's 302's domain).
+- R/O/G on clipped-tick share of that spell's casts: green < 5 %, orange 5–15 %, red > 15 %.
+
+### 302 — Swiftmend quality audit
+I want each Swiftmend listed with the HoT it consumed, that HoT's remaining duration, and the target's HP% at cast, so that I can distinguish efficient Swiftmends (consuming a nearly-expired HoT) from justified emergencies from wasteful ones.
+
+**Acceptance criteria**
+- Classification: **efficient** (consumed HoT ≤ 3 s remaining), **emergency** (target ≤ 50 % HP), **wasteful** (neither).
+- Also reports Swiftmend usage count vs. availability windows (15 s CD) as informational context.
+- R/O/G on wasteful share: green 0 %, orange ≤ 25 %, red > 25 %.
+
+### 303 — Downranking discipline
+I want a per-rank breakdown of my direct heals (Regrowth, Healing Touch) with cast counts and direct-portion overheal, so that I can verify I'm using cheap ranks for spot healing and max ranks only when needed.
+
+**Acceptance criteria**
+- Table: spell, rank, casts, avg effective heal, direct overheal %.
+- Flag: max-rank direct heals with > 50 % overheal (should have downranked).
+- Informational plus a single R/O/G on the flag count.
+
+### 304 — Nature's Swiftness audit
+I want to see whether Nature's Swiftness was used, when, and on what follow-up spell, so that I know if I'm sitting on my emergency button.
+
+**Acceptance criteria**
+- Reports casts vs. theoretical availability (3 min CD); unused-while-available during a raid death is cross-referenced in 501.
+- Informational (no standalone R/O/G) — NS is situational by design.
+
+---
+
+## Epic E — Mana economy
+
+### 401 — Mana curve & ending mana
+I want my mana-over-time curve with fight-end mana highlighted, so that I can see whether I hoarded mana (should have cast more Regrowths) or ran dry too early.
+
+**Acceptance criteria**
+- Curve rendered per fight from resource data; ending mana % shown as a number.
+- R/O/G (kills only): green 5–40 % ending mana, orange 40–70 % or 0–5 %, red > 70 % (hoarding) — with an explicit note that short/easy fights make this metric moot (auto-downgrade to informational for fights < 90 s).
+
+### 402 — Consumable throughput
+I want counts of mana potions and Dark/Demonic Runes used vs. the expected floor for the fight length (separate 2-minute cooldowns each), so that unused consumable cooldowns become visible.
+
+**Acceptance criteria**
+- Expected floor per consumable = ⌊fight duration / 120 s⌋ for fights where mana dropped below 70 % at any point; fights that never did are exempt.
+- R/O/G per consumable: green ≥ floor, orange = floor − 1, red ≤ floor − 2.
+
+### 403 — Innervate audit
+I want to see if and when Innervate was cast and on whom, so that I never end a mana-constrained fight with an unused Innervate.
+
+**Acceptance criteria**
+- Reports cast time(s), target, and (self-cast) own mana % at cast.
+- R/O/G: red if never used on a mana-constrained fight ≥ 3 min; green if used; orange if used but very late (last 10 % of the fight).
+
+### 404 — HoT-aware overheal table
+I want per-spell overheal percentages judged against spell-appropriate thresholds, so that I'm not punished for the high overheal that is inherent to HoTs but am flagged for wasteful direct heals.
+
+**Acceptance criteria**
+- Separate thresholds: HoT ticks (lenient — informational only), Lifebloom blooms, direct heals (strict).
+- Bloom overheal R/O/G: green < 40 %, orange 40–70 %, red > 70 %.
+- Direct heal (Regrowth direct, HT, Swiftmend) R/O/G: green < 30 %, orange 30–50 %, red > 50 %.
+
+---
+
+## Epic F — Death forensics
+
+### 501 — Per-death resource audit
+I want an audit for every friendly death (with emphasis on my maintained tank targets): did the target have my LB3 rolling, and did I have Swiftmend / Nature's Swiftness / a GCD available in the 5 s before death, so that deaths with unspent emergency resources are exposed as process failures.
+
+**Acceptance criteria**
+- For each death: target, time, my LB3 status on that target, Swiftmend CD state, NS CD state, whether I was idle in the preceding 5 s.
+- R/O/G per death: red if ≥ 2 unspent resources on a maintained target's death; summarized per fight.
+- Clearly labeled caveat: a death is not automatically the druid's fault; this audits *your* readiness only.
+
+---
+
+## Epic G — Prep hygiene
+
+### 601 — Pull-time consumables check
+I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian elixir, food buff, weapon oil), so that missing prep is caught before anyone looks at gameplay.
+
+**Acceptance criteria**
+- Read from combatant-info auras at fight start.
+- Binary per item with an aggregate R/O/G: green = all present, orange = 1 missing, red = ≥ 2 missing.
+- Item list is data-driven (easy to adjust per phase/tier).
+
+---
+
+## Epic H — Reporting & UX
+
+### 701 — Single-fight scorecard
+I want all metrics for one fight rendered as a scorecard — grouped by epic, each metric a number + R/O/G chip + one-line explanation with a "why/threshold" expander — so that I get an at-a-glance verdict I can also drill into.
+
+**Acceptance criteria**
+- Every implemented metric appears with its judgement and its threshold made visible on demand.
+- A prominent disclaimer block lists what the tool cannot judge (target selection, assignments, positioning).
+
+### 702 — Zone-aggregated report
+I want an aggregated scorecard across all selected fights in a zone (e.g. all SSC bosses), with per-boss drill-down, so that I can review a full raid night in one view.
+
+**Acceptance criteria**
+- Aggregation rules per metric are explicit (uptime → duration-weighted mean; counts → sums; R/O/G → worst-of with per-boss chips visible).
+- Clicking a boss row opens its single-fight scorecard (701).
+
+### 703 — Shareable report state
+I want the report/fight/druid selection encoded in the URL, so that I can share a link to a specific scorecard with my healing officer.
+
+**Acceptance criteria**
+- Opening a shared URL reproduces the same scorecard (after auth).
+- No metric data is stored anywhere — the URL only encodes selection state.
+
+### 704 — Markdown export
+I want to export the current scorecard as a Markdown file, so that I can paste it into Discord/notes or archive my progression.
+
+**Acceptance criteria**
+- Export includes numbers, judgements, thresholds used, report link, and generation date.
+- Output renders cleanly in Discord and GitHub.
+
+### 801 — GitHub Pages deployment
+As a developer, I want an automated build & deploy to GitHub Pages on every merge to main, so that hosting stays free and releases are trivial.
+
+**Acceptance criteria**
+- CI workflow builds and publishes the site; the live URL is in the README.
+- No secrets are required at build time (per the no-backend principle).
+
+### 802 — Configurable thresholds
+I want to view and edit all R/O/G thresholds (persisted in `localStorage`, with a reset-to-defaults), so that I can adapt judgements to my raid's context and to future calibration.
+
+**Acceptance criteria**
+- Every threshold used anywhere in the app is listed in one settings view with its default and source rationale.
+- Changes apply immediately to already-rendered scorecards.
+
+### 803 — Multi-druid comparison
+I want to compare two or more druids from the same report side-by-side on the same metrics, so that druid-vs-druid evaluation happens on process metrics instead of the healing meter.
+
+**Acceptance criteria**
+- Columns per druid, rows per metric, judgements per cell.
+- Explicit note that different assignments (tank vs. raid) make some comparisons apples-to-oranges.
