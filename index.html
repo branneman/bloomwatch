@@ -201,7 +201,7 @@ document.getElementById('fetch-casts').addEventListener('click', async () => {
   const fightsResult = await graphql(`query {
   reportData {
     report(code: "${REPORT_CODE}") {
-      fights { id name }
+      fights { id name startTime endTime }
     }
   }
 }`);
