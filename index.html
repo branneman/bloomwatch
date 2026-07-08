@@ -24,6 +24,7 @@
 </label>
 <button id="save-creds">Save credentials</button>
 <button id="connect-pkce">Connect (PKCE)</button>
+<button id="fetch-report">Fetch report 4GYHZRdtL3bvhpc8</button>
 
 <div id="log"></div>
 
@@ -137,6 +138,48 @@ async function handleCallback() {
   }
 }
 handleCallback();
+
+// --- GraphQL helper ---
+const USER_API_URL = 'https://www.warcraftlogs.com/api/v2/user';
+const CLIENT_API_URL = 'https://www.warcraftlogs.com/api/v2/client';
+const REPORT_CODE = '4GYHZRdtL3bvhpc8';
+
+async function graphql(query) {
+  const token = sessionStorage.getItem('access_token');
+  const source = sessionStorage.getItem('token_source');
+  if (!token) { log('ERROR: no access token yet. Connect first.'); return null; }
+
+  const endpoint = source === 'client_credentials' ? CLIENT_API_URL : USER_API_URL;
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token,
+      },
+      body: JSON.stringify({ query }),
+    });
+    const bodyText = await resp.text();
+    log(endpoint + ' responded ' + resp.status + ':\n' + bodyText);
+    if (!resp.ok) return null;
+    return JSON.parse(bodyText);
+  } catch (err) {
+    log('FETCH ERROR calling ' + endpoint + ' (possibly CORS): ' + err.message);
+    return null;
+  }
+}
+
+// --- Query 1: report fight list ---
+document.getElementById('fetch-report').addEventListener('click', () => {
+  graphql(`query {
+  reportData {
+    report(code: "${REPORT_CODE}") {
+      title
+      fights { id name startTime endTime }
+    }
+  }
+}`);
+});
 </script>
 </body>
 </html>
