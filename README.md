@@ -2,7 +2,7 @@
 
 *Keep your Lifeblooms rolling.*
 
-A process-quality analyzer for TBC Resto Druids, built on [Warcraft Logs](https://www.warcraftlogs.com/). Paste a report link, pick a fight, get a scorecard that judges your **process** (GCD usage, Lifebloom discipline, mana economy, prep hygiene) instead of the healing meter, which is a zero-sum, misleading measure of individual play.
+A process-quality analyzer for TBC Resto Druids on Anniversary ("fresh") realms, built on [Warcraft Logs](https://www.warcraftlogs.com/). Paste a report link, pick a fight, get a scorecard that judges your **process** (GCD usage, Lifebloom discipline, mana economy, prep hygiene) instead of the healing meter, which is a zero-sum, misleading measure of individual play.
 
 ## Status
 

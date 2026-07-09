@@ -4,7 +4,7 @@ Guidance for Claude Code (and other agents) working in this repo.
 
 ## Project
 
-Bloomwatch is a static, backend-less web app that turns a Warcraft Logs report into a process-quality scorecard for TBC Resto Druids. Full vision, principles, and phased roadmap: `docs/roadmap.md`. Full backlog of user stories (the unit of implementation work): `docs/backlog.md`.
+Bloomwatch is a static, backend-less web app that turns a Warcraft Logs report into a process-quality scorecard for TBC Resto Druids. In scope: TBC Anniversary ("fresh") realms only — no other WoW version, expansion, or realm type. Full vision, principles, and phased roadmap: `docs/roadmap.md`. Full backlog of user stories (the unit of implementation work): `docs/backlog.md`.
 
 Read both docs before starting substantial feature work — they define scope, thresholds, and acceptance criteria that shouldn't be re-derived or guessed.
 
@@ -25,4 +25,4 @@ Read both docs before starting substantial feature work — they define scope, t
 
 ## Repo state
 
-No implementation exists yet. Phase 0 (`docs/roadmap.md`) is the WCL auth spike — start there unless told otherwise.
+Phase 0 (`docs/roadmap.md`) is complete: the backend-less WCL auth pipeline is proven (`index.html`, `docs/wcl-auth.md`). Phase 1 build tooling (story 801) is next.

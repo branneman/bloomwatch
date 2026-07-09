@@ -71,6 +71,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 - Judging *who* should have been healed (target selection, assignments).
 - Other classes and specs (until the framework is proven).
 - Any server-side component.
+- Other WoW versions, expansions, or realm types — Vanilla/Wrath/Cataclysm Classic, Season of Discovery, retail, and non-Anniversary ("progression") TBC realms. TBC Anniversary ("fresh") realms only.
 
 ## Key risks
 

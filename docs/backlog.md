@@ -25,11 +25,12 @@ As a developer, I want a proven, documented way to call the WCL v2 GraphQL API f
 - If no approach works without a backend, the spike concludes with a written recommendation instead of code.
 
 ### 002 — Report URL input
-I want to paste any WCL report URL (`www.`, `classic.`, `fresh.` subdomains, with or without `#fight=` fragments) or a bare report code, so that I don't have to think about URL formats.
+I want to paste a WCL report URL (`fresh.warcraftlogs.com`, with or without `#fight=` fragments) or a bare report code, so that I don't have to think about URL formats — and a clear message if I paste a report from a realm type this tool doesn't support.
 
 **Acceptance criteria**
-- Valid inputs yield the 16-char report code; invalid inputs show a clear error.
-- A `#fight=N` fragment pre-selects that fight after load.
+- Valid `fresh.` URLs and bare 16-char report codes yield the report code; a `#fight=N` fragment pre-selects that fight after load.
+- URLs from other WCL subdomains (`www.`, `classic.`) are recognized and rejected with a message explaining this tool only supports TBC Anniversary ("fresh") realms — not treated as generic invalid input.
+- Other malformed input shows a clear generic error.
 
 ### 003 — Fight list & selection
 I want to see the report's boss fights (name, pull number, kill/wipe, duration) and select one, so that I can analyze a specific pull.
