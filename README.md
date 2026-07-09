@@ -6,7 +6,22 @@ A process-quality analyzer for TBC Resto Druids on Anniversary ("fresh") realms,
 
 ## Status
 
-Pre-implementation. See [`docs/roadmap.md`](docs/roadmap.md) for the phased plan (currently Phase 0: proving the backend-less WCL auth pipeline) and [`docs/backlog.md`](docs/backlog.md) for the full set of user stories.
+Phase 0 complete (see [`docs/wcl-auth.md`](docs/wcl-auth.md)). Phase 1 foundation (story 801) in place — see [`docs/roadmap.md`](docs/roadmap.md) and [`docs/backlog.md`](docs/backlog.md) for what's next.
+
+Live: https://branneman.github.io/bloomwatch/
+
+## Development
+
+```bash
+npm install
+npm run dev            # local dev server
+npm run build          # production build
+npm test                # unit + integration + component tests (Tiers 1-3)
+npm run test:contract  # real WCL API, needs WCL_TEST_ACCESS_TOKEN — see docs/testing.md
+npm run test:e2e       # Playwright smoke test, needs WCL_TEST_ACCESS_TOKEN — see docs/testing.md
+```
+
+See [`docs/testing.md`](docs/testing.md) for the full test pyramid.
 
 ## Architecture
 
