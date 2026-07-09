@@ -41,7 +41,7 @@ npm run format         # writes fixes
 npm run format:check   # CI mode, fails on unformatted files, no writes
 ```
 
-**Pre-commit hook (Husky):** runs `typecheck`, `lint`, and `format:check` on every commit, full-project, before the commit is allowed. Same commands as CI — no separate "fast path" that only checks staged files.
+**Pre-commit hook (Husky):** runs `typecheck`, `lint`, and `format:check` on every commit, full-project, before the commit is allowed. Same commands as CI — no separate "fast path" that only checks staged files. Installed automatically via `package.json`'s `"prepare": "husky"` script, which npm runs after both `npm install` and `npm ci` — a fresh clone gets the hook with no separate setup step.
 
 ---
 

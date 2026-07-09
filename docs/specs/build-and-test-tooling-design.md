@@ -62,6 +62,8 @@ Single GitHub Actions workflow, triggered on push to `main`:
 
 Husky runs `typecheck`, `lint`, and `format:check` on every commit — the same commands as CI steps 2-4, scanning the **whole project**, not just staged/changed files. Deliberate: LLM-authored changes have a habit of leaving unrelated files unformatted, and a staged-files-only check (the typical `lint-staged` pattern) would miss that. No `lint-staged` dependency — Husky invokes the full-project npm scripts directly.
 
+Installed automatically via a `"prepare": "husky"` script in `package.json` — npm runs `prepare` after both `npm install` and `npm ci`, so a fresh clone gets the hook wired up as a side effect of installing dependencies, with no separate setup step for contributors.
+
 Tier 4 (contract tests against the real WCL API) is **not** part of this pipeline. It runs only via `workflow_dispatch` (a manual "Run workflow" button) or locally via `npm run test:contract`. No cron/schedule — the project may quietly stop mattering a year from now if TBC Anniversary ends, and an eternal cron nagging about that isn't wanted. It's a tool reached for before a release or when investigating a suspected WCL API change, not a background watcher.
 
 No secrets are required for steps 1-5 — a normal clone/fork builds and deploys with zero configuration, per principle 2. Only tiers 4 and 5 need the test credential described below, and both skip with a clear log message if it's absent (a fork without the secret still builds and deploys fine).
