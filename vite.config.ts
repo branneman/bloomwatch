@@ -6,7 +6,8 @@ export default defineConfig({
   base: "/bloomwatch/",
   plugins: [react()],
   test: {
-    environment: "node",
+    environment: "jsdom",
+    setupFiles: ["./test/setup.ts"],
     exclude: ["node_modules/**", "dist/**", "test/e2e/**"],
   },
 });
