@@ -265,12 +265,14 @@ I want to export the current scorecard as a Markdown file, so that I can paste i
 - Export includes numbers, judgements, thresholds used, report link, and generation date.
 - Output renders cleanly in Discord and GitHub.
 
-### 801 — GitHub Pages deployment
-As a developer, I want an automated build & deploy to GitHub Pages on every merge to main, so that hosting stays free and releases are trivial.
+### 801 — Build & test tooling
+As a developer, I want a Vite + React + TypeScript project scaffold with a full test pyramid and automated CI/CD to GitHub Pages, so that the app has a maintainable foundation and every later story can be built and verified with confidence.
 
 **Acceptance criteria**
-- CI workflow builds and publishes the site; the live URL is in the README.
-- No secrets are required at build time (per the no-backend principle).
+- Vite + React + TypeScript scaffold builds and deploys automatically to GitHub Pages on every push to `main`; the live URL is in the README.
+- `index.html`'s spike logic (PKCE auth, GraphQL client) is ported into typed, tested modules under `src/wcl/`; the spike itself is retired.
+- Test pyramid stood up per `docs/specs/build-and-test-tooling-design.md`: unit + WCL-client-integration (mocked) + component tests run on every push; contract tests (real WCL API, dedicated test account) run on manual trigger only; E2E smoke runs against the live site after every deploy.
+- No secrets are required to build or deploy the product itself (per principle 2); the dedicated test account's access token is a CI-only test credential, documented as such.
 
 ### 802 — Configurable thresholds
 I want to view and edit all R/O/G thresholds (persisted in `localStorage`, with a reset-to-defaults), so that I can adapt judgements to my raid's context and to future calibration.
