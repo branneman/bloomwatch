@@ -28,6 +28,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 - Data source: **WCL API v2 (GraphQL)** — report metadata, fights, combatant info, casts/buffs/resources tables, and raw event streams.
 - Auth is resolved (Phase 0 spike, see `docs/wcl-auth.md`): Authorization Code + PKCE from the browser, no client secret, against WCL's OAuth endpoints. Token exchange happens entirely client-side via `fetch()`.
 - Anniversary ("fresh") realm reports resolve against `https://www.warcraftlogs.com/api/v2/user` (confirmed with report `4GYHZRdtL3bvhpc8`, see `docs/wcl-auth.md`) — a single host regardless of which subdomain the report link uses.
+- The app ships with a default WCL API Client ID (registered and maintained by the project, not the user) baked into the client-side code — safe because PKCE client IDs aren't secrets. WCL rate limits are scoped per-client, not per-user, so if the shared default's budget is ever exhausted, the app degrades gracefully: it explains the situation and lets the user register and paste their own free Client ID, which is then used for all their future requests instead. See backlog story 008.
 - All heavy computation (event-stream analysis) happens in the browser per fight; results are cached in memory per report.
 
 ## Roadmap
@@ -76,7 +77,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 | Risk | Impact | Mitigation |
 |---|---|---|
 | WCL auth impossible without a backend | Fatal to "no backend" principle | Phase 0 spike before any feature work; fallback = paste-a-token UX |
-| WCL API rate limits on event streams | Slow zone-wide reports | Per-fight lazy loading + in-memory caching; request only needed event types |
+| WCL API rate limits on event streams | Slow zone-wide reports, or the shared default Client ID's budget exhausted under load | Per-fight lazy loading + in-memory caching; request only needed event types; default Client ID with graceful fallback to a user-supplied one when the shared budget is hit (008) |
 | Threshold defaults wrong → tool loses trust | Users dismiss judgements | Thresholds visible, sourced, configurable; calibration pass in Phase 5 |
 | Fresh-realm API quirks | Blocks primary audience | Verified in Phase 0 with a real fresh report |
 

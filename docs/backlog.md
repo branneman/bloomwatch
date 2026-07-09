@@ -67,6 +67,17 @@ As a developer, I want a per-report lookup that maps ability IDs to (spell, rank
 - Covers: Lifebloom, Rejuvenation, Regrowth, Healing Touch, Swiftmend, Nature's Swiftness, Tranquility, Innervate, mana potions, Dark/Demonic Runes.
 - Multiple ranks of one spell resolve to one logical spell with a rank attribute.
 
+### 008 — Default API client with graceful rate-limit fallback
+As a druid pasting a report link for the first time, I want the app to just work without registering my own WCL API client, so that "paste link → judged scorecard" isn't blocked by an API-client-registration detour. As the app's maintainer, I want a rate-limit hit on the shared default client to degrade gracefully into asking that one user for their own client_id, so that one busy raid night doesn't lock everyone else out.
+
+**Acceptance criteria**
+- The app ships with a hardcoded default Client ID (the maintainer's own registered Public Client, PKCE-only) baked into the client-side code. This is safe because PKCE client IDs are not secrets — see `docs/wcl-auth.md`.
+- All requests use the default Client ID with no setup step required for a first-time user.
+- WCL rate limits are scoped per-client (confirmed via the `rateLimitData` GraphQL field, see `docs/wcl-auth.md`), so heavy usage by one user does not exhaust another user's requests under a *different* client_id — only the shared default pool is at risk.
+- On a rate-limit response from a request made with the default Client ID, the app shows a clear, non-technical message explaining the shared client is temporarily over capacity, with a short explanation and a link to register a personal WCL API client (reusing `docs/wcl-auth.md`'s registration steps) plus an input to paste it.
+- Once a user supplies their own Client ID, it's saved (`localStorage`) and used for all of that browser's future requests, bypassing the shared default entirely.
+- No secrets are requested or stored at any point — the fallback still only asks for a Client ID, never a secret (per principle 2 / story 801).
+
 ---
 
 ## Epic B — GCD economy
