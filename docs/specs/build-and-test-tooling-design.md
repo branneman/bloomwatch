@@ -43,7 +43,7 @@ test/
   e2e/
 ```
 
-npm scripts: `dev`, `build`, `typecheck`, `test` (tiers 1-3), `test:contract` (tier 4), `test:e2e` (tier 5).
+npm scripts: `dev`, `build`, `typecheck`, `lint`, `format`, `format:check`, `test` (tiers 1-3), `test:contract` (tier 4), `test:e2e` (tier 5).
 
 ## CI/CD pipeline
 
@@ -51,10 +51,16 @@ Single GitHub Actions workflow, triggered on push to `main`:
 
 1. `npm ci`
 2. `npm run typecheck`
-3. `npm test` (tiers 1-3 — fast, deterministic, no network)
-4. `npm run build`
-5. Deploy `dist/` to GitHub Pages
-6. `npm run test:e2e` (tier 5), against the just-deployed live URL — catches "works locally, broken on Pages" issues (base paths, CORS from the real origin, etc.)
+3. `npm run lint`
+4. `npm run format:check`
+5. `npm test` (tiers 1-3 — fast, deterministic, no network)
+6. `npm run build`
+7. Deploy `dist/` to GitHub Pages
+8. `npm run test:e2e` (tier 5), against the just-deployed live URL — catches "works locally, broken on Pages" issues (base paths, CORS from the real origin, etc.)
+
+### Pre-commit hook
+
+Husky runs `typecheck`, `lint`, and `format:check` on every commit — the same commands as CI steps 2-4, scanning the **whole project**, not just staged/changed files. Deliberate: LLM-authored changes have a habit of leaving unrelated files unformatted, and a staged-files-only check (the typical `lint-staged` pattern) would miss that. No `lint-staged` dependency — Husky invokes the full-project npm scripts directly.
 
 Tier 4 (contract tests against the real WCL API) is **not** part of this pipeline. It runs only via `workflow_dispatch` (a manual "Run workflow" button) or locally via `npm run test:contract`. No cron/schedule — the project may quietly stop mattering a year from now if TBC Anniversary ends, and an eternal cron nagging about that isn't wanted. It's a tool reached for before a release or when investigating a suspected WCL API change, not a background watcher.
 
@@ -63,6 +69,15 @@ No secrets are required for steps 1-5 — a normal clone/fork builds and deploys
 ## Test pyramid
 
 Adapted from `https://github.com/branneman/health/blob/main/docs/testing-manifesto.md`, whose core principles carry over unchanged: tests must exercise real behavior (no `assertTrue(true)`-style noise), and each tier is used only when a lower tier's tools can't catch the failure. The concrete tiers are reshaped for a backend-less, browser-only app with one external dependency (WCL's real API) instead of a self-hosted server + database + Android client.
+
+### Tier 0 — Static analysis
+**Charter:** catch syntax, type, and style errors before any behavioral test runs — the cheapest possible tier, and a different class of issue than Tier 1+.
+
+- `tsc --noEmit`.
+- ESLint (`typescript-eslint` + `eslint-plugin-react-hooks` + Vite's recommended React config). Chosen over Biome (a faster, newer combined lint+format tool) because `eslint-plugin-react-hooks`'s rule depth — catching stale-closure/missing-dependency bugs — matters more here than Biome's speed advantage, and Biome's rule coverage for this is still thinner.
+- Prettier for formatting only; `eslint-config-prettier` disables any overlapping ESLint style rule so the two never conflict.
+
+Runs full-project (not diff-scoped) in both the pre-commit hook and CI — see the Pre-commit hook subsection below.
 
 ### Tier 1 — Unit tests
 **Charter:** pure logic, no I/O, no DOM. The majority of tests, and the first thing written for any new logic.
@@ -106,3 +121,9 @@ Two kinds, matched to what each tier actually needs — no speculative fixture i
 ## Secrets & credentials summary
 
 One CI secret: `WCL_TEST_ACCESS_TOKEN`, a bearer access token for a dedicated test WCL account, obtained once via PKCE login against a separate test-only Public Client ID (not the production default client from story 008). Requires manual refresh roughly yearly (documented as a runbook note in `docs/wcl-auth.md`). No client secret is introduced anywhere; the product's build/deploy path requires zero secrets, satisfying principle 2.
+
+## Documentation deliverables
+
+- `docs/testing.md`: the permanent reference for how this project is tested (pyramid tiers, tooling, commands, CI triggers, secrets). Unlike this spec, it's not retired once story 801 ships — it's updated as the testing approach evolves. Already written; this spec's Test pyramid section is its design-time rationale, `docs/testing.md` is its lasting practical form.
+- `README.md` gets the live GitHub Pages URL.
+- `CLAUDE.md` gets a pointer to `docs/testing.md` alongside its existing pointers to `docs/roadmap.md` and `docs/backlog.md`.

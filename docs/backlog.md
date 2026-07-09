@@ -271,7 +271,8 @@ As a developer, I want a Vite + React + TypeScript project scaffold with a full 
 **Acceptance criteria**
 - Vite + React + TypeScript scaffold builds and deploys automatically to GitHub Pages on every push to `main`; the live URL is in the README.
 - `index.html`'s spike logic (PKCE auth, GraphQL client) is ported into typed, tested modules under `src/wcl/`; the spike itself is retired.
-- Test pyramid stood up per `docs/specs/build-and-test-tooling-design.md`: unit + WCL-client-integration (mocked) + component tests run on every push; contract tests (real WCL API, dedicated test account) run on manual trigger only; E2E smoke runs against the live site after every deploy.
+- Static analysis (typecheck, ESLint, Prettier) runs full-project in both a pre-commit hook and CI — not scoped to changed files only.
+- Test pyramid stood up per `docs/testing.md`: unit + WCL-client-integration (mocked) + component tests run on every push; contract tests (real WCL API, dedicated test account) run on manual trigger only; E2E smoke runs against the live site after every deploy.
 - No secrets are required to build or deploy the product itself (per principle 2); the dedicated test account's access token is a CI-only test credential, documented as such.
 
 ### 802 — Configurable thresholds
