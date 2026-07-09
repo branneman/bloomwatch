@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { buildAuthorizeUrl, createPkceParams } from "./pkce";
-import { exchangeCodeForToken } from "./client";
+import { exchangeCodeForToken, WclApiError } from "./client";
+
+class OAuthStateMismatchError extends Error {}
 
 const CLIENT_ID_STORAGE_KEY = "wcl_client_id";
 const PKCE_VERIFIER_STORAGE_KEY = "wcl_pkce_verifier";
@@ -54,7 +56,9 @@ export function useWclAuth() {
       window.history.replaceState({}, "", window.location.pathname);
 
       if (returnedState !== expectedState || !verifier) {
-        throw new Error("OAuth state mismatch — please try connecting again.");
+        throw new OAuthStateMismatchError(
+          "OAuth state mismatch — please try connecting again.",
+        );
       }
 
       const result = await exchangeCodeForToken({
@@ -69,7 +73,7 @@ export function useWclAuth() {
 
     completeAuth().catch((err: unknown) => {
       setAuthError(
-        err instanceof Error
+        err instanceof WclApiError || err instanceof OAuthStateMismatchError
           ? err.message
           : "Failed to exchange code for token.",
       );

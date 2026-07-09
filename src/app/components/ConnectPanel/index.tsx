@@ -10,36 +10,39 @@ export interface ConnectPanelProps {
   ) => Promise<ReportFights>;
 }
 
+type FetchResult =
+  | { accessToken: string; report: ReportFights }
+  | { accessToken: string; error: string };
+
 export function ConnectPanel({
   accessToken,
   reportCode,
   fetchReportFights,
 }: ConnectPanelProps) {
-  const [report, setReport] = useState<ReportFights | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<FetchResult | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
     fetchReportFights(accessToken, reportCode)
-      .then((result) => {
-        setError(null);
-        setReport(result);
-      })
+      .then((report) => setResult({ accessToken, report }))
       .catch((err: unknown) =>
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch report.",
-        ),
+        setResult({
+          accessToken,
+          error: err instanceof Error ? err.message : "Failed to fetch report.",
+        }),
       );
   }, [accessToken, reportCode, fetchReportFights]);
 
   if (!accessToken) return <p>Not connected.</p>;
-  if (error) return <p role="alert">{error}</p>;
-  if (!report) return <p>Loading report…</p>;
+
+  const isCurrent = result !== null && result.accessToken === accessToken;
+  if (!isCurrent) return <p>Loading report…</p>;
+  if ("error" in result) return <p role="alert">{result.error}</p>;
 
   return (
     <div>
-      <h2>{report.title}</h2>
-      <p>{report.fights.length} fights</p>
+      <h2>{result.report.title}</h2>
+      <p>{result.report.fights.length} fights</p>
     </div>
   );
 }
