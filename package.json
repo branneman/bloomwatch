@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "test": "vitest run --exclude test/contract/**",
     "typecheck": "tsc -b",
     "prepare": "husky"
   },
@@ -32,6 +33,7 @@
     "prettier": "^3.9.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.63.0",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
   }
 }
