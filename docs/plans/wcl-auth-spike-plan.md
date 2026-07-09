@@ -38,14 +38,17 @@ After a minute, visit `https://branneman.github.io/bloomwatch/`. It's fine if th
 ### Task 1: Register WCL client + scaffold the spike page
 
 **Files:**
+
 - Create: `index.html`
 
 **Interfaces:**
+
 - Produces: `localStorage` keys `wcl_client_id`, `wcl_client_secret`; DOM ids `client-id`, `client-secret`, `save-creds`, `log`; JS function `log(msg)` (appends a line to the `#log` panel and mirrors to `console.log`) — every later task's diagnostics go through this.
 
 - [ ] **Step 1: Register a WCL API v2 client**
 
 Go to `https://www.warcraftlogs.com/api/clients/` while logged into your WCL account (if that path 404s, look for "API Clients" under your WCL account settings — WCL's UI has moved this before). Click "Create Client". Fill in:
+
 - Application Name: `Bloomwatch (dev)`
 - Redirect URL: `https://branneman.github.io/bloomwatch/` — must match exactly, including the trailing slash.
 
@@ -56,49 +59,86 @@ Save, then copy the generated **Client ID**. You'll paste it into the page in St
 ```html
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Bloomwatch — WCL Auth Spike</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  body { font-family: monospace; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-  label { display: block; margin-top: 1rem; }
-  input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
-  button { margin-top: 1rem; padding: 0.5rem 1rem; margin-right: 0.5rem; }
-  #log { white-space: pre-wrap; background: #111; color: #0f0; padding: 1rem; margin-top: 1.5rem; min-height: 4rem; font-size: 0.85rem; }
-</style>
-</head>
-<body>
-<h1>Bloomwatch — WCL Auth Spike</h1>
-<p>Diagnostic page for backlog story 001. Not the product — see <a href="docs/specs/wcl-auth-spike-design.md">the design spec</a>.</p>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bloomwatch — WCL Auth Spike</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: monospace;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.4rem;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+      }
+      #log {
+        white-space: pre-wrap;
+        background: #111;
+        color: #0f0;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        min-height: 4rem;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bloomwatch — WCL Auth Spike</h1>
+    <p>
+      Diagnostic page for backlog story 001. Not the product — see
+      <a href="docs/specs/wcl-auth-spike-design.md">the design spec</a>.
+    </p>
 
-<label>WCL Client ID
-  <input type="text" id="client-id">
-</label>
-<label>WCL Client Secret (only needed if PKCE fails)
-  <input type="text" id="client-secret">
-</label>
-<button id="save-creds">Save credentials</button>
+    <label
+      >WCL Client ID
+      <input type="text" id="client-id" />
+    </label>
+    <label
+      >WCL Client Secret (only needed if PKCE fails)
+      <input type="text" id="client-secret" />
+    </label>
+    <button id="save-creds">Save credentials</button>
 
-<div id="log"></div>
+    <div id="log"></div>
 
-<script>
-const logEl = document.getElementById('log');
-function log(msg) {
-  logEl.textContent += (logEl.textContent ? '\n\n' : '') + msg;
-  console.log(msg);
-}
+    <script>
+      const logEl = document.getElementById("log");
+      function log(msg) {
+        logEl.textContent += (logEl.textContent ? "\n\n" : "") + msg;
+        console.log(msg);
+      }
 
-document.getElementById('client-id').value = localStorage.getItem('wcl_client_id') || '';
-document.getElementById('client-secret').value = localStorage.getItem('wcl_client_secret') || '';
+      document.getElementById("client-id").value =
+        localStorage.getItem("wcl_client_id") || "";
+      document.getElementById("client-secret").value =
+        localStorage.getItem("wcl_client_secret") || "";
 
-document.getElementById('save-creds').addEventListener('click', () => {
-  localStorage.setItem('wcl_client_id', document.getElementById('client-id').value.trim());
-  localStorage.setItem('wcl_client_secret', document.getElementById('client-secret').value.trim());
-  log('Saved credentials to localStorage.');
-});
-</script>
-</body>
+      document.getElementById("save-creds").addEventListener("click", () => {
+        localStorage.setItem(
+          "wcl_client_id",
+          document.getElementById("client-id").value.trim(),
+        );
+        localStorage.setItem(
+          "wcl_client_secret",
+          document.getElementById("client-secret").value.trim(),
+        );
+        log("Saved credentials to localStorage.");
+      });
+    </script>
+  </body>
 </html>
 ```
 
@@ -113,6 +153,7 @@ git push
 - [ ] **Step 4: Verify live**
 
 Wait ~1 minute for Pages to rebuild, then visit `https://branneman.github.io/bloomwatch/`. Expected:
+
 - The page loads with the two credential inputs and a "Save credentials" button.
 - Paste the Client ID from Step 1 into the "WCL Client ID" field, leave the secret blank, click "Save credentials".
 - Expected: the log panel shows `Saved credentials to localStorage.`
@@ -123,9 +164,11 @@ Wait ~1 minute for Pages to rebuild, then visit `https://branneman.github.io/blo
 ### Task 2: PKCE authorize redirect
 
 **Files:**
+
 - Modify: `index.html`
 
 **Interfaces:**
+
 - Consumes: `log(msg)`, `localStorage.wcl_client_id` (Task 1).
 - Produces: JS functions `base64urlEncode(buffer)`, `generateRandomString(length)`, `generateCodeChallenge(verifier)`, `redirectUri()`; `sessionStorage` keys `pkce_verifier`, `pkce_state`; DOM id `connect-pkce`; constant `AUTHORIZE_URL`.
 
@@ -142,13 +185,13 @@ Add the following to the `<script>` block, after the `save-creds` click handler 
 
 ```javascript
 // --- PKCE helpers ---
-const AUTHORIZE_URL = 'https://www.warcraftlogs.com/oauth/authorize';
+const AUTHORIZE_URL = "https://www.warcraftlogs.com/oauth/authorize";
 
 function base64urlEncode(buffer) {
   const bytes = new Uint8Array(buffer);
-  let str = '';
+  let str = "";
   for (const b of bytes) str += String.fromCharCode(b);
-  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function generateRandomString(length) {
@@ -159,7 +202,7 @@ function generateRandomString(length) {
 
 async function generateCodeChallenge(verifier) {
   const data = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
+  const digest = await crypto.subtle.digest("SHA-256", data);
   return base64urlEncode(digest);
 }
 
@@ -168,26 +211,29 @@ function redirectUri() {
 }
 
 // --- PKCE connect ---
-document.getElementById('connect-pkce').addEventListener('click', async () => {
-  const clientId = localStorage.getItem('wcl_client_id');
-  if (!clientId) { log('ERROR: save a Client ID first.'); return; }
+document.getElementById("connect-pkce").addEventListener("click", async () => {
+  const clientId = localStorage.getItem("wcl_client_id");
+  if (!clientId) {
+    log("ERROR: save a Client ID first.");
+    return;
+  }
 
   const verifier = generateRandomString(64);
   const state = generateRandomString(32);
   const challenge = await generateCodeChallenge(verifier);
-  sessionStorage.setItem('pkce_verifier', verifier);
-  sessionStorage.setItem('pkce_state', state);
+  sessionStorage.setItem("pkce_verifier", verifier);
+  sessionStorage.setItem("pkce_state", state);
 
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri(),
-    response_type: 'code',
+    response_type: "code",
     code_challenge: challenge,
-    code_challenge_method: 'S256',
+    code_challenge_method: "S256",
     state,
   });
-  const url = AUTHORIZE_URL + '?' + params.toString();
-  log('Redirecting to: ' + url);
+  const url = AUTHORIZE_URL + "?" + params.toString();
+  log("Redirecting to: " + url);
   window.location.href = url;
 });
 ```
@@ -203,6 +249,7 @@ git push
 - [ ] **Step 3: Verify live**
 
 Visit `https://branneman.github.io/bloomwatch/`, confirm your Client ID is still saved (from Task 1), then click "Connect (PKCE)". Expected:
+
 - The log panel briefly shows a line starting `Redirecting to: https://www.warcraftlogs.com/oauth/authorize?client_id=...&redirect_uri=https%3A%2F%2Fbranneman.github.io%2Fbloomwatch%2F&response_type=code&code_challenge=...&code_challenge_method=S256&state=...` before navigation happens.
 - The browser navigates to a `warcraftlogs.com` login/consent screen (or straight to consent if already logged in).
 - **Do not approve yet** — this task only proves the redirect is well-formed. If the browser lands on a WCL "invalid redirect_uri" or "invalid client" error page instead, stop and recheck the Client ID and the exact registered redirect URL from Task 1.
@@ -212,9 +259,11 @@ Visit `https://branneman.github.io/bloomwatch/`, confirm your Client ID is still
 ### Task 3: OAuth callback handling and token exchange
 
 **Files:**
+
 - Modify: `index.html`
 
 **Interfaces:**
+
 - Consumes: `log(msg)`, `redirectUri()`, `localStorage.wcl_client_id`, `sessionStorage.pkce_verifier`, `sessionStorage.pkce_state` (Task 2).
 - Produces: `sessionStorage` keys `access_token`, `token_source` (`'pkce'`); constant `TOKEN_URL`; function `handleCallback()`, invoked immediately on page load.
 
@@ -224,31 +273,33 @@ Add to the `<script>` block, after the PKCE connect handler from Task 2:
 
 ```javascript
 // --- OAuth callback handling ---
-const TOKEN_URL = 'https://www.warcraftlogs.com/oauth/token';
+const TOKEN_URL = "https://www.warcraftlogs.com/oauth/token";
 
 async function handleCallback() {
   const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const state = params.get('state');
+  const code = params.get("code");
+  const state = params.get("state");
   if (!code) return;
 
-  const expectedState = sessionStorage.getItem('pkce_state');
-  const verifier = sessionStorage.getItem('pkce_verifier');
-  history.replaceState({}, '', window.location.pathname);
+  const expectedState = sessionStorage.getItem("pkce_state");
+  const verifier = sessionStorage.getItem("pkce_verifier");
+  history.replaceState({}, "", window.location.pathname);
 
   if (state !== expectedState) {
-    log('ERROR: state mismatch.\nExpected: ' + expectedState + '\nGot: ' + state);
+    log(
+      "ERROR: state mismatch.\nExpected: " + expectedState + "\nGot: " + state,
+    );
     return;
   }
 
-  const clientId = localStorage.getItem('wcl_client_id');
-  log('Exchanging code for token (PKCE, no secret)...');
+  const clientId = localStorage.getItem("wcl_client_id");
+  log("Exchanging code for token (PKCE, no secret)...");
   try {
     const resp = await fetch(TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        grant_type: 'authorization_code',
+        grant_type: "authorization_code",
         client_id: clientId,
         redirect_uri: redirectUri(),
         code,
@@ -256,14 +307,14 @@ async function handleCallback() {
       }),
     });
     const bodyText = await resp.text();
-    log('Token endpoint responded ' + resp.status + ':\n' + bodyText);
+    log("Token endpoint responded " + resp.status + ":\n" + bodyText);
     if (!resp.ok) return;
     const data = JSON.parse(bodyText);
-    sessionStorage.setItem('access_token', data.access_token);
-    sessionStorage.setItem('token_source', 'pkce');
-    log('Access token acquired via PKCE.');
+    sessionStorage.setItem("access_token", data.access_token);
+    sessionStorage.setItem("token_source", "pkce");
+    log("Access token acquired via PKCE.");
   } catch (err) {
-    log('FETCH ERROR during token exchange (possibly CORS): ' + err.message);
+    log("FETCH ERROR during token exchange (possibly CORS): " + err.message);
   }
 }
 handleCallback();
@@ -294,9 +345,11 @@ Record which of these three happened — it's the finding for Task 7's documenta
 Skip this entire task if Task 3's PKCE flow succeeded.
 
 **Files:**
+
 - Modify: `index.html`
 
 **Interfaces:**
+
 - Consumes: `log(msg)`, `localStorage.wcl_client_id`, `localStorage.wcl_client_secret`, `TOKEN_URL` (Task 3).
 - Produces: `sessionStorage.access_token`, `sessionStorage.token_source` (`'client_credentials'`); DOM id `connect-cc`.
 
@@ -313,31 +366,37 @@ Add to the `<script>` block, after `handleCallback();`:
 
 ```javascript
 // --- Client Credentials fallback ---
-document.getElementById('connect-cc').addEventListener('click', async () => {
-  const clientId = localStorage.getItem('wcl_client_id');
-  const clientSecret = localStorage.getItem('wcl_client_secret');
-  if (!clientId || !clientSecret) { log('ERROR: save both Client ID and Client Secret first.'); return; }
+document.getElementById("connect-cc").addEventListener("click", async () => {
+  const clientId = localStorage.getItem("wcl_client_id");
+  const clientSecret = localStorage.getItem("wcl_client_secret");
+  if (!clientId || !clientSecret) {
+    log("ERROR: save both Client ID and Client Secret first.");
+    return;
+  }
 
-  log('Requesting token via client_credentials...');
+  log("Requesting token via client_credentials...");
   try {
     const resp = await fetch(TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        grant_type: 'client_credentials',
+        grant_type: "client_credentials",
         client_id: clientId,
         client_secret: clientSecret,
       }),
     });
     const bodyText = await resp.text();
-    log('Token endpoint responded ' + resp.status + ':\n' + bodyText);
+    log("Token endpoint responded " + resp.status + ":\n" + bodyText);
     if (!resp.ok) return;
     const data = JSON.parse(bodyText);
-    sessionStorage.setItem('access_token', data.access_token);
-    sessionStorage.setItem('token_source', 'client_credentials');
-    log('Access token acquired via client_credentials.');
+    sessionStorage.setItem("access_token", data.access_token);
+    sessionStorage.setItem("token_source", "client_credentials");
+    log("Access token acquired via client_credentials.");
   } catch (err) {
-    log('FETCH ERROR during client_credentials request (possibly CORS): ' + err.message);
+    log(
+      "FETCH ERROR during client_credentials request (possibly CORS): " +
+        err.message,
+    );
   }
 });
 ```
@@ -361,9 +420,11 @@ If this also fails (CORS or otherwise), note it — per the spec, step 3 (manual
 ### Task 5: Fetch report fight list (GraphQL Query 1 — required)
 
 **Files:**
+
 - Modify: `index.html`
 
 **Interfaces:**
+
 - Consumes: `log(msg)`, `sessionStorage.access_token`, `sessionStorage.token_source` (Task 3 or 4).
 - Produces: async function `graphql(query)` returning parsed JSON or `null`; constants `USER_API_URL`, `CLIENT_API_URL`, `REPORT_CODE`; DOM id `fetch-report`.
 
@@ -380,37 +441,41 @@ Add to the `<script>` block, after the Client Credentials handler (or after `han
 
 ```javascript
 // --- GraphQL helper ---
-const USER_API_URL = 'https://www.warcraftlogs.com/api/v2/user';
-const CLIENT_API_URL = 'https://www.warcraftlogs.com/api/v2/client';
-const REPORT_CODE = '4GYHZRdtL3bvhpc8';
+const USER_API_URL = "https://www.warcraftlogs.com/api/v2/user";
+const CLIENT_API_URL = "https://www.warcraftlogs.com/api/v2/client";
+const REPORT_CODE = "4GYHZRdtL3bvhpc8";
 
 async function graphql(query) {
-  const token = sessionStorage.getItem('access_token');
-  const source = sessionStorage.getItem('token_source');
-  if (!token) { log('ERROR: no access token yet. Connect first.'); return null; }
+  const token = sessionStorage.getItem("access_token");
+  const source = sessionStorage.getItem("token_source");
+  if (!token) {
+    log("ERROR: no access token yet. Connect first.");
+    return null;
+  }
 
-  const endpoint = source === 'client_credentials' ? CLIENT_API_URL : USER_API_URL;
+  const endpoint =
+    source === "client_credentials" ? CLIENT_API_URL : USER_API_URL;
   try {
     const resp = await fetch(endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + token,
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
       },
       body: JSON.stringify({ query }),
     });
     const bodyText = await resp.text();
-    log(endpoint + ' responded ' + resp.status + ':\n' + bodyText);
+    log(endpoint + " responded " + resp.status + ":\n" + bodyText);
     if (!resp.ok) return null;
     return JSON.parse(bodyText);
   } catch (err) {
-    log('FETCH ERROR calling ' + endpoint + ' (possibly CORS): ' + err.message);
+    log("FETCH ERROR calling " + endpoint + " (possibly CORS): " + err.message);
     return null;
   }
 }
 
 // --- Query 1: report fight list ---
-document.getElementById('fetch-report').addEventListener('click', () => {
+document.getElementById("fetch-report").addEventListener("click", () => {
   graphql(`query {
   reportData {
     report(code: "${REPORT_CODE}") {
@@ -441,9 +506,11 @@ If the response is `200` with `"report": null`, the report code didn't resolve a
 ### Task 6: Fetch Dassz's cast events (GraphQL Query 2 — stretch)
 
 **Files:**
+
 - Modify: `index.html`
 
 **Interfaces:**
+
 - Consumes: `graphql(query)`, `log(msg)`, `REPORT_CODE` (Task 5).
 - Produces: DOM id `fetch-casts`.
 
@@ -460,7 +527,7 @@ Add to the `<script>` block, after the Task 5 `fetch-report` handler:
 
 ```javascript
 // --- Query 2 (stretch): Dassz cast events ---
-document.getElementById('fetch-casts').addEventListener('click', async () => {
+document.getElementById("fetch-casts").addEventListener("click", async () => {
   const actorsResult = await graphql(`query {
   reportData {
     report(code: "${REPORT_CODE}") {
@@ -471,9 +538,15 @@ document.getElementById('fetch-casts').addEventListener('click', async () => {
   if (!actorsResult) return;
 
   const actors = actorsResult.data.reportData.report.masterData.actors;
-  const dassz = actors.find(a => a.name === 'Dassz');
-  if (!dassz) { log('ERROR: no actor named Dassz in this report.\nActors: ' + JSON.stringify(actors)); return; }
-  log('Found Dassz: actor id ' + dassz.id);
+  const dassz = actors.find((a) => a.name === "Dassz");
+  if (!dassz) {
+    log(
+      "ERROR: no actor named Dassz in this report.\nActors: " +
+        JSON.stringify(actors),
+    );
+    return;
+  }
+  log("Found Dassz: actor id " + dassz.id);
 
   const fightsResult = await graphql(`query {
   reportData {
@@ -485,7 +558,7 @@ document.getElementById('fetch-casts').addEventListener('click', async () => {
   if (!fightsResult) return;
   const fights = fightsResult.data.reportData.report.fights;
   const firstFight = fights[0];
-  log('Using first fight: ' + firstFight.name + ' (id ' + firstFight.id + ')');
+  log("Using first fight: " + firstFight.name + " (id " + firstFight.id + ")");
 
   const eventsResult = await graphql(`query {
   reportData {
@@ -498,7 +571,12 @@ document.getElementById('fetch-casts').addEventListener('click', async () => {
 }`);
   if (!eventsResult) return;
   const events = eventsResult.data.reportData.report.events.data;
-  log('Cast events for Dassz in ' + firstFight.name + ':\n' + JSON.stringify(events, null, 2));
+  log(
+    "Cast events for Dassz in " +
+      firstFight.name +
+      ":\n" +
+      JSON.stringify(events, null, 2),
+  );
 });
 ```
 
@@ -521,10 +599,12 @@ This is a stretch goal per the spec — if `actors` doesn't contain "Dassz" (e.g
 ### Task 7: Documentation deliverables
 
 **Files:**
+
 - Modify: `docs/roadmap.md` (Architecture snapshot section)
 - Create: `docs/wcl-auth.md`
 
 **Interfaces:**
+
 - Consumes: the live findings recorded during Tasks 3, 4 (if run), and 5 — which auth flow succeeded, which API host resolved the report, whether the stretch goal worked.
 
 - [ ] **Step 1: Update `docs/roadmap.md`'s Architecture snapshot**
@@ -560,7 +640,7 @@ with:
 
 Write the file with this structure, filling in the bracketed parts with what actually happened during Tasks 1-6:
 
-```markdown
+````markdown
 # WCL API Auth — How To
 
 Findings from the Phase 0 spike (backlog story 001, `docs/specs/wcl-auth-spike-design.md`). Reference implementation: `index.html` at the repo root.
@@ -586,9 +666,9 @@ grant_type=authorization_code&client_id=...&redirect_uri=...&code=...&code_verif
 ​```
 
 Response:
-​```json
+​`json
 { "token_type": "Bearer", "expires_in": ..., "access_token": "REDACTED", "refresh_token": "REDACTED" }
-​```
+​`
 
 ## Flows that were tried and didn't work
 
@@ -602,15 +682,15 @@ Confirmed working endpoint: `https://www.warcraftlogs.com/api/v2/[user|client]` 
 
 Not needed for this spike — [PKCE | Client Credentials] worked from the browser. If a future environment can't complete either OAuth flow, a token can still be obtained manually:
 
-​```bash
+​`bash
 curl -X POST https://www.warcraftlogs.com/oauth/token \
   -d grant_type=client_credentials \
   -d client_id=YOUR_CLIENT_ID \
   -d client_secret=YOUR_CLIENT_SECRET
-​```
+​`
 
 Paste the resulting `access_token` into the app's token field (not implemented as UI in this spike — see `docs/specs/wcl-auth-spike-design.md`).
-```
+````
 
 - [ ] **Step 3: Commit and push**
 

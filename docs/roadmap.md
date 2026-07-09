@@ -1,12 +1,12 @@
 # Bloomwatch — Roadmap
 
-*Keep your Lifeblooms rolling. A process-quality analyzer for TBC Resto Druids, built on Warcraft Logs.*
+_Keep your Lifeblooms rolling. A process-quality analyzer for TBC Resto Druids, built on Warcraft Logs._
 
 ## Vision
 
 Healing parses are structurally broken: healing is zero-sum, so effective-healing rankings measure your co-healers' behaviour as much as your own. This tool takes the opposite approach — it measures **process, not output**. Inputs are not zero-sum: nobody can steal your GCD utilization, your Lifebloom refresh cadence, or your mana-potion cooldown usage.
 
-You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8`), pick a boss fight — or a whole raid zone like SSC — and get a scorecard: every metric turned into a number with a red / orange / green judgement, so a resto druid can answer *"did I play well?"* independent of the healing meter.
+You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8`), pick a boss fight — or a whole raid zone like SSC — and get a scorecard: every metric turned into a number with a red / orange / green judgement, so a resto druid can answer _"did I play well?"_ independent of the healing meter.
 
 ## Who is this for
 
@@ -33,13 +33,15 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 
 ## Roadmap
 
-### Phase 0 — Spike: prove the pipeline *(de-risk before building anything)*
+### Phase 0 — Spike: prove the pipeline _(de-risk before building anything)_
+
 - Confirm a backend-less auth path to WCL API v2.
 - Confirm fresh-realm report codes resolve via the API.
 - Fetch one report's fight list and one fight's cast events in the browser.
 - **Exit criterion:** a hardcoded HTML page that prints the cast timeline of one druid in one fight, hosted on GitHub Pages.
 
 ### Phase 1 — MVP: the two highest-signal metric groups
+
 - URL input → report parsing → fight picker → druid picker.
 - **GCD economy:** active time, GCD utilization, idle-gap detection.
 - **Lifebloom discipline:** LB3 uptime per target, refresh cadence, accidental blooms, re-stack tax, concurrent targets.
@@ -47,20 +49,24 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 - **Exit criterion:** paste link → pick fight → get a judged scorecard for groups 1–2.
 
 ### Phase 2 — Mana economy & spell discipline
+
 - Mana curve, ending mana, potion/rune counts vs. expected floor, Innervate audit.
 - Per-spell overheal with HoT-aware thresholds.
 - Rejuv/Regrowth clip detection, Swiftmend quality audit, downranking check.
 
 ### Phase 3 — Death forensics & prep hygiene
+
 - Per-death audit: LB3 rolling? Swiftmend / Nature's Swiftness available but unused?
 - Pull-time consumables check (elixirs/flask, food, weapon oil).
 
 ### Phase 4 — Raid-wide reporting
+
 - Zone selection (e.g. "all SSC bosses in this report") with per-metric aggregation and per-boss drill-down.
 - Trend view across fights within one report.
 - Shareable report state via URL params; export to Markdown.
 
 ### Phase 5 — Polish & calibration
+
 - User-configurable thresholds with sane defaults; threshold presets per raid tier (fight length and tank count differ between Kara/Gruul and BT/SWP).
 - Multi-druid comparison within one report.
 - Calibrate default thresholds against a corpus of well-regarded druid logs.
@@ -68,19 +74,19 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 ## Explicitly out of scope
 
 - Positioning / mechanics ("don't stand in fire").
-- Judging *who* should have been healed (target selection, assignments).
+- Judging _who_ should have been healed (target selection, assignments).
 - Other classes and specs (until the framework is proven).
 - Any server-side component.
 - Other WoW versions, expansions, or realm types — Vanilla/Wrath/Cataclysm Classic, Season of Discovery, retail, and non-Anniversary ("progression") TBC realms. TBC Anniversary ("fresh") realms only.
 
 ## Key risks
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| WCL auth impossible without a backend | Fatal to "no backend" principle | Phase 0 spike before any feature work; fallback = paste-a-token UX |
-| WCL API rate limits on event streams | Slow zone-wide reports, or the shared default Client ID's budget exhausted under load | Per-fight lazy loading + in-memory caching; request only needed event types; default Client ID with graceful fallback to a user-supplied one when the shared budget is hit (008) |
-| Threshold defaults wrong → tool loses trust | Users dismiss judgements | Thresholds visible, sourced, configurable; calibration pass in Phase 5 |
-| Fresh-realm API quirks | Blocks primary audience | Verified in Phase 0 with a real fresh report |
+| Risk                                        | Impact                                                                                | Mitigation                                                                                                                                                                       |
+| ------------------------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WCL auth impossible without a backend       | Fatal to "no backend" principle                                                       | Phase 0 spike before any feature work; fallback = paste-a-token UX                                                                                                               |
+| WCL API rate limits on event streams        | Slow zone-wide reports, or the shared default Client ID's budget exhausted under load | Per-fight lazy loading + in-memory caching; request only needed event types; default Client ID with graceful fallback to a user-supplied one when the shared budget is hit (008) |
+| Threshold defaults wrong → tool loses trust | Users dismiss judgements                                                              | Thresholds visible, sourced, configurable; calibration pass in Phase 5                                                                                                           |
+| Fresh-realm API quirks                      | Blocks primary audience                                                               | Verified in Phase 0 with a real fresh report                                                                                                                                     |
 
 ## Success criteria
 

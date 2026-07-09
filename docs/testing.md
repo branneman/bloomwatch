@@ -34,6 +34,7 @@ Tests must test real behavior. A test that can't be wrong (e.g. asserting only t
 **Runs on the whole project, not just changed files** — both in the pre-commit hook and in CI. This is deliberate: LLM-authored changes have a habit of leaving unrelated files unformatted or not touching files they should have, and a partial (staged-files-only) check would miss that. `format:check` and `lint` always scan every file Prettier/ESLint are configured to cover (all supported filetypes, respecting `.gitignore`), not a git diff.
 
 **Local:**
+
 ```
 npm run typecheck
 npm run lint
@@ -97,12 +98,12 @@ One CI secret: `WCL_TEST_ACCESS_TOKEN` — a bearer access token for a dedicated
 
 ## CI triggers summary
 
-| Tier | When it runs |
-|---|---|
-| 0 (static analysis) | Every commit (pre-commit hook) and every push (CI) |
-| 1-3 (unit/integration/component) | Every push to `main` |
-| 4 (contract) | Manual only (`workflow_dispatch` / local) |
-| 5 (E2E smoke) | After every deploy to `main` |
+| Tier                             | When it runs                                       |
+| -------------------------------- | -------------------------------------------------- |
+| 0 (static analysis)              | Every commit (pre-commit hook) and every push (CI) |
+| 1-3 (unit/integration/component) | Every push to `main`                               |
+| 4 (contract)                     | Manual only (`workflow_dispatch` / local)          |
+| 5 (E2E smoke)                    | After every deploy to `main`                       |
 
 ## Running everything locally
 

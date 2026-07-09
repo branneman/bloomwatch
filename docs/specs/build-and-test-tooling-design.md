@@ -73,6 +73,7 @@ No secrets are required for steps 1-5 — a normal clone/fork builds and deploys
 Adapted from `https://github.com/branneman/health/blob/main/docs/testing-manifesto.md`, whose core principles carry over unchanged: tests must exercise real behavior (no `assertTrue(true)`-style noise), and each tier is used only when a lower tier's tools can't catch the failure. The concrete tiers are reshaped for a backend-less, browser-only app with one external dependency (WCL's real API) instead of a self-hosted server + database + Android client.
 
 ### Tier 0 — Static analysis
+
 **Charter:** catch syntax, type, and style errors before any behavioral test runs — the cheapest possible tier, and a different class of issue than Tier 1+.
 
 - `tsc --noEmit`.
@@ -82,6 +83,7 @@ Adapted from `https://github.com/branneman/health/blob/main/docs/testing-manifes
 Runs full-project (not diff-scoped) in both the pre-commit hook and CI — see the Pre-commit hook subsection below.
 
 ### Tier 1 — Unit tests
+
 **Charter:** pure logic, no I/O, no DOM. The majority of tests, and the first thing written for any new logic.
 
 Covers: metric-calculation modules as later stories build them (GCD utilization, LB3 uptime, idle-gap detection, mana curve, R/O/G threshold judging), report URL/code parsing (002), ability-ID resolution (007), and PKCE crypto helpers (`generateCodeChallenge`, `base64urlEncode`). Boundary-crossing dependencies (e.g. `crypto.getRandomValues`) are replaced with real, minimal fake implementations — not mocking-framework mocks — mirroring the manifesto's `Clock.fixed()` pattern.
@@ -89,26 +91,30 @@ Covers: metric-calculation modules as later stories build them (GCD utilization,
 Tooling: Vitest, co-located as `*.test.ts` next to the file under test.
 
 ### Tier 2 — WCL client integration tests
+
 **Charter:** the real WCL client module (query building, response parsing, pagination, error/rate-limit handling, `/user` vs `/client` endpoint selection) exercised against a mocked WCL API, using real captured response bodies. This is the analog of the manifesto's server-integration tier — except the "real server" being integrated against is WCL's, not ours, so it's mocked at the HTTP layer instead of run locally.
 
 Tooling: Vitest + MSW (Mock Service Worker), intercepting `fetch()`. Fixtures are real JSON payloads captured during story 001's live testing (fight list, actor list, cast events for report `4GYHZRdtL3bvhpc8`), stored in `test/integration/fixtures/*.json` — not hand-built synthetic data, since the point is verifying our parsing against WCL's actual shape.
 
 ### Tier 3 — Component tests
+
 **Charter:** React components in isolation — fight picker, druid picker, scorecard cards, the threshold editor (802) — rendered in a real DOM (jsdom), exercising primary interactions with fake data injected as props. Behavior-focused assertions (what a user sees and can interact with), not pixel/screenshot tests. Direct web equivalent of the manifesto's Robolectric+Compose tier.
 
 Tooling: Vitest + React Testing Library, co-located as `*.test.tsx` next to the component.
 
 ### Tier 4 — Contract tests
-**Charter:** the real, live WCL API, called from Node over HTTP, using a dedicated test account and a fixed real report code (`4GYHZRdtL3bvhpc8`). Analogous to the manifesto's API-test tier ("prove the deployment is correct, not just the code") — except there's no deployment of ours to verify; the thing this catches is *drift in an external dependency we don't control*: WCL changing response shapes, deprecating fields, or the fixed report becoming unavailable.
+
+**Charter:** the real, live WCL API, called from Node over HTTP, using a dedicated test account and a fixed real report code (`4GYHZRdtL3bvhpc8`). Analogous to the manifesto's API-test tier ("prove the deployment is correct, not just the code") — except there's no deployment of ours to verify; the thing this catches is _drift in an external dependency we don't control_: WCL changing response shapes, deprecating fields, or the fixed report becoming unavailable.
 
 Auth: the dedicated test WCL account logs in once via PKCE, manually, using its **own separate Public Client ID** (registered alongside the production default client from story 008, never the same one) — this keeps contract-test traffic fully isolated from real users' shared rate-limit budget, since WCL's rate limits are scoped per-client. The resulting long-lived access token (~360 days per empirical measurement in story 001) is stored as a CI secret (`WCL_TEST_ACCESS_TOKEN`) and used directly as a Bearer token in test requests. Not a client secret — the Public Client / PKCE-only model is unchanged; this is one dedicated low-privilege test account's bearer credential, same pattern as the manifesto's `test+api@bran.name`.
 
 Tooling: Vitest, `test/contract/`. Trigger: `workflow_dispatch` only, or local `npm run test:contract` — see CI/CD section above.
 
 ### Tier 5 — E2E smoke tests
+
 **Charter:** the real deployed site, in a real browser, exercising exactly one core user journey: paste report URL → pick fight → pick druid → see a rendered scorecard with real numbers. Deliberately small, per the manifesto's own tier charter — edge cases belong in lower tiers.
 
-Auth: reuses the same dedicated test account's `WCL_TEST_ACCESS_TOKEN`, injected directly into the browser's `sessionStorage` before the app loads (via Playwright's init-script mechanism), skipping the interactive OAuth consent click-through. That flow was already proven live in story 001, and re-driving a third party's login UI on every run would be fragile in a way unrelated to our own code — this tier tests *our* app's journey, trusting WCL's login page works.
+Auth: reuses the same dedicated test account's `WCL_TEST_ACCESS_TOKEN`, injected directly into the browser's `sessionStorage` before the app loads (via Playwright's init-script mechanism), skipping the interactive OAuth consent click-through. That flow was already proven live in story 001, and re-driving a third party's login UI on every run would be fragile in a way unrelated to our own code — this tier tests _our_ app's journey, trusting WCL's login page works.
 
 Tooling: Playwright, `test/e2e/`. Target configured via `PLAYWRIGHT_BASE_URL` (defaults to `http://localhost:5173`, the Vite dev server, if unset; CI's post-deploy job sets it to the live Pages URL). Locally, a developer copies `WCL_TEST_ACCESS_TOKEN` into a gitignored `.env.local` once to run E2E against their own dev server without an interactive login. Trigger: automatically after every deploy (tied to real push activity, not a calendar).
 

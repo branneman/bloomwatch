@@ -16,6 +16,7 @@ Findings from the Phase 0 spike (backlog story 001, `docs/specs/wcl-auth-spike-d
 Authorization Code + PKCE succeeded on the first attempt, no client secret required.
 
 Request:
+
 ```
 POST https://www.warcraftlogs.com/oauth/token
 Content-Type: application/x-www-form-urlencoded
@@ -24,8 +25,14 @@ grant_type=authorization_code&client_id=...&redirect_uri=https://branneman.githu
 ```
 
 Response:
+
 ```json
-{"token_type":"Bearer","expires_in":31104000,"access_token":"REDACTED","refresh_token":"REDACTED"}
+{
+  "token_type": "Bearer",
+  "expires_in": 31104000,
+  "access_token": "REDACTED",
+  "refresh_token": "REDACTED"
+}
 ```
 
 ## Flows that were tried and didn't work
