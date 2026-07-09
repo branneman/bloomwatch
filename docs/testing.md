@@ -17,7 +17,7 @@ Tests must test real behavior. A test that can't be wrong (e.g. asserting only t
 [Tier 1]  Unit                    ← pure logic, co-located, the majority of tests
 [Tier 2]  WCL client integration  ← mocked WCL API (MSW), real captured fixtures
 [Tier 3]  Component               ← React Testing Library, co-located
-[Tier 4]  Contract                ← real WCL API, dedicated test account, manual trigger only
+[Tier 4]  Contract                ← real WCL API, dedicated test Client ID, manual trigger only
 [Tier 5]  E2E smoke               ← Playwright, real deployed site, one golden path
 ```
 
@@ -68,9 +68,9 @@ Covers: metric-calculation modules (GCD utilization, LB3 uptime, idle-gap detect
 
 ## Tier 4 — Contract tests
 
-**Charter:** the real, live WCL API, called from Node over HTTP, using a dedicated test account and the fixed real report code `4GYHZRdtL3bvhpc8`. Catches drift in an external dependency we don't control — WCL changing response shapes, deprecating fields, or the fixed report becoming unavailable.
+**Charter:** the real, live WCL API, called from Node over HTTP, using a dedicated test Client ID and the fixed real report code `4GYHZRdtL3bvhpc8`. Catches drift in an external dependency we don't control — WCL changing response shapes, deprecating fields, or the fixed report becoming unavailable.
 
-**Auth:** the dedicated test WCL account logs in once via PKCE, manually, using its own separate Public Client ID (never the production default client from story 008) — this isolates contract-test traffic from real users' shared rate-limit budget entirely, since WCL's rate limits are scoped per-client. The resulting long-lived access token (~360 days, measured empirically in story 001) is stored as the CI secret `WCL_TEST_ACCESS_TOKEN` and sent directly as a Bearer token. Not a client secret — the Public Client / PKCE-only model is unchanged.
+**Auth:** log in once via PKCE, manually, using a separate test-only Public Client ID (never the production default client from story 008) — this isolates contract-test traffic from real users' shared rate-limit budget entirely, since WCL's rate limits are scoped per-client, not per-account. (A fully separate _account_ was the original plan, but WCL requires a linked Battle.net account per WCL account, and one Battle.net account can't link to more than one — so in practice this uses the same WCL account as normal manual testing, just a distinct Client ID. The rate-limit isolation this tier actually needs comes from the Client ID being separate, not the account.) The resulting long-lived access token (~360 days, measured empirically in story 001) is stored as the CI secret `WCL_TEST_ACCESS_TOKEN` and sent directly as a Bearer token. Not a client secret — the Public Client / PKCE-only model is unchanged.
 
 **Tooling:** Vitest, `test/contract/`. **Trigger: manual only** (`workflow_dispatch` in CI, or `npm run test:contract` locally) — deliberately no cron. This is a tool reached for before a release or when investigating a suspected WCL API change, not a background watcher; the project may quietly stop mattering after TBC Anniversary ends, and an eternal scheduled failure notification about that isn't wanted.
 
@@ -94,7 +94,7 @@ Covers: metric-calculation modules (GCD utilization, LB3 uptime, idle-gap detect
 
 ## Secrets & credentials
 
-One CI secret: `WCL_TEST_ACCESS_TOKEN` — a bearer access token for a dedicated test WCL account, obtained once via PKCE against a separate test-only Public Client ID. Requires manual refresh roughly yearly. No client secret is introduced anywhere; the product's own build/deploy path requires zero secrets (principle 2).
+One CI secret: `WCL_TEST_ACCESS_TOKEN` — a bearer access token obtained once via PKCE against a separate test-only Public Client ID (see the Tier 4 note above on why this is a dedicated Client ID rather than a fully separate account). Requires manual refresh roughly yearly. No client secret is introduced anywhere; the product's own build/deploy path requires zero secrets (principle 2).
 
 ## CI triggers summary
 
