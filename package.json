@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "preview": "vite preview",
     "test": "vitest run --exclude test/contract/**",
+    "test:contract": "vitest run test/contract",
     "typecheck": "tsc -b",
     "prepare": "husky"
   },
@@ -26,6 +27,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "dotenv": "^17.4.2",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
