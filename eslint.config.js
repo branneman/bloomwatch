@@ -13,6 +13,8 @@ export default tseslint.config(
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
+      // eslint-plugin-react-hooks 7.x moved its flat-config exports under `.flat` —
+      // `configs['recommended-latest']` is the legacy eslintrc shape and crashes here.
       reactHooks.configs.flat["recommended-latest"],
       reactRefresh.configs.vite,
     ],

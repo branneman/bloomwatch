@@ -658,17 +658,19 @@ Findings from the Phase 0 spike (backlog story 001, `docs/specs/wcl-auth-spike-d
 [State which flow worked: PKCE, or Client Credentials. Include the exact token endpoint (`https://www.warcraftlogs.com/oauth/token`), the exact request body fields sent, and a redacted example response, e.g.:]
 
 Request:
-​```
+
+```
 POST https://www.warcraftlogs.com/oauth/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=authorization_code&client_id=...&redirect_uri=...&code=...&code_verifier=...
-​```
+```
 
 Response:
-​`json
+
+```json
 { "token_type": "Bearer", "expires_in": ..., "access_token": "REDACTED", "refresh_token": "REDACTED" }
-​`
+```
 
 ## Flows that were tried and didn't work
 
@@ -682,12 +684,12 @@ Confirmed working endpoint: `https://www.warcraftlogs.com/api/v2/[user|client]` 
 
 Not needed for this spike — [PKCE | Client Credentials] worked from the browser. If a future environment can't complete either OAuth flow, a token can still be obtained manually:
 
-​`bash
+```bash
 curl -X POST https://www.warcraftlogs.com/oauth/token \
   -d grant_type=client_credentials \
   -d client_id=YOUR_CLIENT_ID \
   -d client_secret=YOUR_CLIENT_SECRET
-​`
+```
 
 Paste the resulting `access_token` into the app's token field (not implemented as UI in this spike — see `docs/specs/wcl-auth-spike-design.md`).
 ````
