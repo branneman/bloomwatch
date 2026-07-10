@@ -5,11 +5,13 @@ import {
   fetchCastsTable,
   type ReportFights,
 } from "./wcl/client";
+import { createEventFetcher } from "./wcl/eventCache";
 import { ConnectPanel } from "./app/components/ConnectPanel";
 import { ReportInput, type ParsedReport } from "./app/components/ReportInput";
 import { FightPicker } from "./app/components/FightPicker";
 import { DruidDetector } from "./app/components/DruidDetector";
 import { DruidPicker } from "./app/components/DruidPicker";
+import { GCDUtilizationCard } from "./app/components/GCDUtilizationCard";
 import type { DruidCandidate } from "./report/druidDetection";
 
 function App() {
@@ -17,11 +19,12 @@ function App() {
     useWclAuth();
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
-  const [, setSelectedFightIds] = useState<number[]>([]);
+  const [selectedFightIds, setSelectedFightIds] = useState<number[]>([]);
   const [druidCandidates, setDruidCandidates] = useState<
     DruidCandidate[] | null
   >(null);
-  const [, setSelectedDruidId] = useState<number | null>(null);
+  const [selectedDruidId, setSelectedDruidId] = useState<number | null>(null);
+  const [eventFetcher] = useState(() => createEventFetcher());
 
   function handleReportSubmit(parsed: ParsedReport) {
     setReport(parsed);
@@ -71,6 +74,26 @@ function App() {
           onSelect={setSelectedDruidId}
         />
       )}
+      {accessToken &&
+        report &&
+        loadedReport &&
+        selectedDruidId !== null &&
+        selectedFightIds.length > 0 && (
+          <div>
+            {loadedReport.fights
+              .filter((f) => selectedFightIds.includes(f.id))
+              .map((f) => (
+                <GCDUtilizationCard
+                  key={f.id}
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fight={f}
+                  druidId={selectedDruidId}
+                  fetchEvents={eventFetcher.fetchEvents}
+                />
+              ))}
+          </div>
+        )}
     </div>
   );
 }
