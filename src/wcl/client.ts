@@ -82,3 +82,67 @@ export async function fetchReportFights(
   const parsed = JSON.parse(bodyText);
   return parsed.data.reportData.report;
 }
+
+export interface CastTableAbility {
+  name: string;
+  total: number;
+}
+
+export interface CastTableEntry {
+  id: number;
+  name: string;
+  type: string;
+  icon: string;
+  abilities: CastTableAbility[];
+}
+
+export async function fetchCastsTable(
+  accessToken: string,
+  reportCode: string,
+  fightIds: number[],
+): Promise<CastTableEntry[]> {
+  const resp = await fetch(USER_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      query: `query {
+  reportData {
+    report(code: "${reportCode}") {
+      table(fightIDs: [${fightIds.join(", ")}], dataType: Casts)
+    }
+  }
+}`,
+    }),
+  });
+  const bodyText = await resp.text();
+  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
+  const parsed = JSON.parse(bodyText);
+  const entries = parsed.data.reportData.report.table.data.entries;
+  return entries.map(
+    (entry: {
+      id: number;
+      name: string;
+      type: string;
+      icon: string;
+      abilities: Array<{
+        name: string;
+        total: number;
+        guid?: unknown;
+        type?: unknown;
+        icon?: unknown;
+      }>;
+    }): CastTableEntry => ({
+      id: entry.id,
+      name: entry.name,
+      type: entry.type,
+      icon: entry.icon,
+      abilities: entry.abilities.map((ability) => ({
+        name: ability.name,
+        total: ability.total,
+      })),
+    }),
+  );
+}

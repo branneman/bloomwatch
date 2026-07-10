@@ -4,12 +4,14 @@ import { http, HttpResponse } from "msw";
 import {
   exchangeCodeForToken,
   fetchReportFights,
+  fetchCastsTable,
   WclApiError,
   TOKEN_URL,
   USER_API_URL,
 } from "../../src/wcl/client";
 import tokenResponseFixture from "./fixtures/token-response.json";
 import reportFightsFixture from "./fixtures/report-fights.json";
+import castsTableFixture from "./fixtures/casts-table.json";
 
 const server = setupServer();
 
@@ -94,5 +96,44 @@ describe("fetchReportFights", () => {
     expect(requestBody?.query).toContain("kill");
     expect(requestBody?.query).toContain("bossPercentage");
     expect(requestBody?.query).toContain("gameZone");
+  });
+});
+
+describe("fetchCastsTable", () => {
+  it("parses actor cast breakdowns from a real captured response shape", async () => {
+    server.use(
+      http.post(USER_API_URL, () => HttpResponse.json(castsTableFixture)),
+    );
+    const result = await fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6]);
+    expect(result).toHaveLength(5);
+    const dassz = result.find((e) => e.name === "Dassz");
+    expect(dassz).toEqual({
+      id: 2,
+      name: "Dassz",
+      type: "Druid",
+      icon: "Druid-Restoration",
+      abilities: [
+        { name: "Lifebloom", total: 33 },
+        { name: "Rejuvenation", total: 16 },
+        { name: "Regrowth", total: 6 },
+        { name: "Rejuvenation", total: 3 },
+        { name: "Swiftmend", total: 2 },
+      ],
+    });
+  });
+
+  it("requests the table query with the given fight IDs", async () => {
+    let requestBody: { query: string } | undefined;
+    server.use(
+      http.post(USER_API_URL, async ({ request }) => {
+        requestBody = (await request.json()) as { query: string };
+        return HttpResponse.json(castsTableFixture);
+      }),
+    );
+
+    await fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6, 9]);
+
+    expect(requestBody?.query).toContain("dataType: Casts");
+    expect(requestBody?.query).toContain("fightIDs: [6, 9]");
   });
 });
