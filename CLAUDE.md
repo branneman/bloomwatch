@@ -25,6 +25,26 @@ Read both docs before starting substantial feature work — they define scope, t
 - Static analysis (typecheck, ESLint, Prettier) runs full-project — via a pre-commit hook and in CI, per `docs/testing.md` — not scoped to changed files only. Don't bypass the pre-commit hook.
 - **Merging branches: fast-forward only.** Never create a merge commit (`git merge --no-ff`, or a merge commit from a PR's "Merge" button). Integrate branches via rebase (`git rebase`) followed by a fast-forward merge (`git merge --ff-only`), or a rebase-and-merge / squash-and-merge on GitHub. Keeps history linear.
 
+## Running live WCL queries yourself
+
+If `.env.local` has `WCL_TEST_ACCESS_TOKEN` set (see `docs/testing.md`), you can call the real WCL API directly — no GraphQL client needed, it's plain HTTP+JSON:
+
+```bash
+set -a; source .env.local; set +a
+curl -s -X POST https://www.warcraftlogs.com/api/v2/user \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $WCL_TEST_ACCESS_TOKEN" \
+  -d '{"query":"query { reportData { report(code: \"4GYHZRdtL3bvhpc8\") { title fights { id name startTime endTime } } } }"}' \
+  -o /path/to/scratch/response.json
+```
+
+Use this to capture real Tier 2 fixtures (`test/integration/fixtures/*.json`) or spot-check a field's real shape/scale before writing code against an assumption. Keep the token out of logs and chat output:
+
+- Reference it only as `$WCL_TEST_ACCESS_TOKEN` in commands (never inline the literal value).
+- Never `cat`/`echo`/print `.env.local` or the token itself.
+- Redirect responses to a file (`-o`) rather than letting curl dump to stdout, especially if a header-echo flag (`-v`, `-i`) is ever added.
+- `.env.local` is gitignored — never `git add` it.
+
 ## Repo state
 
 Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`), story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`), story 002 (report URL/code input), and story 003 (fight list & selection) are complete and live. Phase 1 MVP work continues with backlog story 004 (zone-wide selection) next.
