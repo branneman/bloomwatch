@@ -126,7 +126,7 @@ I want to see my active time and a GCD-utilization percentage (time spent on GCD
 - R/O/G defaults: green ≥ 85 %, orange 70–85 %, red < 70 %.
 - The metric card explains the ceiling (~40 casts/min at 0 haste).
 
-### 102 — Idle-gap detection
+### 102 — Idle-gap detection ✅ Done
 
 I want a list of every gap > 1.7 s between my casts, with total dead time and the five longest gaps (timestamp + duration), so that I can find exactly where I froze.
 
