@@ -83,3 +83,54 @@ export function aBegincastEvent(overrides: Partial<WclEvent> = {}): WclEvent {
     ...overrides,
   };
 }
+
+export function anApplyBuffEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1880312,
+    type: "applybuff",
+    sourceID: 2,
+    targetID: 42,
+    abilityGameID: 33763,
+    fight: 6,
+    ...overrides,
+  };
+}
+
+export function anApplyBuffStackEvent(
+  overrides: Partial<WclEvent> = {},
+): WclEvent {
+  return {
+    timestamp: 1881811,
+    type: "applybuffstack",
+    sourceID: 2,
+    targetID: 42,
+    abilityGameID: 33763,
+    stack: 2,
+    fight: 6,
+    ...overrides,
+  };
+}
+
+export function aRefreshBuffEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1881811,
+    type: "refreshbuff",
+    sourceID: 2,
+    targetID: 42,
+    abilityGameID: 33763,
+    fight: 6,
+    ...overrides,
+  };
+}
+
+export function aRemoveBuffEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1903349,
+    type: "removebuff",
+    sourceID: 2,
+    targetID: 42,
+    abilityGameID: 33763,
+    fight: 6,
+    ...overrides,
+  };
+}

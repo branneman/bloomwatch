@@ -9,6 +9,7 @@ export interface WclEvent {
   sourceID?: number;
   targetID?: number;
   abilityGameID?: number;
+  stack?: number;
   fight: number;
   [key: string]: unknown;
 }
