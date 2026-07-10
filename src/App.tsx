@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useWclAuth } from "./wcl/useWclAuth";
 import { fetchReportFights } from "./wcl/client";
 import { ConnectPanel } from "./app/components/ConnectPanel";
-
-const REPORT_CODE = "4GYHZRdtL3bvhpc8";
+import { ReportInput, type ParsedReport } from "./app/components/ReportInput";
 
 function App() {
   const { clientId, setClientId, connect, accessToken, authError } =
     useWclAuth();
+  // fightId is parsed now; story 003 (fight list & selection) will consume it
+  // to pre-select the linked fight once that picker exists.
+  const [report, setReport] = useState<ParsedReport | null>(null);
 
   return (
     <div>
@@ -17,11 +20,14 @@ function App() {
       </label>
       <button onClick={connect}>Connect</button>
       {authError && <p role="alert">{authError}</p>}
-      <ConnectPanel
-        accessToken={accessToken}
-        reportCode={REPORT_CODE}
-        fetchReportFights={fetchReportFights}
-      />
+      {accessToken && <ReportInput onSubmit={setReport} />}
+      {accessToken && report && (
+        <ConnectPanel
+          accessToken={accessToken}
+          reportCode={report.reportCode}
+          fetchReportFights={fetchReportFights}
+        />
+      )}
     </div>
   );
 }
