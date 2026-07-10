@@ -25,7 +25,7 @@ See [`docs/testing.md`](docs/testing.md) for the full test pyramid.
 
 ## Architecture
 
-- Static single-page app, deployable on GitHub Pages. No server, no database, no accounts.
+- Vite + React + TypeScript static single-page app, deployed to GitHub Pages via GitHub Actions. No server, no database, no accounts.
 - Data source: WCL API v2 (GraphQL), called client-side.
 - All analysis happens in the browser per fight.
 

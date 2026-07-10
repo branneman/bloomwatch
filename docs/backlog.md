@@ -10,12 +10,13 @@ Conventions used below:
 - "R/O/G" = red / orange / green judgement.
 - "Opener" = the first ~10 seconds of a pull (ramp-up window, excluded from steady-state metrics).
 - Spell IDs are _not_ hardcoded in stories; they must be resolved from the report's `masterData.abilities` at runtime (ranks matter in TBC — one spell name maps to multiple ability IDs).
+- Completed stories are marked `✅ Done` in the heading.
 
 ---
 
 ## Epic A — Foundation & data access
 
-### 001 — WCL API access spike
+### 001 — WCL API access spike ✅ Done
 
 As a developer, I want a proven, documented way to call the WCL v2 GraphQL API from a static GitHub Pages site, so that the entire no-backend architecture is validated before feature work starts.
 
@@ -323,7 +324,7 @@ I want to export the current scorecard as a Markdown file, so that I can paste i
 - Export includes numbers, judgements, thresholds used, report link, and generation date.
 - Output renders cleanly in Discord and GitHub.
 
-### 801 — Build & test tooling
+### 801 — Build & test tooling ✅ Done
 
 As a developer, I want a Vite + React + TypeScript project scaffold with a full test pyramid and automated CI/CD to GitHub Pages, so that the app has a maintainable foundation and every later story can be built and verified with confidence.
 

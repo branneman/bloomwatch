@@ -21,9 +21,9 @@ Read both docs before starting substantial feature work — they define scope, t
 - Backlog stories (`docs/backlog.md`) are the primary unit of work — one story is intended to be independently implementable in one session. When implementing a story, its acceptance criteria are the spec; don't add scope beyond them.
 - Spell/ability IDs must never be hardcoded — resolve them from the report's `masterData.abilities` at runtime (see backlog story 007). TBC has multiple ranks per spell.
 - No secrets should ever be required at build or deploy time (see story 801 / principle 2). If an auth approach needs a client secret, it does not meet the no-backend bar — flag it rather than working around it.
-- Design specs go in `docs/specs/<topic>-design.md`; implementation plans go in `docs/plans/<topic>-plan.md`. No `superpowers` subdirectory, no dates in filenames.
+- Design specs go in `docs/specs/<topic>-design.md`; implementation plans go in `docs/plans/<topic>-plan.md`. No `superpowers` subdirectory, no dates in filenames. Once a story ships and its lasting details (rationale, tooling, conventions) are captured in a permanent doc (`docs/testing.md`, `docs/wcl-auth.md`, etc.), the spec/plan can be deleted — grep the repo for the file path first to confirm nothing else references it.
 - Static analysis (typecheck, ESLint, Prettier) runs full-project — via a pre-commit hook and in CI, per `docs/testing.md` — not scoped to changed files only. Don't bypass the pre-commit hook.
 
 ## Repo state
 
-Phase 0 (`docs/roadmap.md`) is complete: the backend-less WCL auth pipeline is proven (`index.html`, `docs/wcl-auth.md`). Phase 1 build tooling (story 801) is next.
+Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`) and story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`) are both complete and live. Phase 1 MVP work (metric modules + scorecard UI, starting with backlog story 002) is next.
