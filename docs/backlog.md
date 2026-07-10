@@ -37,7 +37,7 @@ I want to paste a WCL report URL (`fresh.warcraftlogs.com`, with or without `#fi
 - URLs from other WCL subdomains (`www.`, `classic.`) are recognized and rejected with a message explaining this tool only supports TBC Anniversary ("fresh") realms — not treated as generic invalid input.
 - Other malformed input shows a clear generic error.
 
-### 003 — Fight list & selection
+### 003 — Fight list & selection ✅ Done
 
 I want to see the report's boss fights (name, pull number, kill/wipe, duration) and select one, so that I can analyze a specific pull.
 

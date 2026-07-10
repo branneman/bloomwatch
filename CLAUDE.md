@@ -27,4 +27,4 @@ Read both docs before starting substantial feature work — they define scope, t
 
 ## Repo state
 
-Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`), story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`), and story 002 (report URL/code input) are complete and live. Phase 1 MVP work continues with backlog story 003 (fight list & selection) next.
+Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`), story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`), story 002 (report URL/code input), and story 003 (fight list & selection) are complete and live. Phase 1 MVP work continues with backlog story 004 (zone-wide selection) next. Story 003 has one outstanding manual follow-up: capture a real Tier 2 fixture with `encounterID`/`kill`/`bossPercentage` for `test/integration/fixtures/report-fights.json` (see `docs/plans/fight-picker-plan.md`'s "Manual follow-up" section), including verifying `bossPercentage`'s scale against the real API response.
