@@ -1,8 +1,6 @@
 import type { WclEvent } from "../wcl/events";
 import { judgeThreshold, type Judgement } from "./judgement";
-
-// TBC's fixed global cooldown in milliseconds — does not scale with haste.
-export const GCD_MS = 1500;
+import { computeCastIntervals } from "./castIntervals";
 
 // R/O/G thresholds per docs/backlog.md story 101: green >= 85%, orange 70-85%, red < 70%.
 const GREEN_MIN_PCT = 85;
@@ -21,28 +19,10 @@ export function computeGcdUtilization(
   fightStart: number,
   fightEnd: number,
 ): GcdUtilizationResult {
-  const pending = new Map<number, number>();
-  let activeTimeMs = 0;
-
-  for (const event of events) {
-    if (event.sourceID !== druidId) continue;
-    if (event.abilityGameID === undefined) continue;
-
-    if (event.type === "begincast") {
-      pending.set(event.abilityGameID, event.timestamp);
-      continue;
-    }
-
-    if (event.type === "cast") {
-      const begincastTimestamp = pending.get(event.abilityGameID);
-      if (begincastTimestamp !== undefined) {
-        activeTimeMs += Math.max(event.timestamp - begincastTimestamp, GCD_MS);
-        pending.delete(event.abilityGameID);
-      } else {
-        activeTimeMs += GCD_MS;
-      }
-    }
-  }
+  const activeTimeMs = computeCastIntervals(events, druidId).reduce(
+    (sum, interval) => sum + (interval.end - interval.start),
+    0,
+  );
 
   const fightDurationMs = fightEnd - fightStart;
   const utilizationPct = Math.min(100, (activeTimeMs / fightDurationMs) * 100);
