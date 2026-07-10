@@ -39,7 +39,7 @@ curl -s -X POST https://www.warcraftlogs.com/api/v2/user \
   -o /path/to/scratch/response.json
 ```
 
-Use this to capture real Tier 2 fixtures (`test/integration/fixtures/*.json`) or spot-check a field's real shape/scale before writing code against an assumption. Keep the token out of logs and chat output:
+Use this to capture real Tier 2 fixtures (`test/integration/fixtures/*.json`) or spot-check a field's real shape/scale before writing code against an assumption. `docs/testing.md`'s "Known real test reports" table lists report codes already validated against for this purpose (with what each is notable for) — check there before reaching for a new report, and add to it when a new one earns its place. Keep the token out of logs and chat output:
 
 - Reference it only as `$WCL_TEST_ACCESS_TOKEN` in commands (never inline the literal value).
 - Never `cat`/`echo`/print `.env.local` or the token itself.
