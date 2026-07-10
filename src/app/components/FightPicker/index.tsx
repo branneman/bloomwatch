@@ -1,11 +1,15 @@
 import { useState } from "react";
 import type { Fight } from "../../../wcl/client";
-import { buildFightRows, formatDuration } from "../../../report/fightRows";
+import {
+  buildFightRows,
+  formatDuration,
+  groupFightsByZone,
+} from "../../../report/fightRows";
 
 export interface FightPickerProps {
   fights: Fight[];
   initialFightId: number | null;
-  onSelectFight: (fightId: number) => void;
+  onSelectionChange: (fightIds: number[]) => void;
 }
 
 function isInitialFightTrash(
@@ -20,22 +24,37 @@ function isInitialFightTrash(
 export function FightPicker({
   fights,
   initialFightId,
-  onSelectFight,
+  onSelectionChange,
 }: FightPickerProps) {
   const [showTrash, setShowTrash] = useState(() =>
     isInitialFightTrash(fights, initialFightId),
   );
-  const [selectedFightId, setSelectedFightId] = useState<number | null>(
-    initialFightId,
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(
+    () => new Set(initialFightId === null ? [] : [initialFightId]),
   );
 
   const rows = buildFightRows(fights).filter(
     (row) => !row.isTrash || showTrash,
   );
+  const zones = groupFightsByZone(fights);
 
-  function handleSelect(fightId: number) {
-    setSelectedFightId(fightId);
-    onSelectFight(fightId);
+  function commitSelection(next: Set<number>) {
+    setSelectedIds(next);
+    onSelectionChange(fights.map((f) => f.id).filter((id) => next.has(id)));
+  }
+
+  function toggleFight(fightId: number) {
+    const next = new Set(selectedIds);
+    if (next.has(fightId)) {
+      next.delete(fightId);
+    } else {
+      next.add(fightId);
+    }
+    commitSelection(next);
+  }
+
+  function selectZone(fightIds: number[]) {
+    commitSelection(new Set(fightIds));
   }
 
   return (
@@ -48,6 +67,17 @@ export function FightPicker({
         />
         Show trash fights
       </label>
+      {zones.length > 0 && (
+        <ul>
+          {zones.map((zone) => (
+            <li key={zone.zoneId}>
+              <button type="button" onClick={() => selectZone(zone.fightIds)}>
+                {zone.zoneName} ({zone.fightIds.length})
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       <ul>
         {rows.map(({ fight, isTrash, pullNumber }) => {
           const label = isTrash
@@ -64,13 +94,14 @@ export function FightPicker({
 
           return (
             <li key={fight.id}>
-              <button
-                type="button"
-                aria-current={fight.id === selectedFightId}
-                onClick={() => handleSelect(fight.id)}
-              >
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(fight.id)}
+                  onChange={() => toggleFight(fight.id)}
+                />
                 {text}
-              </button>
+              </label>
             </li>
           );
         })}

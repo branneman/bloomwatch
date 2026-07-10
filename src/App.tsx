@@ -10,12 +10,12 @@ function App() {
     useWclAuth();
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
-  const [, setSelectedFightId] = useState<number | null>(null);
+  const [, setSelectedFightIds] = useState<number[]>([]);
 
   function handleReportSubmit(parsed: ParsedReport) {
     setReport(parsed);
     setLoadedReport(null);
-    setSelectedFightId(null);
+    setSelectedFightIds([]);
   }
 
   return (
@@ -40,7 +40,7 @@ function App() {
         <FightPicker
           fights={loadedReport.fights}
           initialFightId={report?.fightId ?? null}
-          onSelectFight={setSelectedFightId}
+          onSelectionChange={setSelectedFightIds}
         />
       )}
     </div>
