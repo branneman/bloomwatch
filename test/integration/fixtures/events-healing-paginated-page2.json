@@ -1,0 +1,72 @@
+{
+  "data": {
+    "reportData": {
+      "report": {
+        "events": {
+          "data": [
+            {
+              "timestamp": 2489306,
+              "type": "heal",
+              "sourceID": 2,
+              "targetID": 42,
+              "abilityGameID": 33763,
+              "fight": 14,
+              "buffs": "35165.32367.35476.33891.",
+              "hitType": 1,
+              "amount": 1011,
+              "tick": true
+            },
+            {
+              "timestamp": 2489356,
+              "type": "heal",
+              "sourceID": 11,
+              "targetID": 32,
+              "abilityGameID": 37382,
+              "fight": 14,
+              "buffs": "34456.",
+              "hitType": 1,
+              "amount": 0,
+              "overheal": 122
+            },
+            {
+              "timestamp": 2489391,
+              "type": "heal",
+              "sourceID": 1,
+              "targetID": 42,
+              "abilityGameID": 10328,
+              "fight": 14,
+              "buffs": "31834.",
+              "hitType": 2,
+              "amount": 2929,
+              "overheal": 1078
+            },
+            {
+              "timestamp": 2489414,
+              "type": "heal",
+              "sourceID": 45,
+              "targetID": 45,
+              "abilityGameID": 34299,
+              "fight": 14,
+              "hitType": 1,
+              "amount": 392,
+              "tick": true
+            },
+            {
+              "timestamp": 2489537,
+              "type": "heal",
+              "sourceID": 29,
+              "targetID": 30,
+              "abilityGameID": 37382,
+              "fight": 14,
+              "buffs": "35476.",
+              "hitType": 1,
+              "amount": 0,
+              "overheal": 108
+            }
+          ],
+          "nextPageTimestamp": 3068415
+        }
+      }
+    }
+  }
+}

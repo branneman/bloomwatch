@@ -1,0 +1,67 @@
+{
+  "data": {
+    "reportData": {
+      "report": {
+        "events": {
+          "data": [
+            {
+              "timestamp": 1478760,
+              "type": "heal",
+              "sourceID": 48,
+              "targetID": 48,
+              "abilityGameID": 34299,
+              "fight": 3,
+              "hitType": 1,
+              "amount": 546,
+              "tick": true
+            },
+            {
+              "timestamp": 1486029,
+              "type": "heal",
+              "sourceID": 21,
+              "targetID": 38,
+              "abilityGameID": 25423,
+              "fight": 3,
+              "hitType": 1,
+              "amount": 32,
+              "overheal": 948
+            },
+            {
+              "timestamp": 1486029,
+              "type": "heal",
+              "sourceID": 21,
+              "targetID": 19,
+              "abilityGameID": 25423,
+              "fight": 3,
+              "hitType": 1,
+              "amount": 280,
+              "overheal": 1352
+            },
+            {
+              "timestamp": 1486029,
+              "type": "heal",
+              "sourceID": 21,
+              "targetID": 48,
+              "abilityGameID": 25423,
+              "fight": 3,
+              "hitType": 1,
+              "amount": 3234
+            },
+            {
+              "timestamp": 1488812,
+              "type": "heal",
+              "sourceID": 2,
+              "targetID": 48,
+              "abilityGameID": 26982,
+              "fight": 3,
+              "hitType": 1,
+              "amount": 950,
+              "tick": true
+            }
+          ],
+          "nextPageTimestamp": 2489306
+        }
+      }
+    }
+  }
+}

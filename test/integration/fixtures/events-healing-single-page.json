@@ -1,0 +1,76 @@
+{
+  "data": {
+    "reportData": {
+      "report": {
+        "events": {
+          "data": [
+            {
+              "timestamp": 1880192,
+              "type": "heal",
+              "sourceID": 1,
+              "targetID": 42,
+              "abilityGameID": 635,
+              "fight": 6,
+              "buffs": "39627.33268.31834.",
+              "hitType": 2,
+              "amount": 0,
+              "overheal": 252
+            },
+            {
+              "timestamp": 1880641,
+              "type": "heal",
+              "sourceID": 48,
+              "targetID": 48,
+              "abilityGameID": 34299,
+              "fight": 6,
+              "buffs": "12174.28520.16870.33261.",
+              "hitType": 1,
+              "amount": 0,
+              "overheal": 537,
+              "tick": true
+            },
+            {
+              "timestamp": 1881309,
+              "type": "heal",
+              "sourceID": 2,
+              "targetID": 42,
+              "abilityGameID": 33763,
+              "fight": 6,
+              "buffs": "39627.28491.33268.33891.",
+              "hitType": 1,
+              "amount": 0,
+              "overheal": 287,
+              "tick": true
+            },
+            {
+              "timestamp": 1881725,
+              "type": "heal",
+              "sourceID": 20,
+              "targetID": 20,
+              "abilityGameID": 34299,
+              "fight": 6,
+              "buffs": "33256.28520.",
+              "hitType": 1,
+              "amount": 0,
+              "overheal": 453,
+              "tick": true
+            },
+            {
+              "timestamp": 1882040,
+              "type": "heal",
+              "sourceID": 11,
+              "targetID": 32,
+              "abilityGameID": 37382,
+              "fight": 6,
+              "buffs": "12174.33261.",
+              "hitType": 1,
+              "amount": 0,
+              "overheal": 89
+            }
+          ],
+          "nextPageTimestamp": null
+        }
+      }
+    }
+  }
+}
