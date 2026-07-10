@@ -27,4 +27,4 @@ Read both docs before starting substantial feature work — they define scope, t
 
 ## Repo state
 
-Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`) and story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`) are both complete and live. Phase 1 MVP work (metric modules + scorecard UI, starting with backlog story 002) is next.
+Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`), story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`), and story 002 (report URL/code input) are complete and live. Phase 1 MVP work continues with backlog story 003 (fight list & selection) next.

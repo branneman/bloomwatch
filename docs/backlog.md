@@ -27,7 +27,7 @@ As a developer, I want a proven, documented way to call the WCL v2 GraphQL API f
 - Fresh-realm report codes (`fresh.warcraftlogs.com/reports/...`) are confirmed to resolve, and the correct API host is documented.
 - If no approach works without a backend, the spike concludes with a written recommendation instead of code.
 
-### 002 — Report URL input
+### 002 — Report URL input ✅ Done
 
 I want to paste a WCL report URL (`fresh.warcraftlogs.com`, with or without `#fight=` fragments) or a bare report code, so that I don't have to think about URL formats — and a clear message if I paste a report from a realm type this tool doesn't support.
 
