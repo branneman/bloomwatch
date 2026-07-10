@@ -6,6 +6,9 @@ export function aFight(overrides: Partial<Fight> = {}): Fight {
     name: "Coilfang Frenzy",
     startTime: 1477307,
     endTime: 1505939,
+    encounterID: 601,
+    kill: true,
+    bossPercentage: null,
     ...overrides,
   };
 }

@@ -70,4 +70,20 @@ describe("fetchReportFights", () => {
       endTime: 2036920,
     });
   });
+
+  it("requests encounterID, kill, and bossPercentage for each fight", async () => {
+    let requestBody: { query: string } | undefined;
+    server.use(
+      http.post(USER_API_URL, async ({ request }) => {
+        requestBody = (await request.json()) as { query: string };
+        return HttpResponse.json(reportFightsFixture);
+      }),
+    );
+
+    await fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
+
+    expect(requestBody?.query).toContain("encounterID");
+    expect(requestBody?.query).toContain("kill");
+    expect(requestBody?.query).toContain("bossPercentage");
+  });
 });

@@ -45,6 +45,9 @@ export interface Fight {
   name: string;
   startTime: number;
   endTime: number;
+  encounterID: number;
+  kill: boolean | null;
+  bossPercentage: number | null;
 }
 
 export interface ReportFights {
@@ -67,7 +70,7 @@ export async function fetchReportFights(
   reportData {
     report(code: "${reportCode}") {
       title
-      fights { id name startTime endTime }
+      fights { id name startTime endTime encounterID kill bossPercentage }
     }
   }
 }`,
