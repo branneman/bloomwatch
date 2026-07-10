@@ -1,6 +1,6 @@
 # WCL API Auth — How To
 
-Findings from the Phase 0 spike (backlog story 001, `docs/specs/wcl-auth-spike-design.md`). Reference implementation: `index.html` at the repo root.
+Findings from the Phase 0 spike (backlog story 001). Reference implementation: `index.html` at the repo root.
 
 ## Registering a WCL API v2 client
 
@@ -56,4 +56,4 @@ curl -X POST https://www.warcraftlogs.com/oauth/token \
   -d client_secret=YOUR_CLIENT_SECRET
 ```
 
-Paste the resulting `access_token` into the app's token field (not implemented as UI in this spike — see `docs/specs/wcl-auth-spike-design.md`).
+Paste the resulting `access_token` into the app's token field (not implemented as UI in this spike).
