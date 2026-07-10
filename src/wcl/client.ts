@@ -146,3 +146,36 @@ export async function fetchCastsTable(
     }),
   );
 }
+
+export interface ReportAbility {
+  gameID: number;
+  name: string;
+  icon: string;
+  type: string;
+}
+
+export async function fetchMasterDataAbilities(
+  accessToken: string,
+  reportCode: string,
+): Promise<ReportAbility[]> {
+  const resp = await fetch(USER_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      query: `query {
+  reportData {
+    report(code: "${reportCode}") {
+      masterData { abilities { gameID name icon type } }
+    }
+  }
+}`,
+    }),
+  });
+  const bodyText = await resp.text();
+  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
+  const parsed = JSON.parse(bodyText);
+  return parsed.data.reportData.report.masterData.abilities;
+}

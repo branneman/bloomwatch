@@ -5,6 +5,7 @@ import {
   exchangeCodeForToken,
   fetchReportFights,
   fetchCastsTable,
+  fetchMasterDataAbilities,
   WclApiError,
   TOKEN_URL,
   USER_API_URL,
@@ -12,6 +13,7 @@ import {
 import tokenResponseFixture from "./fixtures/token-response.json";
 import reportFightsFixture from "./fixtures/report-fights.json";
 import castsTableFixture from "./fixtures/casts-table.json";
+import masterDataAbilitiesFixture from "./fixtures/masterdata-abilities.json";
 
 const server = setupServer();
 
@@ -135,5 +137,41 @@ describe("fetchCastsTable", () => {
 
     expect(requestBody?.query).toContain("dataType: Casts");
     expect(requestBody?.query).toContain("fightIDs: [6, 9]");
+  });
+});
+
+describe("fetchMasterDataAbilities", () => {
+  it("parses the abilities list from a real captured response shape", async () => {
+    server.use(
+      http.post(USER_API_URL, () =>
+        HttpResponse.json(masterDataAbilitiesFixture),
+      ),
+    );
+    const result = await fetchMasterDataAbilities(
+      "test-token",
+      "4GYHZRdtL3bvhpc8",
+    );
+    expect(result).toHaveLength(930);
+    expect(result).toContainEqual({
+      gameID: 26982,
+      name: "Rejuvenation",
+      icon: "spell_nature_rejuvenation.jpg",
+      type: "8",
+    });
+  });
+
+  it("requests the masterData abilities query for the given report", async () => {
+    let requestBody: { query: string } | undefined;
+    server.use(
+      http.post(USER_API_URL, async ({ request }) => {
+        requestBody = (await request.json()) as { query: string };
+        return HttpResponse.json(masterDataAbilitiesFixture);
+      }),
+    );
+
+    await fetchMasterDataAbilities("test-token", "4GYHZRdtL3bvhpc8");
+
+    expect(requestBody?.query).toContain("masterData");
+    expect(requestBody?.query).toContain("4GYHZRdtL3bvhpc8");
   });
 });
