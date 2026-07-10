@@ -8,7 +8,7 @@ export interface ConnectPanelProps {
     accessToken: string,
     reportCode: string,
   ) => Promise<ReportFights>;
-  onReportLoaded?: (report: ReportFights) => void;
+  onReportLoaded: (report: ReportFights) => void;
 }
 
 type FetchResult =
@@ -28,7 +28,7 @@ export function ConnectPanel({
     fetchReportFights(accessToken, reportCode)
       .then((report) => {
         setResult({ accessToken, report });
-        onReportLoaded?.(report);
+        onReportLoaded(report);
       })
       .catch((err: unknown) =>
         setResult({

@@ -26,6 +26,7 @@ function App() {
           accessToken={accessToken}
           reportCode={report.reportCode}
           fetchReportFights={fetchReportFights}
+          onReportLoaded={() => {}}
         />
       )}
     </div>
