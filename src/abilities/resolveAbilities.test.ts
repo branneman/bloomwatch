@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveAbilities } from "./resolveAbilities";
+import { resolveAbilities, resolveSpellAbilityIds } from "./resolveAbilities";
 import { aReportAbility } from "../testUtils/factories";
 
 describe("resolveAbilities", () => {
@@ -100,5 +100,25 @@ describe("resolveAbilities", () => {
       }),
     ]);
     expect(result.has(12345)).toBe(false);
+  });
+});
+
+describe("resolveSpellAbilityIds", () => {
+  it("returns every gameID resolved to the given spell, including rank: null fallbacks", () => {
+    const resolved = resolveAbilities([
+      aReportAbility({ gameID: 33763, name: "Lifebloom" }),
+      aReportAbility({ gameID: 33778, name: "Lifebloom" }),
+      aReportAbility({ gameID: 26982, name: "Rejuvenation" }),
+    ]);
+    expect(resolveSpellAbilityIds(resolved, "Lifebloom")).toEqual(
+      new Set([33763, 33778]),
+    );
+  });
+
+  it("returns an empty set when the spell has no resolved abilities", () => {
+    const resolved = resolveAbilities([
+      aReportAbility({ gameID: 26982, name: "Rejuvenation" }),
+    ]);
+    expect(resolveSpellAbilityIds(resolved, "Lifebloom")).toEqual(new Set());
   });
 });

@@ -152,3 +152,16 @@ export function resolveAbilities(
 
   return resolved;
 }
+
+export function resolveSpellAbilityIds(
+  resolved: Map<number, ResolvedAbility>,
+  spell: DruidHealingSpell,
+): Set<number> {
+  const ids = new Set<number>();
+  for (const [gameID, ability] of resolved) {
+    if (ability.kind === "spell" && ability.spell === spell) {
+      ids.add(gameID);
+    }
+  }
+  return ids;
+}
