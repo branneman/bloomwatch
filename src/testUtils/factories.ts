@@ -1,4 +1,9 @@
-import type { Fight, ReportFights, CastTableEntry } from "../wcl/client";
+import type {
+  Fight,
+  ReportFights,
+  CastTableEntry,
+  ReportAbility,
+} from "../wcl/client";
 
 export function aFight(overrides: Partial<Fight> = {}): Fight {
   return {
@@ -38,6 +43,18 @@ export function aCastTableEntry(
       { name: "Regrowth", total: 6 },
       { name: "Swiftmend", total: 2 },
     ],
+    ...overrides,
+  };
+}
+
+export function aReportAbility(
+  overrides: Partial<ReportAbility> = {},
+): ReportAbility {
+  return {
+    gameID: 26982,
+    name: "Rejuvenation",
+    icon: "spell_nature_rejuvenation.jpg",
+    type: "8",
     ...overrides,
   };
 }
