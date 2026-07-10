@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ConnectPanel } from "./index";
 import { aReportFights } from "../../../testUtils/factories";
 
@@ -10,24 +10,40 @@ describe("ConnectPanel", () => {
         accessToken={null}
         reportCode="4GYHZRdtL3bvhpc8"
         fetchReportFights={() => Promise.reject()}
+        onReportLoaded={vi.fn()}
       />,
     );
     expect(screen.getByText("Not connected.")).toBeInTheDocument();
   });
 
-  it("fetches and renders the report title and fight count once connected", async () => {
+  it("fetches and renders the report title once connected", async () => {
     const fetchReportFights = () => Promise.resolve(aReportFights());
     render(
       <ConnectPanel
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
         fetchReportFights={fetchReportFights}
+        onReportLoaded={vi.fn()}
       />,
     );
     await waitFor(() =>
       expect(screen.getByText("SSC+TK 2026-07-07")).toBeInTheDocument(),
     );
-    expect(screen.getByText("1 fights")).toBeInTheDocument();
+  });
+
+  it("calls onReportLoaded with the fetched report once loaded", async () => {
+    const report = aReportFights();
+    const fetchReportFights = () => Promise.resolve(report);
+    const onReportLoaded = vi.fn();
+    render(
+      <ConnectPanel
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fetchReportFights={fetchReportFights}
+        onReportLoaded={onReportLoaded}
+      />,
+    );
+    await waitFor(() => expect(onReportLoaded).toHaveBeenCalledWith(report));
   });
 
   it("shows an error message when the fetch fails", async () => {
@@ -38,6 +54,7 @@ describe("ConnectPanel", () => {
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
         fetchReportFights={fetchReportFights}
+        onReportLoaded={vi.fn()}
       />,
     );
     await waitFor(() =>
