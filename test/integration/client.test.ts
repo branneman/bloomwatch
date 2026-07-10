@@ -62,12 +62,18 @@ describe("fetchReportFights", () => {
       name: "Unknown",
       startTime: 760292,
       endTime: 760292,
+      encounterID: 0,
+      kill: null,
+      bossPercentage: null,
     });
     expect(result.fights[5]).toEqual({
       id: 6,
       name: "The Lurker Below",
       startTime: 1879119,
       endTime: 2036920,
+      encounterID: 100624,
+      kill: true,
+      bossPercentage: 0.01,
     });
   });
 

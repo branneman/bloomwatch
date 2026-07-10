@@ -845,5 +845,7 @@ The Tier 2 fixture `test/integration/fixtures/report-fights.json` is a real capt
    ```
 2. Replace `test/integration/fixtures/report-fights.json` with the real response body.
 3. Update the `toEqual` assertions on `result.fights[0]` / `result.fights[5]` in `test/integration/client.test.ts` to include the new fields with their real captured values.
-4. **Check `bossPercentage`'s scale.** `FightPicker` displays it as `Math.round(fight.bossPercentage ?? 0)` assuming a 0–100 float (e.g. `34.2` → "Wipe (34%)"). WCL's v2 API has historically returned some percentage fields scaled (e.g. hundredths, where `3420` means 34.20%). If the real captured value isn't already 0–100, update the display logic in `src/app/components/FightPicker/index.tsx` (divide by 100 before rounding) and the corresponding `bossWipe` test fixture/assertion in `src/app/components/FightPicker/index.test.tsx`.
+4. ~~Check `bossPercentage`'s scale.~~ **Resolved.** The real capture confirmed `bossPercentage` is already a 0–100 float, not scaled (e.g. `0.01` on a near-flawless kill; a separate real wipe elsewhere in the same report — "High Astromancer Solarian", first pull — returned `100` at a fresh wipe). No display-logic change needed in `FightPicker`.
 5. Run `npm test` to confirm everything still passes, then commit as `test(wcl-client): capture real encounterID/kill/bossPercentage fixture`.
+
+**Done** (2026-07-10): steps 1–5 completed using the real `WCL_TEST_ACCESS_TOKEN` in `.env.local`. The fixture was trimmed to the same first 6 fights as the original (a real report has 72), since the original fixture was already a truncated slice of the same live report and the point was adding the new fields, not growing the fixture's size.

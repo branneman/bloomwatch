@@ -8,37 +8,55 @@
             "id": 1,
             "name": "Unknown",
             "startTime": 760292,
-            "endTime": 760292
+            "endTime": 760292,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
           },
           {
             "id": 2,
             "name": "Unknown",
             "startTime": 810565,
-            "endTime": 810565
+            "endTime": 810565,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
           },
           {
             "id": 3,
             "name": "Coilfang Frenzy",
             "startTime": 1477307,
-            "endTime": 1505939
+            "endTime": 1505939,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
           },
           {
             "id": 4,
             "name": "Coilfang Frenzy",
             "startTime": 1754018,
-            "endTime": 1763039
+            "endTime": 1763039,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
           },
           {
             "id": 5,
             "name": "Unknown",
             "startTime": 1816244,
-            "endTime": 1818260
+            "endTime": 1818260,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
           },
           {
             "id": 6,
             "name": "The Lurker Below",
             "startTime": 1879119,
-            "endTime": 2036920
+            "endTime": 2036920,
+            "encounterID": 100624,
+            "kill": true,
+            "bossPercentage": 0.01
           }
         ]
       }
