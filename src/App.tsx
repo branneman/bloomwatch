@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useWclAuth } from "./wcl/useWclAuth";
 import {
   fetchReportFights,
@@ -54,9 +54,13 @@ function App() {
     setActorNames(new Map(entries.map((e) => [e.id, e.name])));
   }, []);
 
-  const lifebloomAbilityIds = resolvedAbilities
-    ? resolveSpellAbilityIds(resolvedAbilities, "Lifebloom")
-    : null;
+  const lifebloomAbilityIds = useMemo(
+    () =>
+      resolvedAbilities
+        ? resolveSpellAbilityIds(resolvedAbilities, "Lifebloom")
+        : null,
+    [resolvedAbilities],
+  );
 
   return (
     <div>
