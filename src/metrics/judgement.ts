@@ -9,3 +9,13 @@ export function judgeThreshold(
   if (value >= thresholds.orangeMin) return "orange";
   return "red";
 }
+
+// Lower value is better (e.g. idle dead-time %, overheal %).
+export function judgeThresholdBelow(
+  value: number,
+  thresholds: { greenMax: number; orangeMax: number },
+): Judgement {
+  if (value < thresholds.greenMax) return "green";
+  if (value <= thresholds.orangeMax) return "orange";
+  return "red";
+}
