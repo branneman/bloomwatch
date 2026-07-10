@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 const accessToken = process.env.WCL_TEST_ACCESS_TOKEN;
+const REPORT_CODE = "4GYHZRdtL3bvhpc8";
 
 test.skip(!accessToken, "WCL_TEST_ACCESS_TOKEN not set — see docs/testing.md");
 
@@ -15,6 +16,9 @@ test("a pre-authenticated visit renders the real fight list", async ({
   // not the domain root) — "./" correctly stays relative to baseURL in both
   // local dev (http://localhost:5173) and production (.../bloomwatch/).
   await page.goto("./");
+
+  await page.getByLabel("Report URL or code").fill(REPORT_CODE);
+  await page.getByRole("button", { name: "Load report" }).click();
 
   await expect(page.getByText("SSC+TK 2026-07-07")).toBeVisible();
   await expect(page.getByText(/\d+ fights/)).toBeVisible();
