@@ -48,4 +48,4 @@ Use this to capture real Tier 2 fixtures (`test/integration/fixtures/*.json`) or
 
 ## Repo state
 
-Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`), story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`), story 002 (report URL/code input), and story 003 (fight list & selection) are complete and live. Phase 1 MVP work continues with backlog story 004 (zone-wide selection) next.
+Phase 0 (WCL auth pipeline, `docs/wcl-auth.md`), story 801 (build & test tooling foundation — Vite + React + TypeScript, full test pyramid, CI/CD to GitHub Pages, `docs/testing.md`), story 002 (report URL/code input), story 003 (fight list & selection), and story 004 (zone-wide selection) are complete and live. Phase 1 MVP work continues with backlog story 005 (druid auto-detection & selection) next.

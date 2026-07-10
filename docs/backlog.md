@@ -46,7 +46,7 @@ I want to see the report's boss fights (name, pull number, kill/wipe, duration) 
 - Trash fights are excluded by default (toggle to include).
 - Kills and wipes are visually distinct; wipes show boss HP% reached.
 
-### 004 — Zone-wide selection
+### 004 — Zone-wide selection ✅ Done
 
 I want to select a whole raid zone within the report (e.g. "SSC — all bosses"), so that I can get one aggregated report for a full raid night.
 
