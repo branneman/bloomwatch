@@ -48,6 +48,7 @@ export interface Fight {
   encounterID: number;
   kill: boolean | null;
   bossPercentage: number | null;
+  gameZone: { id: number; name: string } | null;
 }
 
 export interface ReportFights {
@@ -70,7 +71,7 @@ export async function fetchReportFights(
   reportData {
     report(code: "${reportCode}") {
       title
-      fights { id name startTime endTime encounterID kill bossPercentage }
+      fights { id name startTime endTime encounterID kill bossPercentage gameZone { id name } }
     }
   }
 }`,

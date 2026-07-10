@@ -11,7 +11,8 @@
             "endTime": 760292,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           },
           {
             "id": 2,
@@ -20,7 +21,8 @@
             "endTime": 810565,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           },
           {
             "id": 3,
@@ -29,7 +31,8 @@
             "endTime": 1505939,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           },
           {
             "id": 4,
@@ -38,7 +41,8 @@
             "endTime": 1763039,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           },
           {
             "id": 5,
@@ -47,7 +51,8 @@
             "endTime": 1818260,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           },
           {
             "id": 6,
@@ -56,7 +61,8 @@
             "endTime": 2036920,
             "encounterID": 100624,
             "kill": true,
-            "bossPercentage": 0.01
+            "bossPercentage": 0.01,
+            "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           }
         ]
       }
