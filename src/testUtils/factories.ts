@@ -4,6 +4,7 @@ import type {
   CastTableEntry,
   ReportAbility,
 } from "../wcl/client";
+import type { WclEvent } from "../wcl/events";
 
 export function aFight(overrides: Partial<Fight> = {}): Fight {
   return {
@@ -55,6 +56,30 @@ export function aReportAbility(
     name: "Rejuvenation",
     icon: "spell_nature_rejuvenation.jpg",
     type: "8",
+    ...overrides,
+  };
+}
+
+export function aCastEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1880311,
+    type: "cast",
+    sourceID: 2,
+    targetID: 42,
+    abilityGameID: 33763,
+    fight: 6,
+    ...overrides,
+  };
+}
+
+export function aBegincastEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1942970,
+    type: "begincast",
+    sourceID: 2,
+    targetID: -1,
+    abilityGameID: 26980,
+    fight: 6,
     ...overrides,
   };
 }
