@@ -12,6 +12,7 @@ import { FightPicker } from "./app/components/FightPicker";
 import { DruidDetector } from "./app/components/DruidDetector";
 import { DruidPicker } from "./app/components/DruidPicker";
 import { GCDUtilizationCard } from "./app/components/GCDUtilizationCard";
+import { IdleGapsCard } from "./app/components/IdleGapsCard";
 import type { DruidCandidate } from "./report/druidDetection";
 
 function App() {
@@ -83,14 +84,22 @@ function App() {
             {loadedReport.fights
               .filter((f) => selectedFightIds.includes(f.id))
               .map((f) => (
-                <GCDUtilizationCard
-                  key={f.id}
-                  accessToken={accessToken}
-                  reportCode={report.reportCode}
-                  fight={f}
-                  druidId={selectedDruidId}
-                  fetchEvents={eventFetcher.fetchEvents}
-                />
+                <div key={f.id}>
+                  <GCDUtilizationCard
+                    accessToken={accessToken}
+                    reportCode={report.reportCode}
+                    fight={f}
+                    druidId={selectedDruidId}
+                    fetchEvents={eventFetcher.fetchEvents}
+                  />
+                  <IdleGapsCard
+                    accessToken={accessToken}
+                    reportCode={report.reportCode}
+                    fight={f}
+                    druidId={selectedDruidId}
+                    fetchEvents={eventFetcher.fetchEvents}
+                  />
+                </div>
               ))}
           </div>
         )}
