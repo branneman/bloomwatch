@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFightRows, formatDuration } from "./fightRows";
+import { buildFightRows, formatDuration, groupFightsByZone } from "./fightRows";
 import { aFight } from "../testUtils/factories";
 
 describe("buildFightRows", () => {
@@ -53,5 +53,59 @@ describe("formatDuration", () => {
 
   it("rounds to the nearest second", () => {
     expect(formatDuration(59700)).toBe("1:00");
+  });
+});
+
+describe("groupFightsByZone", () => {
+  it("groups boss fights by zone in first-seen order", () => {
+    const fights = [
+      aFight({
+        id: 1,
+        encounterID: 500,
+        gameZone: { id: 548, name: "Serpentshrine Cavern" },
+      }),
+      aFight({
+        id: 2,
+        encounterID: 600,
+        gameZone: { id: 550, name: "The Eye" },
+      }),
+      aFight({
+        id: 3,
+        encounterID: 501,
+        gameZone: { id: 548, name: "Serpentshrine Cavern" },
+      }),
+    ];
+    expect(groupFightsByZone(fights)).toEqual([
+      { zoneId: 548, zoneName: "Serpentshrine Cavern", fightIds: [1, 3] },
+      { zoneId: 550, zoneName: "The Eye", fightIds: [2] },
+    ]);
+  });
+
+  it("excludes trash fights from every zone's fightIds", () => {
+    const fights = [
+      aFight({
+        id: 1,
+        encounterID: 0,
+        gameZone: { id: 548, name: "Serpentshrine Cavern" },
+      }),
+      aFight({
+        id: 2,
+        encounterID: 500,
+        gameZone: { id: 548, name: "Serpentshrine Cavern" },
+      }),
+    ];
+    expect(groupFightsByZone(fights)).toEqual([
+      { zoneId: 548, zoneName: "Serpentshrine Cavern", fightIds: [2] },
+    ]);
+  });
+
+  it("excludes fights with no gameZone", () => {
+    const fights = [aFight({ id: 1, encounterID: 500, gameZone: null })];
+    expect(groupFightsByZone(fights)).toEqual([]);
+  });
+
+  it("returns an empty array for an all-trash report", () => {
+    const fights = [aFight({ id: 1, encounterID: 0 })];
+    expect(groupFightsByZone(fights)).toEqual([]);
   });
 });
