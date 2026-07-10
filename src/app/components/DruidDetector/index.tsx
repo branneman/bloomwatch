@@ -15,6 +15,7 @@ export interface DruidDetectorProps {
     fightIds: number[],
   ) => Promise<CastTableEntry[]>;
   onDruidsDetected: (candidates: DruidCandidate[]) => void;
+  onEntriesLoaded?: (entries: CastTableEntry[]) => void;
 }
 
 type FetchResult =
@@ -27,6 +28,7 @@ export function DruidDetector({
   fightIds,
   fetchCastsTable,
   onDruidsDetected,
+  onEntriesLoaded,
 }: DruidDetectorProps) {
   // Derive a primitive key from the fightIds array so the effect doesn't
   // re-fire on every parent render just because App.tsx passes a fresh
@@ -44,6 +46,7 @@ export function DruidDetector({
         const candidates = detectDruids(entries);
         setResult({ accessToken, candidates });
         onDruidsDetected(candidates);
+        onEntriesLoaded?.(entries);
       })
       .catch((err: unknown) =>
         setResult({
@@ -52,7 +55,14 @@ export function DruidDetector({
             err instanceof Error ? err.message : "Failed to detect druids.",
         }),
       );
-  }, [accessToken, reportCode, fightIdsKey, fetchCastsTable, onDruidsDetected]);
+  }, [
+    accessToken,
+    reportCode,
+    fightIdsKey,
+    fetchCastsTable,
+    onDruidsDetected,
+    onEntriesLoaded,
+  ]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;
   if (!isCurrent) return <p>Detecting druids…</p>;

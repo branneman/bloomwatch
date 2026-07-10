@@ -56,4 +56,24 @@ describe("DruidDetector", () => {
       ),
     );
   });
+
+  it("calls onEntriesLoaded with the raw cast-table entries once loaded", async () => {
+    const dassz = aCastTableEntry({ id: 2, name: "Dassz" });
+    const fanah = aCastTableEntry({ id: 42, name: "Fanah", type: "Paladin" });
+    const fetchCastsTable = () => Promise.resolve([dassz, fanah]);
+    const onEntriesLoaded = vi.fn();
+    render(
+      <DruidDetector
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fightIds={[6]}
+        fetchCastsTable={fetchCastsTable}
+        onDruidsDetected={vi.fn()}
+        onEntriesLoaded={onEntriesLoaded}
+      />,
+    );
+    await waitFor(() =>
+      expect(onEntriesLoaded).toHaveBeenCalledWith([dassz, fanah]),
+    );
+  });
 });
