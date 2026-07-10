@@ -12,6 +12,22 @@ Conventions used below:
 - Spell IDs are _not_ hardcoded in stories; they must be resolved from the report's `masterData.abilities` at runtime (ranks matter in TBC — one spell name maps to multiple ability IDs).
 - Completed stories are marked `✅ Done` in the heading.
 
+### Ordering note
+
+Epic letters (A, B, C…) are topical groupings, not a strict execution order — the real sequencing logic is dependency-driven and phase-driven (see `docs/roadmap.md`'s phases). In particular:
+
+- **006 (event fetching/caching) and 007 (ability resolution) are hard prerequisites for every metric epic (B–G)** — every metric reads events through 006 and resolves spell IDs through 007. 005 (druid detection) must precede them functionally since metrics need a selected druid. 008 (default client fallback) has no downstream dependents — it's shared-client resilience, not a data dependency, and can slip later without blocking feature work.
+- **Stories within one epic build on each other** (e.g. 202–205 reuse 201's Lifebloom stack-reconstruction; 402–404 reuse 401's resource-data plumbing) — don't expect to cherry-pick just the first story of several epics and treat the rest as parallel-safe.
+- **501 (per-death audit) depends on 302 and 304's logic** (Swiftmend CD state, Nature's Swiftness CD state), not just 201 — it can't be pulled forward ahead of epic D.
+- **601 (prep hygiene) has no dependency on any other metric epic** beyond 006 — it's free-floating and can be slotted in wherever convenient.
+- **Epic H is split across phases, not one block:** 701 (single-fight scorecard) belongs right after epic C — it's the Phase 1 MVP exit criterion ("paste link → judged scorecard for GCD + Lifebloom"), not a Phase 4 story. 702–704 (zone aggregation, shareable URL, Markdown export) are genuinely Phase 4, after D/E/F/G exist to aggregate/export. 802/803 are deliberately last (Phase 5 polish): 802 exposes thresholds that should be stable by then, 803 compares metrics that need to already all exist.
+
+**Suggested path from the current state (005 next):**
+
+005 → 006 → 007 → 101 → 102 → 201 → 202 → 203 → 204 → 205 → **701** → 008 → 301 → 302 → 303 → 304 → 401 → 402 → 403 → 404 → 501 → 601 → 702 → 703 → 704 → 802 → 803
+
+(008 and 601 are free-floating and can move earlier if convenient; everything else follows its dependency/phase order above.)
+
 ---
 
 ## Epic A — Foundation & data access
@@ -55,7 +71,7 @@ I want to select a whole raid zone within the report (e.g. "SSC — all bosses")
 - Zone selector lists only zones present in the report.
 - Selecting a zone selects all its boss fights; individual fights can be deselected.
 
-### 005 — Druid auto-detection & selection
+### 005 — Druid auto-detection & selection ✅ Done
 
 I want the app to detect all resto druids in the report and let me pick one (pre-selecting when there is only one), so that I immediately analyze the right player.
 

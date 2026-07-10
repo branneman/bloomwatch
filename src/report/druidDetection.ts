@@ -11,9 +11,8 @@ export const HEALING_SPELL_NAMES = [
 
 // A stray opportunistic cross-heal from an off-spec druid is 1-2 casts; a real
 // healer casts in the hundreds even in a single fight. Validated live against
-// 7 real reports (see docs/specs/druid-detection-design.md) — every genuine
-// resto druid cleared this by two orders of magnitude, every non-healer sat
-// at exactly 0.
+// 7 real reports — every genuine resto druid cleared this by two orders of
+// magnitude, every non-healer sat at exactly 0.
 export const MIN_HEALING_CASTS_FOR_DETECTION = 3;
 
 export interface DruidCandidate {
