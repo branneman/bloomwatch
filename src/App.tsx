@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useWclAuth } from "./wcl/useWclAuth";
 import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
   type ReportFights,
+  type CastTableEntry,
 } from "./wcl/client";
 import { createEventFetcher } from "./wcl/eventCache";
 import {
@@ -48,6 +49,10 @@ function App() {
     setActorNames(new Map());
     setResolvedAbilities(null);
   }
+
+  const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
+    setActorNames(new Map(entries.map((e) => [e.id, e.name])));
+  }, []);
 
   const lifebloomAbilityIds = resolvedAbilities
     ? resolveSpellAbilityIds(resolvedAbilities, "Lifebloom")
@@ -93,9 +98,7 @@ function App() {
           fightIds={loadedReport.fights.map((f) => f.id)}
           fetchCastsTable={fetchCastsTable}
           onDruidsDetected={setDruidCandidates}
-          onEntriesLoaded={(entries) =>
-            setActorNames(new Map(entries.map((e) => [e.id, e.name])))
-          }
+          onEntriesLoaded={handleEntriesLoaded}
         />
       )}
       {druidCandidates !== null && (
