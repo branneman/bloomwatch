@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "test": "vitest run --exclude test/contract/**",
+    "test": "vitest run",
     "test:contract": "vitest run test/contract",
     "test:e2e": "playwright test",
     "typecheck": "tsc -b",

@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { describe, expect, it } from "vitest";
 import { fetchReportFights } from "../../src/wcl/client";
 
-config({ path: ".env.local" });
+config({ path: ".env.local", quiet: true });
 
 const accessToken = process.env.WCL_TEST_ACCESS_TOKEN;
 

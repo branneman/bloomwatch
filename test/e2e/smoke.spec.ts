@@ -11,7 +11,10 @@ test("a pre-authenticated visit renders the real fight list", async ({
     window.sessionStorage.setItem("wcl_access_token", token as string);
   }, accessToken);
 
-  await page.goto("/");
+  // "/" would resolve to the domain root on GitHub Pages (base path is /bloomwatch/,
+  // not the domain root) — "./" correctly stays relative to baseURL in both
+  // local dev (http://localhost:5173) and production (.../bloomwatch/).
+  await page.goto("./");
 
   await expect(page.getByText("SSC+TK 2026-07-07")).toBeVisible();
   await expect(page.getByText(/\d+ fights/)).toBeVisible();
