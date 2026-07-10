@@ -140,7 +140,7 @@ I want a list of every gap > 1.7 s between my casts, with total dead time and th
 
 ## Epic C — Lifebloom discipline
 
-### 201 — LB3 uptime per target
+### 201 — LB3 uptime per target ✅ Done
 
 I want per-target uptime of 3-stack Lifebloom on my maintained targets, so that I can verify my core job: keeping LB3 rolling on tanks.
 
