@@ -23,9 +23,11 @@ test("a pre-authenticated visit renders the real fight list and allows picking a
   await expect(page.getByText("SSC+TK 2026-07-07")).toBeVisible();
 
   const firstBossFight = page
-    .getByRole("button", { name: /^Pull \d+/ })
+    .getByRole("checkbox", {
+      name: /^Pull \d+/,
+    })
     .first();
   await expect(firstBossFight).toBeVisible();
   await firstBossFight.click();
-  await expect(firstBossFight).toHaveAttribute("aria-current", "true");
+  await expect(firstBossFight).toBeChecked();
 });
