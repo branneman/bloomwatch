@@ -5,7 +5,7 @@ const REPORT_CODE = "4GYHZRdtL3bvhpc8";
 
 test.skip(!accessToken, "WCL_TEST_ACCESS_TOKEN not set — see docs/testing.md");
 
-test("a pre-authenticated visit renders the real fight list", async ({
+test("a pre-authenticated visit renders the real fight list and allows picking a fight", async ({
   page,
 }) => {
   await page.addInitScript((token) => {
@@ -21,5 +21,11 @@ test("a pre-authenticated visit renders the real fight list", async ({
   await page.getByRole("button", { name: "Load report" }).click();
 
   await expect(page.getByText("SSC+TK 2026-07-07")).toBeVisible();
-  await expect(page.getByText(/\d+ fights/)).toBeVisible();
+
+  const firstBossFight = page
+    .getByRole("button", { name: /^Pull \d+/ })
+    .first();
+  await expect(firstBossFight).toBeVisible();
+  await firstBossFight.click();
+  await expect(firstBossFight).toHaveAttribute("aria-current", "true");
 });
