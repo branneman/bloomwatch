@@ -1,13 +1,9 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ReportInput } from "./index";
 
 const CODE = "4GYHZRdtL3bvhpc8";
-
-afterEach(() => {
-  cleanup();
-});
 
 describe("ReportInput", () => {
   it("calls onSubmit with the parsed report code and null fightId for a bare code", async () => {

@@ -90,6 +90,15 @@ describe("parseReportInput", () => {
     expect(result.reason).toBe("invalid");
   });
 
+  it("rejects a path segment with more than 16 alphanumeric characters instead of truncating", () => {
+    const result = parseReportInput(
+      `https://fresh.warcraftlogs.com/reports/${CODE}EXTRA`,
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("unreachable");
+    expect(result.reason).toBe("invalid");
+  });
+
   it("rejects a non-warcraftlogs URL as generically invalid", () => {
     const result = parseReportInput("https://example.com/reports/" + CODE);
     expect(result.ok).toBe(false);
