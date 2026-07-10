@@ -23,6 +23,7 @@ Read both docs before starting substantial feature work — they define scope, t
 - No secrets should ever be required at build or deploy time (see story 801 / principle 2). If an auth approach needs a client secret, it does not meet the no-backend bar — flag it rather than working around it.
 - Design specs go in `docs/specs/<topic>-design.md`; implementation plans go in `docs/plans/<topic>-plan.md`. No `superpowers` subdirectory, no dates in filenames. Once a story ships and its lasting details (rationale, tooling, conventions) are captured in a permanent doc (`docs/testing.md`, `docs/wcl-auth.md`, etc.), the spec/plan can be deleted — grep the repo for the file path first to confirm nothing else references it.
 - Static analysis (typecheck, ESLint, Prettier) runs full-project — via a pre-commit hook and in CI, per `docs/testing.md` — not scoped to changed files only. Don't bypass the pre-commit hook.
+- **Merging branches: fast-forward only.** Never create a merge commit (`git merge --no-ff`, or a merge commit from a PR's "Merge" button). Integrate branches via rebase (`git rebase`) followed by a fast-forward merge (`git merge --ff-only`), or a rebase-and-merge / squash-and-merge on GitHub. Keeps history linear.
 
 ## Repo state
 
