@@ -90,7 +90,7 @@ As a developer, I want a single data layer that fetches casts, buffs, heal event
 - The same fight's events are never fetched twice in a session.
 - Rate-limit responses surface as a user-visible, retryable message.
 
-### 007 — Ability resolution table
+### 007 — Ability resolution table ✅ Done
 
 As a developer, I want a per-report lookup that maps ability IDs to (spell, rank) for all druid healing spells and relevant consumables, so that metric modules can be written against spell names and ranks instead of magic numbers.
 
