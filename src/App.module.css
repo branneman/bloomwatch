@@ -1,0 +1,20 @@
+.connectHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.connectHeader img {
+  border-radius: 4px;
+}
+.tagline {
+  margin-bottom: var(--space-6);
+}
+.connectFooter {
+  margin-top: var(--space-5);
+  font-size: var(--text-small-size);
+  color: var(--text);
+}
+.druidSection {
+  margin-bottom: var(--space-6);
+}

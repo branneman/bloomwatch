@@ -18,10 +18,15 @@ import { FightPicker } from "./app/components/FightPicker";
 import { DruidDetector } from "./app/components/DruidDetector";
 import { DruidPicker } from "./app/components/DruidPicker";
 import { AbilityResolver } from "./app/components/AbilityResolver";
-import { GCDUtilizationCard } from "./app/components/GCDUtilizationCard";
-import { IdleGapsCard } from "./app/components/IdleGapsCard";
-import { LB3UptimeCard } from "./app/components/LB3UptimeCard";
+import { Scorecard } from "./app/components/Scorecard";
+import { Shell } from "./app/components/ui/Shell";
+import { Field } from "./app/components/ui/Field";
+import { Input } from "./app/components/ui/Input";
+import { Button } from "./app/components/ui/Button";
+import { Alert } from "./app/components/ui/Alert";
 import type { DruidCandidate } from "./report/druidDetection";
+import logo from "./assets/logo/lifebloom.jpg";
+import styles from "./App.module.css";
 
 function App() {
   const { clientId, setClientId, connect, accessToken, authError } =
@@ -38,16 +43,27 @@ function App() {
     number,
     ResolvedAbility
   > | null>(null);
+  const [scorecardRequested, setScorecardRequested] = useState(false);
   const [eventFetcher] = useState(() => createEventFetcher());
 
-  function handleReportSubmit(parsed: ParsedReport) {
-    setReport(parsed);
+  function resetReportState() {
     setLoadedReport(null);
     setSelectedFightIds([]);
     setDruidCandidates(null);
     setSelectedDruidId(null);
     setActorNames(new Map());
     setResolvedAbilities(null);
+    setScorecardRequested(false);
+  }
+
+  function handleReportSubmit(parsed: ParsedReport) {
+    setReport(parsed);
+    resetReportState();
+  }
+
+  function handleStartOver() {
+    setReport(null);
+    resetReportState();
   }
 
   const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
@@ -62,95 +78,124 @@ function App() {
     [resolvedAbilities],
   );
 
+  const selectedDruid =
+    druidCandidates?.find((d) => d.id === selectedDruidId) ?? null;
+
+  const canGetScorecard =
+    selectedDruid !== null &&
+    lifebloomAbilityIds !== null &&
+    selectedFightIds.length > 0;
+
   return (
-    <div>
-      <h1>Bloomwatch</h1>
-      <label>
-        WCL Client ID
-        <input value={clientId} onChange={(e) => setClientId(e.target.value)} />
-      </label>
-      <button onClick={connect}>Connect</button>
-      {authError && <p role="alert">{authError}</p>}
-      {accessToken && <ReportInput onSubmit={handleReportSubmit} />}
-      {accessToken && report && (
-        <ConnectPanel
-          accessToken={accessToken}
-          reportCode={report.reportCode}
-          fetchReportFights={fetchReportFights}
-          onReportLoaded={setLoadedReport}
-        />
+    <>
+      {!accessToken && (
+        <Shell>
+          <div className={styles.connectHeader}>
+            <img src={logo} width={40} height={40} alt="" />
+            <h1>Bloomwatch</h1>
+          </div>
+          <p className={styles.tagline}>
+            Keep your Lifeblooms rolling. Paste a Warcraft Logs report and get a
+            scorecard that judges your process — not another parse percentile
+            that healing, being zero-sum, can&apos;t fairly measure.
+          </p>
+          <Field label="WCL Client ID">
+            <Input
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              placeholder="Paste your Client ID"
+            />
+          </Field>
+          <Button onClick={connect}>Connect</Button>
+          {authError && <Alert tone="warning">{authError}</Alert>}
+          <p className={styles.connectFooter}>
+            No account, no server, no secret — every request to Warcraft Logs is
+            made directly from your browser.
+          </p>
+        </Shell>
       )}
-      {accessToken && report && (
-        <AbilityResolver
-          accessToken={accessToken}
-          reportCode={report.reportCode}
-          fetchMasterDataAbilities={fetchMasterDataAbilities}
-          onResolved={setResolvedAbilities}
-        />
+
+      {accessToken && !loadedReport && (
+        <Shell>
+          <ReportInput onSubmit={handleReportSubmit} />
+          {report && (
+            <ConnectPanel
+              accessToken={accessToken}
+              reportCode={report.reportCode}
+              fetchReportFights={fetchReportFights}
+              onReportLoaded={setLoadedReport}
+            />
+          )}
+          {report && (
+            <AbilityResolver
+              accessToken={accessToken}
+              reportCode={report.reportCode}
+              fetchMasterDataAbilities={fetchMasterDataAbilities}
+              onResolved={setResolvedAbilities}
+            />
+          )}
+        </Shell>
       )}
-      {loadedReport && (
-        <FightPicker
-          fights={loadedReport.fights}
-          initialFightId={report?.fightId ?? null}
-          onSelectionChange={setSelectedFightIds}
-        />
+
+      {accessToken && report && loadedReport && !scorecardRequested && (
+        <Shell>
+          <h2>{loadedReport.title}</h2>
+          <FightPicker
+            fights={loadedReport.fights}
+            initialFightId={report.fightId}
+            onSelectionChange={setSelectedFightIds}
+          />
+          <DruidDetector
+            accessToken={accessToken}
+            reportCode={report.reportCode}
+            fightIds={loadedReport.fights.map((f) => f.id)}
+            fetchCastsTable={fetchCastsTable}
+            onDruidsDetected={setDruidCandidates}
+            onEntriesLoaded={handleEntriesLoaded}
+          />
+          {druidCandidates !== null && (
+            <div className={styles.druidSection}>
+              <h3>Druid</h3>
+              <DruidPicker
+                candidates={druidCandidates}
+                selectedDruidId={selectedDruidId}
+                onSelect={setSelectedDruidId}
+              />
+            </div>
+          )}
+          <Button
+            disabled={!canGetScorecard}
+            onClick={() => setScorecardRequested(true)}
+          >
+            Get scorecard
+          </Button>
+        </Shell>
       )}
-      {accessToken && loadedReport && report && (
-        <DruidDetector
-          accessToken={accessToken}
-          reportCode={report.reportCode}
-          fightIds={loadedReport.fights.map((f) => f.id)}
-          fetchCastsTable={fetchCastsTable}
-          onDruidsDetected={setDruidCandidates}
-          onEntriesLoaded={handleEntriesLoaded}
-        />
-      )}
-      {druidCandidates !== null && (
-        <DruidPicker
-          candidates={druidCandidates}
-          selectedDruidId={selectedDruidId}
-          onSelect={setSelectedDruidId}
-        />
-      )}
+
       {accessToken &&
         report &&
         loadedReport &&
-        selectedDruidId !== null &&
+        scorecardRequested &&
+        selectedDruid !== null &&
         lifebloomAbilityIds !== null &&
-        selectedFightIds.length > 0 && (
-          <div>
-            {loadedReport.fights
-              .filter((f) => selectedFightIds.includes(f.id))
-              .map((f) => (
-                <div key={f.id}>
-                  <GCDUtilizationCard
-                    accessToken={accessToken}
-                    reportCode={report.reportCode}
-                    fight={f}
-                    druidId={selectedDruidId}
-                    fetchEvents={eventFetcher.fetchEvents}
-                  />
-                  <IdleGapsCard
-                    accessToken={accessToken}
-                    reportCode={report.reportCode}
-                    fight={f}
-                    druidId={selectedDruidId}
-                    fetchEvents={eventFetcher.fetchEvents}
-                  />
-                  <LB3UptimeCard
-                    accessToken={accessToken}
-                    reportCode={report.reportCode}
-                    fight={f}
-                    druidId={selectedDruidId}
-                    lifebloomAbilityIds={lifebloomAbilityIds}
-                    targetNames={actorNames}
-                    fetchEvents={eventFetcher.fetchEvents}
-                  />
-                </div>
-              ))}
-          </div>
-        )}
-    </div>
+        loadedReport.fights
+          .filter((f) => selectedFightIds.includes(f.id))
+          .map((f) => (
+            <Shell width={800} key={f.id}>
+              <Scorecard
+                accessToken={accessToken}
+                reportCode={report.reportCode}
+                fight={f}
+                druidId={selectedDruid.id}
+                druid={selectedDruid}
+                lifebloomAbilityIds={lifebloomAbilityIds}
+                targetNames={actorNames}
+                fetchEvents={eventFetcher.fetchEvents}
+                onStartOver={handleStartOver}
+              />
+            </Shell>
+          ))}
+    </>
   );
 }
 
