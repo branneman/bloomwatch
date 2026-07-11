@@ -1,0 +1,24 @@
+.fightHeading {
+  margin-top: 0;
+}
+.druidLine {
+  color: var(--text);
+  margin-bottom: var(--space-1);
+}
+.reportLine {
+  font-size: var(--text-small-size);
+  color: var(--text);
+  margin-bottom: var(--space-6);
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.footer {
+  margin-top: var(--space-6);
+}
+.startOver {
+  margin-top: var(--space-5);
+}
