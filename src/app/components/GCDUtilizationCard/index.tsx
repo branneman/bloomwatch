@@ -7,6 +7,8 @@ import {
   type GcdUtilizationResult,
 } from "../../../metrics/gcdUtilization";
 import { formatDuration } from "../../../report/fightRows";
+import { MetricCard } from "../ui/MetricCard";
+import instantcastIcon from "../../../assets/spell-icons/instantcast.jpg";
 
 export interface GCDUtilizationCardProps {
   accessToken: string;
@@ -24,12 +26,6 @@ export interface GCDUtilizationCardProps {
 type FetchResult =
   | { accessToken: string; result: GcdUtilizationResult }
   | { accessToken: string; error: string };
-
-const JUDGEMENT_LABEL: Record<GcdUtilizationResult["judgement"], string> = {
-  green: "Green",
-  orange: "Orange",
-  red: "Red",
-};
 
 export function GCDUtilizationCard({
   accessToken,
@@ -77,24 +73,49 @@ export function GCDUtilizationCard({
 
   const isCurrent = result !== null && result.accessToken === accessToken;
 
+  const threshold =
+    "Green ≥ 85%, orange 70–85%, red < 70%. ~40 casts/min is the theoretical ceiling at 0% haste (60s ÷ 1.5s GCD) — 100% is not a realistic target, just the ceiling the percentage is measured against.";
+
+  if (!isCurrent) {
+    return (
+      <MetricCard
+        icon={instantcastIcon}
+        title="GCD utilization"
+        threshold={threshold}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if ("error" in result) {
+    return (
+      <MetricCard
+        icon={instantcastIcon}
+        title="GCD utilization"
+        threshold={threshold}
+      >
+        <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  const { utilizationPct, activeTimeMs, judgement } = result.result;
+
   return (
-    <section>
-      <h3>{fight.name}</h3>
-      {!isCurrent && <p>Calculating…</p>}
-      {isCurrent && "error" in result && <p role="alert">{result.error}</p>}
-      {isCurrent && !("error" in result) && (
-        <>
-          <p>Active time: {formatDuration(result.result.activeTimeMs)}</p>
-          <p>
-            GCD utilization: {Math.round(result.result.utilizationPct)}% —{" "}
-            {JUDGEMENT_LABEL[result.result.judgement]}
-          </p>
-          <p>
-            Ceiling: ~40 casts/min at 0% haste (60s ÷ 1.5s GCD) — 100% is a
-            theoretical maximum, not a target.
-          </p>
-        </>
-      )}
-    </section>
+    <MetricCard
+      icon={instantcastIcon}
+      title="GCD utilization"
+      value={`${Math.round(utilizationPct)}%`}
+      pct={Math.min(100, utilizationPct)}
+      judgement={judgement}
+      threshold={threshold}
+    >
+      <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
+        Time spent on the global cooldown (1.5s per instant, actual cast time
+        for cast-time spells) as a share of total fight duration. Active time
+        this fight: {formatDuration(activeTimeMs)}.
+      </p>
+    </MetricCard>
   );
 }
