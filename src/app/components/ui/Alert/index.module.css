@@ -1,0 +1,11 @@
+.alert {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  font-size: var(--text-small-size);
+}
+.warning {
+  border-color: var(--judgement-orange);
+  background: var(--judgement-orange-bg);
+  color: var(--text-h);
+}
