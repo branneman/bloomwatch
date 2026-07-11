@@ -16,7 +16,10 @@ export function Disclosure({ summary, children }: DisclosureProps) {
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
       >
-        <span className={`${styles.chevron} ${open ? styles.open : ""}`}>
+        <span
+          className={`${styles.chevron} ${open ? styles.open : ""}`}
+          aria-hidden="true"
+        >
           ▶
         </span>
         {summary}
