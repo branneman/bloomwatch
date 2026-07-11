@@ -1,5 +1,6 @@
 import type { WclEvent } from "../wcl/events";
 import { judgeThreshold, type Judgement } from "./judgement";
+import { reconstructLifebloomTimelines } from "./lifebloomStacks";
 
 // Backlog story 201: targets under 30% any-stack Lifebloom uptime are
 // one-off casts, not "maintained" targets, and are excluded entirely.
@@ -23,7 +24,6 @@ export interface Lb3UptimeResult {
 }
 
 interface TargetState {
-  currentStack: number;
   openAt: number | null;
   stack3OpenAt: number | null;
   firstReached3At: number | null;
@@ -33,7 +33,6 @@ interface TargetState {
 
 function newTargetState(): TargetState {
   return {
-    currentStack: 0,
     openAt: null,
     stack3OpenAt: null,
     firstReached3At: null,
@@ -49,66 +48,52 @@ export function computeLb3Uptime(
   fightStart: number,
   fightEnd: number,
 ): Lb3UptimeResult {
-  const states = new Map<number, TargetState>();
-  const targetOrder: number[] = [];
-
-  for (const event of events) {
-    if (event.sourceID !== druidId) continue;
-    if (event.abilityGameID === undefined) continue;
-    if (!lifebloomAbilityIds.has(event.abilityGameID)) continue;
-    if (event.targetID === undefined) continue;
-
-    let state = states.get(event.targetID);
-    if (!state) {
-      state = newTargetState();
-      states.set(event.targetID, state);
-      targetOrder.push(event.targetID);
-    }
-
-    if (event.type === "applybuff") {
-      state.openAt = event.timestamp;
-      state.currentStack = 1;
-      continue;
-    }
-
-    if (event.type === "applybuffstack") {
-      const stack =
-        typeof event.stack === "number" ? event.stack : state.currentStack;
-      state.currentStack = stack;
-      if (stack >= 3 && state.stack3OpenAt === null) {
-        state.stack3OpenAt = event.timestamp;
-        if (state.firstReached3At === null) {
-          state.firstReached3At = event.timestamp;
-        }
-      } else if (stack < 3 && state.stack3OpenAt !== null) {
-        state.totalStack3Ms += event.timestamp - state.stack3OpenAt;
-        state.stack3OpenAt = null;
-      }
-      continue;
-    }
-
-    if (event.type === "removebuff") {
-      if (state.openAt !== null) {
-        state.totalAnyStackMs += event.timestamp - state.openAt;
-        state.openAt = null;
-      }
-      if (state.stack3OpenAt !== null) {
-        state.totalStack3Ms += event.timestamp - state.stack3OpenAt;
-        state.stack3OpenAt = null;
-      }
-      state.currentStack = 0;
-      continue;
-    }
-
-    // refreshbuff: no stack change, nothing to record.
-  }
+  const timelines = reconstructLifebloomTimelines(
+    events,
+    druidId,
+    lifebloomAbilityIds,
+  );
 
   const fightDurationMs = fightEnd - fightStart;
   const results: Lb3TargetResult[] = [];
 
-  for (const targetId of targetOrder) {
-    const state = states.get(targetId);
-    if (!state) continue;
+  for (const [targetId, timeline] of timelines) {
+    const state = newTargetState();
+
+    for (const event of timeline) {
+      if (event.kind === "open") {
+        state.openAt = event.timestamp;
+        continue;
+      }
+
+      if (event.kind === "stack-change") {
+        const stack = event.stack ?? 0;
+        if (stack >= 3 && state.stack3OpenAt === null) {
+          state.stack3OpenAt = event.timestamp;
+          if (state.firstReached3At === null) {
+            state.firstReached3At = event.timestamp;
+          }
+        } else if (stack < 3 && state.stack3OpenAt !== null) {
+          state.totalStack3Ms += event.timestamp - state.stack3OpenAt;
+          state.stack3OpenAt = null;
+        }
+        continue;
+      }
+
+      if (event.kind === "close") {
+        if (state.openAt !== null) {
+          state.totalAnyStackMs += event.timestamp - state.openAt;
+          state.openAt = null;
+        }
+        if (state.stack3OpenAt !== null) {
+          state.totalStack3Ms += event.timestamp - state.stack3OpenAt;
+          state.stack3OpenAt = null;
+        }
+        continue;
+      }
+
+      // "refresh": no stack change, nothing to record.
+    }
 
     if (state.openAt !== null) {
       state.totalAnyStackMs += fightEnd - state.openAt;
