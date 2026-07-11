@@ -6,7 +6,7 @@ Guidance for Claude Code (and other agents) working in this repo.
 
 Bloomwatch is a static, backend-less web app that turns a Warcraft Logs report into a process-quality scorecard for TBC Resto Druids. In scope: TBC Anniversary ("fresh") realms only — no other WoW version, expansion, or realm type. Full vision, principles, and phased roadmap: `docs/roadmap.md`. Full backlog of user stories (the unit of implementation work): `docs/backlog.md`. Testing strategy and tooling: `docs/testing.md`.
 
-Read both docs before starting substantial feature work — they define scope, thresholds, and acceptance criteria that shouldn't be re-derived or guessed.
+Read both docs before starting substantial feature work — they define scope, thresholds, and acceptance criteria that shouldn't be re-derived or guessed. Always read `docs/testing.md` before writing an implementation plan — it defines which test tier each kind of change belongs in and the tooling/conventions (factories, fixtures, co-location) each tier expects, none of which should be re-derived or guessed either.
 
 ## Product principles (do not violate silently)
 
