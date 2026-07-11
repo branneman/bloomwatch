@@ -1,0 +1,23 @@
+.track {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--border);
+  overflow: hidden;
+}
+.fill {
+  height: 100%;
+  transition: width 0.2s ease;
+}
+.green {
+  background: var(--judgement-green);
+}
+.orange {
+  background: var(--judgement-orange);
+}
+.red {
+  background: var(--judgement-red);
+}
+.neutral {
+  background: var(--accent);
+}
