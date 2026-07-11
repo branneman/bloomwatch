@@ -55,23 +55,23 @@ New `src/app/components/ui/`, one folder per component
 (`index.tsx` + `index.test.tsx`), matching this repo's existing component
 convention:
 
-| Component | Notes |
-|---|---|
-| `Button` | `variant?: "primary" \| "secondary" \| "ghost"`, `size?: "md" \| "sm"` |
-| `Input` | thin styled wrapper over `<input>` |
-| `Checkbox` | native checkbox + label |
-| `Field` | label + control wrapper |
-| `Badge` | `tone: "kill" \| "wipe" \| "trash"` — fight-outcome tones, kept visually distinct from judgement colors |
-| `JudgementChip` | `judgement: Judgement` (reuses `metrics/judgement.ts`'s type) |
-| `ProgressBar` | `pct: number`, `judgement: Judgement \| "neutral"`, animated fill |
-| `Alert` | `tone: "warning"` |
-| `Card` | bordered/radius wrapper, no shadow |
-| `Disclosure` | `<details>/<summary>`-based, collapsed by default, rotating chevron |
-| `SpellIcon` | 28×28 default image wrapper |
-| `Histogram` | bucketed bar chart (refresh-cadence card) |
-| `StackedBar` | segmented horizontal bar + legend (concurrent-targets card) |
-| `MetricCard` | icon + title + (`JudgementChip` \| italic note) + stat value + optional `ProgressBar` + body + `Disclosure` |
-| `Shell` | bordered column container (`width: 760` default / `800` variant), replaces `#root`'s current border/width styling |
+| Component       | Notes                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Button`        | `variant?: "primary" \| "secondary" \| "ghost"`, `size?: "md" \| "sm"`                                            |
+| `Input`         | thin styled wrapper over `<input>`                                                                                |
+| `Checkbox`      | native checkbox + label                                                                                           |
+| `Field`         | label + control wrapper                                                                                           |
+| `Badge`         | `tone: "kill" \| "wipe" \| "trash"` — fight-outcome tones, kept visually distinct from judgement colors           |
+| `JudgementChip` | `judgement: Judgement` (reuses `metrics/judgement.ts`'s type)                                                     |
+| `ProgressBar`   | `pct: number`, `judgement: Judgement \| "neutral"`, animated fill                                                 |
+| `Alert`         | `tone: "warning"`                                                                                                 |
+| `Card`          | bordered/radius wrapper, no shadow                                                                                |
+| `Disclosure`    | `<details>/<summary>`-based, collapsed by default, rotating chevron                                               |
+| `SpellIcon`     | 28×28 default image wrapper                                                                                       |
+| `Histogram`     | bucketed bar chart (refresh-cadence card)                                                                         |
+| `StackedBar`    | segmented horizontal bar + legend (concurrent-targets card)                                                       |
+| `MetricCard`    | icon + title + (`JudgementChip` \| italic note) + stat value + optional `ProgressBar` + body + `Disclosure`       |
+| `Shell`         | bordered column container (`width: 760` default / `800` variant), replaces `#root`'s current border/width styling |
 
 ## C — App flow & screen retrofit
 
@@ -93,8 +93,12 @@ convention:
    invisible. A new explicit "Get scorecard" `Button` commits the
    selection (today the scorecard renders implicitly once state lines up —
    this adds a deliberate submit step matching the mockup).
-4. **Scorecard** — see section D. Secondary "Start over" `Button` resets all
-   state back to Connect.
+4. **Scorecard** — see section D. Secondary "Start over" `Button` resets
+   report/fight/druid selection state and returns to screen 2 (Load a
+   report) — it does not clear the access token/session, so the user isn't
+   forced to re-run OAuth to try another report. This diverges from the
+   mockup's literal "returns to Connect" phrasing in favor of lower friction;
+   `useWclAuth` gains no new disconnect capability.
 
 This work is cross-cutting infra, not a single backlog story: it restyles
 already-shipped stories (002–005, 101, 102, 201) and lays out 701's shell
