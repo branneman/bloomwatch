@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReportFights } from "../../../wcl/client";
+import { Alert } from "../ui/Alert";
 
 export interface ConnectPanelProps {
   accessToken: string | null;
@@ -42,7 +43,7 @@ export function ConnectPanel({
 
   const isCurrent = result !== null && result.accessToken === accessToken;
   if (!isCurrent) return <p>Loading report…</p>;
-  if ("error" in result) return <p role="alert">{result.error}</p>;
+  if ("error" in result) return <Alert tone="warning">{result.error}</Alert>;
 
   return (
     <div>
