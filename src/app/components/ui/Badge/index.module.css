@@ -1,0 +1,21 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small-size);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.kill {
+  color: var(--judgement-green);
+  background: var(--judgement-green-bg);
+}
+.wipe {
+  color: var(--judgement-orange);
+  background: var(--judgement-orange-bg);
+}
+.trash {
+  color: var(--gray-400);
+  background: var(--code-bg);
+}
