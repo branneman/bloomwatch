@@ -5,6 +5,10 @@ import {
   formatDuration,
   groupFightsByZone,
 } from "../../../report/fightRows";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/Button";
+import { Checkbox } from "../ui/Checkbox";
+import styles from "./index.module.css";
 
 export interface FightPickerProps {
   fights: Fight[];
@@ -59,53 +63,64 @@ export function FightPicker({
 
   return (
     <div>
-      <label>
-        <input
-          type="checkbox"
-          checked={showTrash}
-          onChange={(event) => setShowTrash(event.target.checked)}
-        />
-        Show trash fights
-      </label>
+      <Checkbox
+        checked={showTrash}
+        onChange={(event) => setShowTrash(event.target.checked)}
+        label="Show trash fights"
+      />
       {zones.length > 0 && (
-        <ul>
+        <div className={styles.zoneRow}>
           {zones.map((zone) => (
-            <li key={zone.zoneId}>
-              <button type="button" onClick={() => selectZone(zone.fightIds)}>
-                {zone.zoneName} ({zone.fightIds.length})
-              </button>
-            </li>
+            <Button
+              key={zone.zoneId}
+              variant="secondary"
+              size="sm"
+              onClick={() => selectZone(zone.fightIds)}
+            >
+              {zone.zoneName} ({zone.fightIds.length})
+            </Button>
           ))}
-        </ul>
+        </div>
       )}
-      <ul>
+      <div className={styles.rows}>
         {rows.map(({ fight, isTrash, pullNumber }) => {
           const label = isTrash
             ? fight.name
             : `Pull ${pullNumber} — ${fight.name}`;
+          const duration = formatDuration(fight.endTime - fight.startTime);
           const status =
             fight.kill === true
               ? "Kill"
               : fight.kill === false
                 ? `Wipe (${Math.round(fight.bossPercentage ?? 0)}%)`
                 : null;
-          const duration = formatDuration(fight.endTime - fight.startTime);
-          const text = [label, status, duration].filter(Boolean).join(" — ");
+          // aria-label preserves the pre-retrofit accessible name exactly
+          // (label — status — duration), independent of how the visible
+          // Badge/duration chips are laid out, so existing accessible-name
+          // assertions keep passing unchanged.
+          const accessibleName = [label, status, duration]
+            .filter(Boolean)
+            .join(" — ");
 
           return (
-            <li key={fight.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(fight.id)}
-                  onChange={() => toggleFight(fight.id)}
-                />
-                {text}
-              </label>
-            </li>
+            <label key={fight.id} className={styles.row}>
+              <input
+                type="checkbox"
+                checked={selectedIds.has(fight.id)}
+                onChange={() => toggleFight(fight.id)}
+                aria-label={accessibleName}
+              />
+              <span className={styles.label}>{label}</span>
+              {fight.kill === true ? (
+                <Badge tone="kill">Kill</Badge>
+              ) : fight.kill === false ? (
+                <Badge tone="wipe">{`Wipe (${Math.round(fight.bossPercentage ?? 0)}%)`}</Badge>
+              ) : null}
+              <span className={styles.duration}>{duration}</span>
+            </label>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }
