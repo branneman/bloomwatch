@@ -108,6 +108,7 @@ function App() {
       {druidCandidates !== null && (
         <DruidPicker
           candidates={druidCandidates}
+          selectedDruidId={selectedDruidId}
           onSelect={setSelectedDruidId}
         />
       )}

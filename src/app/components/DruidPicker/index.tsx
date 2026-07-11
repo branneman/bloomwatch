@@ -1,12 +1,18 @@
 import { useEffect } from "react";
 import type { DruidCandidate } from "../../../report/druidDetection";
+import styles from "./index.module.css";
 
 export interface DruidPickerProps {
   candidates: DruidCandidate[];
+  selectedDruidId: number | null;
   onSelect: (druidId: number) => void;
 }
 
-export function DruidPicker({ candidates, onSelect }: DruidPickerProps) {
+export function DruidPicker({
+  candidates,
+  selectedDruidId,
+  onSelect,
+}: DruidPickerProps) {
   const soleCandidateId = candidates.length === 1 ? candidates[0].id : null;
 
   useEffect(() => {
@@ -22,24 +28,27 @@ export function DruidPicker({ candidates, onSelect }: DruidPickerProps) {
   }
 
   return (
-    <ul>
+    <div className={styles.row}>
       {candidates.map((candidate) => {
+        const active = candidate.id === selectedDruidId;
         const label = candidate.isRestoSpec
-          ? `${candidate.name} — Restoration (${candidate.healingCastCount} heal casts)`
+          ? `${candidate.name} — Restoration (${candidate.healingCastCount} heals)`
           : `${candidate.name} (${candidate.healingCastCount} heal casts)`;
         return (
-          <li key={candidate.id}>
-            <label>
-              <input
-                type="radio"
-                name="druid"
-                onChange={() => onSelect(candidate.id)}
-              />
-              {label}
-            </label>
-          </li>
+          <label
+            key={candidate.id}
+            className={`${styles.chip} ${active ? styles.active : ""}`}
+          >
+            <input
+              type="radio"
+              name="druid"
+              checked={active}
+              onChange={() => onSelect(candidate.id)}
+            />
+            {label}
+          </label>
         );
       })}
-    </ul>
+    </div>
   );
 }
