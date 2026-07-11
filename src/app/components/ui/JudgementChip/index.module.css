@@ -1,0 +1,20 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small-size);
+  font-weight: 600;
+}
+.green {
+  color: var(--judgement-green);
+  background: var(--judgement-green-bg);
+}
+.orange {
+  color: var(--judgement-orange);
+  background: var(--judgement-orange-bg);
+}
+.red {
+  color: var(--judgement-red);
+  background: var(--judgement-red-bg);
+}
