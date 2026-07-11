@@ -1,0 +1,30 @@
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-5);
+  height: 110px;
+  margin-bottom: var(--space-4);
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.pctLabel {
+  font-size: var(--text-small-size);
+  color: var(--text-h);
+  margin-bottom: var(--space-2);
+  font-weight: 500;
+}
+.bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+}
+.bucketLabel {
+  font-size: var(--text-small-size);
+  color: var(--text);
+  margin-top: var(--space-2);
+  text-align: center;
+  line-height: 1.3;
+}
