@@ -232,68 +232,48 @@ describe("computeRestackTax", () => {
     expect(result.castCount).toBe(0);
   });
 
-  it("judges a 5:41 fight green at 2 tax casts, orange at 5, red at 6", () => {
-    const green = computeRestackTax(
-      [],
-      Array.from({ length: 2 }, (_, i) =>
-        aCastEvent({ timestamp: 100000 + i * 1500, targetID: 42 }),
-      ),
-      DRUID_ID,
-      LIFEBLOOM_IDS,
-      FIGHT_DURATION_MS,
-    );
-    // No ramp events, so these casts are all "rebuild" casts against a
-    // target that never reached 3 — force everReached3 via a prior ramp
-    // instead, so the count under test is exactly the rebuild casts.
-    expect(green).toBeDefined();
-  });
+  it.each([
+    { restackCasts: 2, expected: "green" },
+    { restackCasts: 5, expected: "orange" },
+    { restackCasts: 6, expected: "red" },
+  ])(
+    "judges a 5:41 fight $expected at $restackCasts re-stack casts",
+    ({ restackCasts, expected }) => {
+      const buffEvents = [
+        anApplyBuffEvent({ timestamp: 10000, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 11500, targetID: 42, stack: 2 }),
+        anApplyBuffStackEvent({ timestamp: 13000, targetID: 42, stack: 3 }),
+        aRemoveBuffEvent({ timestamp: 100000, targetID: 42 }),
+      ];
+      const castEvents = [
+        aCastEvent({ timestamp: 10000, targetID: 42 }),
+        aCastEvent({ timestamp: 11500, targetID: 42 }),
+        aCastEvent({ timestamp: 13000, targetID: 42 }),
+      ];
+      // Each of these fires while the target sits at 0 stacks (no
+      // intervening buff events put it back above 0), so every one
+      // counts as a re-stack-tax cast.
+      for (let i = 0; i < restackCasts; i++) {
+        castEvents.push(
+          aCastEvent({ timestamp: 101000 + i * 10000, targetID: 42 }),
+        );
+      }
+
+      const result = computeRestackTax(
+        buffEvents,
+        castEvents,
+        DRUID_ID,
+        LIFEBLOOM_IDS,
+        FIGHT_DURATION_MS,
+      );
+      expect(result.castCount).toBe(restackCasts);
+      expect(result.judgement).toBe(expected);
+    },
+  );
 });
 ```
 
-The last test as sketched doesn't actually exercise the boundary (no target ever reaches 3 stacks, so nothing is counted). Replace it with a version that first ramps the target for free, then adds exactly N rebuild casts after a drop, and checks the resulting judgement for N = 2, 5, 6:
-
-```ts
-it.each([
-  { restackCasts: 2, expected: "green" },
-  { restackCasts: 5, expected: "orange" },
-  { restackCasts: 6, expected: "red" },
-])(
-  "judges a 5:41 fight $expected at $restackCasts re-stack casts",
-  ({ restackCasts, expected }) => {
-    const buffEvents = [
-      anApplyBuffEvent({ timestamp: 10000, targetID: 42 }),
-      anApplyBuffStackEvent({ timestamp: 11500, targetID: 42, stack: 2 }),
-      anApplyBuffStackEvent({ timestamp: 13000, targetID: 42, stack: 3 }),
-      aRemoveBuffEvent({ timestamp: 100000, targetID: 42 }),
-    ];
-    const castEvents = [
-      aCastEvent({ timestamp: 10000, targetID: 42 }),
-      aCastEvent({ timestamp: 11500, targetID: 42 }),
-      aCastEvent({ timestamp: 13000, targetID: 42 }),
-    ];
-    // Each of these fires while the target sits at 0 stacks (no
-    // intervening buff events put it back above 0), so every one
-    // counts as a re-stack-tax cast.
-    for (let i = 0; i < restackCasts; i++) {
-      castEvents.push(
-        aCastEvent({ timestamp: 101000 + i * 10000, targetID: 42 }),
-      );
-    }
-
-    const result = computeRestackTax(
-      buffEvents,
-      castEvents,
-      DRUID_ID,
-      LIFEBLOOM_IDS,
-      FIGHT_DURATION_MS,
-    );
-    expect(result.castCount).toBe(restackCasts);
-    expect(result.judgement).toBe(expected);
-  },
-);
-```
-
-Delete the earlier unfinished sketch test (the one ending in `expect(green).toBeDefined();`) — it was superseded by the `it.each` block above. The final test file contains exactly: the 7 `it(...)` blocks shown above (zero-events, free-ramp, maintenance-refresh, single-rebuild, full-rebuild, independent-targets, ignores-other-source) plus this one `it.each` block. No other tests.
+The final test file contains exactly 8 cases: the 7 `it(...)` blocks above (zero-events, free-ramp, maintenance-refresh, single-rebuild, full-rebuild, independent-targets, ignores-other-source) plus the `it.each` block (3 judgement-boundary cases). No other tests.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
