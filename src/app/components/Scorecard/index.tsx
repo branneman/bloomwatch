@@ -113,7 +113,15 @@ export function Scorecard({
           lifebloomAbilityIds={lifebloomAbilityIds}
           fetchEvents={fetchEvents}
         />
-        <AccidentalBloomsCard />
+        <AccidentalBloomsCard
+          accessToken={accessToken}
+          reportCode={reportCode}
+          fight={fight}
+          druidId={druidId}
+          lifebloomAbilityIds={lifebloomAbilityIds}
+          targetNames={targetNames}
+          fetchEvents={fetchEvents}
+        />
         <RestackTaxCard />
         <ConcurrentTargetsCard />
       </div>

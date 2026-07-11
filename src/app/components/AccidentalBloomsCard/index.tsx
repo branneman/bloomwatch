@@ -1,33 +1,153 @@
+import { useEffect, useState } from "react";
+import type { Fight } from "../../../wcl/client";
+import type { WclEvent, WclEventDataType } from "../../../wcl/events";
+import type { EventFetcherFight } from "../../../wcl/eventCache";
+import {
+  computeAccidentalBlooms,
+  type AccidentalBloomsResult,
+} from "../../../metrics/accidentalBlooms";
+import { formatDuration } from "../../../report/fightRows";
+import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 
-export function AccidentalBloomsCard() {
+export interface AccidentalBloomsCardProps {
+  accessToken: string;
+  reportCode: string;
+  fight: Fight;
+  druidId: number;
+  lifebloomAbilityIds: Set<number>;
+  targetNames: Map<number, string>;
+  fetchEvents: (
+    accessToken: string,
+    reportCode: string,
+    fight: EventFetcherFight,
+    dataType: WclEventDataType,
+  ) => Promise<WclEvent[]>;
+}
+
+type FetchResult =
+  | { accessToken: string; result: AccidentalBloomsResult }
+  | { accessToken: string; error: string };
+
+const THRESHOLD =
+  "Green 0, orange 1–2, red ≥ 3 per fight. An accidental bloom is a re-application of Lifebloom on the same target within 3s of it blooming — the stack was rebuilt, not deliberately reset.";
+
+export function AccidentalBloomsCard({
+  accessToken,
+  reportCode,
+  fight,
+  druidId,
+  lifebloomAbilityIds,
+  targetNames,
+  fetchEvents,
+}: AccidentalBloomsCardProps) {
+  const [result, setResult] = useState<FetchResult | null>(null);
+
+  useEffect(() => {
+    const fightArg = {
+      id: fight.id,
+      startTime: fight.startTime,
+      endTime: fight.endTime,
+    };
+    Promise.all([
+      fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
+      fetchEvents(accessToken, reportCode, fightArg, "Healing"),
+    ])
+      .then(([buffEvents, healEvents]) => {
+        const computed = computeAccidentalBlooms(
+          buffEvents,
+          healEvents,
+          druidId,
+          lifebloomAbilityIds,
+        );
+        setResult({ accessToken, result: computed });
+      })
+      .catch((err: unknown) =>
+        setResult({
+          accessToken,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to calculate accidental blooms.",
+        }),
+      );
+  }, [
+    accessToken,
+    reportCode,
+    fight.id,
+    fight.startTime,
+    fight.endTime,
+    druidId,
+    lifebloomAbilityIds,
+    fetchEvents,
+  ]);
+
+  const isCurrent = result !== null && result.accessToken === accessToken;
+
+  if (!isCurrent) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="Accidental blooms"
+        threshold={THRESHOLD}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if ("error" in result) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="Accidental blooms"
+        threshold={THRESHOLD}
+      >
+        <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  const { accidentalBlooms, count, judgement } = result.result;
+
   return (
     <MetricCard
       icon={lifebloomIcon}
       title="Accidental blooms"
-      value="1"
-      judgement="orange"
-      threshold="Green 0, orange 1–2, red ≥ 3 per fight. An accidental bloom is a re-application of Lifebloom on the same target within 3s of it blooming — the stack was rebuilt, not deliberately reset."
+      value={`${count}`}
+      judgement={judgement}
+      threshold={THRESHOLD}
     >
-      <span
-        style={{
-          fontSize: "var(--text-small-size)",
-          fontStyle: "italic",
-          color: "var(--text)",
-        }}
-      >
-        Sample — not yet computed
-      </span>
-      <ul
-        style={{
-          margin: "0 0 4px",
-          paddingLeft: "16px",
-          fontSize: "var(--text-small-size)",
-        }}
-      >
-        <li>2:53 — Offtank</li>
-      </ul>
+      {accidentalBlooms.length === 0 ? (
+        <p>No accidental blooms this fight.</p>
+      ) : (
+        <ul
+          style={{
+            margin: "0 0 4px",
+            paddingLeft: "16px",
+            fontSize: "var(--text-small-size)",
+          }}
+        >
+          {accidentalBlooms.map((bloom) => (
+            <li key={`${bloom.timestampMs}-${bloom.targetId}`}>
+              <a
+                href={buildFightTimeUrl(
+                  reportCode,
+                  fight.id,
+                  bloom.timestampMs,
+                  bloom.timestampMs,
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {formatDuration(bloom.timestampMs - fight.startTime)} —{" "}
+                {targetNames.get(bloom.targetId) ?? `Target #${bloom.targetId}`}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </MetricCard>
   );
 }
