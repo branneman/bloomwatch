@@ -1,0 +1,9 @@
+.field {
+  display: block;
+  margin-bottom: var(--space-4);
+}
+.labelText {
+  font-size: var(--text-small-size);
+  color: var(--text);
+  margin-bottom: var(--space-2);
+}
