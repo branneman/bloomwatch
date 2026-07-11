@@ -8,6 +8,8 @@ import {
 } from "../../../metrics/idleGaps";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
+import { MetricCard } from "../ui/MetricCard";
+import instantcastIcon from "../../../assets/spell-icons/instantcast.jpg";
 
 export interface IdleGapsCardProps {
   accessToken: string;
@@ -25,12 +27,6 @@ export interface IdleGapsCardProps {
 type FetchResult =
   | { accessToken: string; result: IdleGapsResult }
   | { accessToken: string; error: string };
-
-const JUDGEMENT_LABEL: Record<IdleGapsResult["judgement"], string> = {
-  green: "Green",
-  orange: "Orange",
-  red: "Red",
-};
 
 export function IdleGapsCard({
   accessToken,
@@ -78,42 +74,77 @@ export function IdleGapsCard({
 
   const isCurrent = result !== null && result.accessToken === accessToken;
 
+  const threshold =
+    "Green < 5%, orange 5–15%, red > 15% of fight duration, measured as total dead time as a share of the fight.";
+
+  if (!isCurrent) {
+    return (
+      <MetricCard
+        icon={instantcastIcon}
+        title="Idle gaps"
+        threshold={threshold}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if ("error" in result) {
+    return (
+      <MetricCard
+        icon={instantcastIcon}
+        title="Idle gaps"
+        threshold={threshold}
+      >
+        <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  const { deadTimePct, totalDeadTimeMs, gaps, longestGaps, judgement } =
+    result.result;
+
   return (
-    <section>
-      <h3>{fight.name}</h3>
-      {!isCurrent && <p>Calculating…</p>}
-      {isCurrent && "error" in result && <p role="alert">{result.error}</p>}
-      {isCurrent && !("error" in result) && (
-        <>
-          <p>
-            Total dead time: {formatDuration(result.result.totalDeadTimeMs)} (
-            {Math.round(result.result.deadTimePct)}% of fight) —{" "}
-            {JUDGEMENT_LABEL[result.result.judgement]}
-          </p>
-          <p>Idle gaps &gt; 1.7s: {result.result.gaps.length}</p>
-          {result.result.longestGaps.length > 0 && (
-            <ul>
-              {result.result.longestGaps.map((gap) => (
-                <li key={gap.startMs}>
-                  <a
-                    href={buildFightTimeUrl(
-                      reportCode,
-                      fight.id,
-                      gap.startMs,
-                      gap.endMs,
-                    )}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {formatDuration(gap.startMs - fight.startTime)} for{" "}
-                    {formatDuration(gap.durationMs)}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+    <MetricCard
+      icon={instantcastIcon}
+      title="Idle gaps"
+      value={`${Math.round(deadTimePct)}% dead time`}
+      pct={Math.min(100, deadTimePct)}
+      judgement={judgement}
+      threshold={threshold}
+    >
+      <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
+        Every gap &gt; 1.7s between your casts, measured from end-of-GCD to next
+        cast start. Total dead time: {formatDuration(totalDeadTimeMs)} (
+        {gaps.length} gap{gaps.length === 1 ? "" : "s"}).
+      </p>
+      {longestGaps.length > 0 && (
+        <ul
+          style={{
+            margin: "0 0 4px",
+            paddingLeft: "16px",
+            fontSize: "var(--text-small-size)",
+          }}
+        >
+          {longestGaps.map((gap) => (
+            <li key={gap.startMs}>
+              <a
+                href={buildFightTimeUrl(
+                  reportCode,
+                  fight.id,
+                  gap.startMs,
+                  gap.endMs,
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {formatDuration(gap.startMs - fight.startTime)} for{" "}
+                {formatDuration(gap.durationMs)}
+              </a>
+            </li>
+          ))}
+        </ul>
       )}
-    </section>
+    </MetricCard>
   );
 }

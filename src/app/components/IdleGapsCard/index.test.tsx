@@ -28,14 +28,15 @@ describe("IdleGapsCard", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "The Lurker Below" }),
+      screen.getByRole("heading", { name: "Idle gaps" }),
     ).toBeInTheDocument();
     await waitFor(() =>
-      expect(
-        screen.getByText("Total dead time: 0:04 (4% of fight) — Green"),
-      ).toBeInTheDocument(),
+      expect(screen.getByText("4% dead time")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Idle gaps > 1.7s: 1")).toBeInTheDocument();
+    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Total dead time: 0:04 \(1 gap\)/),
+    ).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "0:02 for 0:04" });
     expect(link).toHaveAttribute(
       "href",
