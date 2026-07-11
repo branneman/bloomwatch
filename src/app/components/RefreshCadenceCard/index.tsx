@@ -11,6 +11,15 @@ export function RefreshCadenceCard() {
       judgement="green"
       threshold="Green median 6–7s, orange 5–6s, red < 5s. Only refreshes on already-3-stacked targets count. Late cases are judged separately, by the accidental-bloom counter below."
     >
+      <span
+        style={{
+          fontSize: "var(--text-small-size)",
+          fontStyle: "italic",
+          color: "var(--text)",
+        }}
+      >
+        Sample — not yet computed
+      </span>
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 4px" }}>
         Interval between your Lifebloom refreshes on 3-stacked targets — too
         early wastes mana and GCDs, too late risks an accidental bloom.

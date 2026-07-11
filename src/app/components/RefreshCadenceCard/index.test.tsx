@@ -10,6 +10,7 @@ describe("RefreshCadenceCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Median 6.4s")).toBeInTheDocument();
     expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Sample — not yet computed")).toBeInTheDocument();
     expect(screen.getByText("Early (< 5.5s)")).toBeInTheDocument();
     expect(screen.getByText("Ideal (5.5–7s)")).toBeInTheDocument();
     expect(screen.getByText("Late (> 7s)")).toBeInTheDocument();

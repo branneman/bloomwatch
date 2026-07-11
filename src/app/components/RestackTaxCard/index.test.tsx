@@ -10,5 +10,6 @@ describe("RestackTaxCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("3 casts · ~2,400 mana")).toBeInTheDocument();
     expect(screen.getByText("Orange")).toBeInTheDocument();
+    expect(screen.getByText("Sample — not yet computed")).toBeInTheDocument();
   });
 });

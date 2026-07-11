@@ -11,6 +11,15 @@ export function ConcurrentTargetsCard() {
       note="Informational — no judgement"
       threshold="No R/O/G — the right number of concurrent targets depends on your assignments, not a universal target."
     >
+      <span
+        style={{
+          fontSize: "var(--text-small-size)",
+          fontStyle: "italic",
+          color: "var(--text)",
+        }}
+      >
+        Sample — not yet computed
+      </span>
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
         How many targets simultaneously had your LB3, as a share of the fight.
         Maintaining multiple tanks at once is recognized as the skill it is.

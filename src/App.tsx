@@ -140,6 +140,14 @@ function App() {
       {accessToken && report && loadedReport && !scorecardRequested && (
         <Shell>
           <h2>{loadedReport.title}</h2>
+          {resolvedAbilities === null && (
+            <AbilityResolver
+              accessToken={accessToken}
+              reportCode={report.reportCode}
+              fetchMasterDataAbilities={fetchMasterDataAbilities}
+              onResolved={setResolvedAbilities}
+            />
+          )}
           <FightPicker
             fights={loadedReport.fights}
             initialFightId={report.fightId}
@@ -153,16 +161,23 @@ function App() {
             onDruidsDetected={setDruidCandidates}
             onEntriesLoaded={handleEntriesLoaded}
           />
-          {druidCandidates !== null && (
-            <div className={styles.druidSection}>
-              <h3>Druid</h3>
+          {druidCandidates !== null &&
+            (druidCandidates.length > 1 ? (
+              <div className={styles.druidSection}>
+                <h3>Druid</h3>
+                <DruidPicker
+                  candidates={druidCandidates}
+                  selectedDruidId={selectedDruidId}
+                  onSelect={setSelectedDruidId}
+                />
+              </div>
+            ) : (
               <DruidPicker
                 candidates={druidCandidates}
                 selectedDruidId={selectedDruidId}
                 onSelect={setSelectedDruidId}
               />
-            </div>
-          )}
+            ))}
           <Button
             disabled={!canGetScorecard}
             onClick={() => setScorecardRequested(true)}

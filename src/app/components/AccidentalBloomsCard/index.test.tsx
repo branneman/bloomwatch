@@ -11,5 +11,6 @@ describe("AccidentalBloomsCard", () => {
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("Orange")).toBeInTheDocument();
     expect(screen.getByText("2:53 — Offtank")).toBeInTheDocument();
+    expect(screen.getByText("Sample — not yet computed")).toBeInTheDocument();
   });
 });
