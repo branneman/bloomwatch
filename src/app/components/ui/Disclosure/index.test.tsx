@@ -13,7 +13,7 @@ describe("Disclosure", () => {
     );
     expect(screen.queryByText(/Green ≥ 85%/)).not.toBeInTheDocument();
     await user.click(
-      screen.getByRole("button", { name: "Why this threshold?" }),
+      screen.getByRole("button", { name: /Why this threshold\?/ }),
     );
     expect(screen.getByText(/Green ≥ 85%/)).toBeInTheDocument();
   });
@@ -21,7 +21,7 @@ describe("Disclosure", () => {
   it("marks the toggle button's aria-expanded state", async () => {
     const user = userEvent.setup();
     render(<Disclosure summary="Why this threshold?">Detail text.</Disclosure>);
-    const button = screen.getByRole("button", { name: "Why this threshold?" });
+    const button = screen.getByRole("button", { name: /Why this threshold\?/ });
     expect(button).toHaveAttribute("aria-expanded", "false");
     await user.click(button);
     expect(button).toHaveAttribute("aria-expanded", "true");
