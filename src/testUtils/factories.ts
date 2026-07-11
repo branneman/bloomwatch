@@ -134,3 +134,15 @@ export function aRemoveBuffEvent(overrides: Partial<WclEvent> = {}): WclEvent {
     ...overrides,
   };
 }
+
+export function aHealEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1903349,
+    type: "heal",
+    sourceID: 2,
+    targetID: 42,
+    abilityGameID: 33763,
+    fight: 6,
+    ...overrides,
+  };
+}
