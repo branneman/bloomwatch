@@ -171,7 +171,7 @@ I want a count of accidental blooms (bloom fired, then the stack was immediately
 - Heuristic "accidental": re-application of Lifebloom on the same target within 3 s of the bloom.
 - Each accidental bloom lists timestamp + target; R/O/G per fight: green 0, orange 1–2, red ≥ 3.
 
-### 204 — Re-stack tax
+### 204 — Re-stack tax ✅ Done
 
 I want to see how many GCDs and how much mana I spent rebuilding Lifebloom stacks after the opener, so that I can quantify the cost of dropped stacks.
 
