@@ -1,0 +1,27 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.title {
+  margin: 0;
+  flex: 1;
+}
+.note {
+  font-size: var(--text-small-size);
+  color: var(--text);
+  font-style: italic;
+}
+.value {
+  font-size: 28px;
+  color: var(--text-h);
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+.progress {
+  margin-bottom: var(--space-3);
+}
+.disclosure {
+  margin-top: var(--space-3);
+}
