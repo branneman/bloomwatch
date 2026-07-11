@@ -1,5 +1,9 @@
-import { useId, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { parseReportInput } from "../../../report/parseReportInput";
+import { Field } from "../ui/Field";
+import { Input } from "../ui/Input";
+import { Button } from "../ui/Button";
+import { Alert } from "../ui/Alert";
 
 export interface ParsedReport {
   reportCode: string;
@@ -11,7 +15,6 @@ export interface ReportInputProps {
 }
 
 export function ReportInput({ onSubmit }: ReportInputProps) {
-  const inputId = useId();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -28,15 +31,15 @@ export function ReportInput({ onSubmit }: ReportInputProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label htmlFor={inputId}>Report URL or code</label>
-      <input
-        id={inputId}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        placeholder="https://fresh.warcraftlogs.com/reports/..."
-      />
-      <button type="submit">Load report</button>
-      {error && <p role="alert">{error}</p>}
+      <Field label="Report URL or code">
+        <Input
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder="https://fresh.warcraftlogs.com/reports/..."
+        />
+      </Field>
+      <Button type="submit">Load report</Button>
+      {error && <Alert tone="warning">{error}</Alert>}
     </form>
   );
 }
