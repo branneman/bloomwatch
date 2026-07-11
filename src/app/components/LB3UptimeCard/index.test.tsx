@@ -37,11 +37,11 @@ describe("LB3UptimeCard", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "The Lurker Below" }),
+      screen.getByRole("heading", { name: "LB3 uptime per target" }),
     ).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByText("Fanah: 100% — Green")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Fanah")).toBeInTheDocument());
+    expect(screen.getByText("100%")).toBeInTheDocument();
+    expect(screen.getByText("Green")).toBeInTheDocument();
   });
 
   it("falls back to a numeric target label when the name is unknown", async () => {
@@ -67,7 +67,7 @@ describe("LB3UptimeCard", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByText("Target #42: 100% — Green")).toBeInTheDocument(),
+      expect(screen.getByText("Target #42")).toBeInTheDocument(),
     );
   });
 

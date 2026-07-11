@@ -6,7 +6,10 @@ import {
   computeLb3Uptime,
   type Lb3UptimeResult,
 } from "../../../metrics/lb3Uptime";
-import type { Judgement } from "../../../metrics/judgement";
+import { MetricCard } from "../ui/MetricCard";
+import { JudgementChip } from "../ui/JudgementChip";
+import { ProgressBar } from "../ui/ProgressBar";
+import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 
 export interface LB3UptimeCardProps {
   accessToken: string;
@@ -26,12 +29,6 @@ export interface LB3UptimeCardProps {
 type FetchResult =
   | { accessToken: string; result: Lb3UptimeResult }
   | { accessToken: string; error: string };
-
-const JUDGEMENT_LABEL: Record<Judgement, string> = {
-  green: "Green",
-  orange: "Orange",
-  red: "Red",
-};
 
 export function LB3UptimeCard({
   accessToken,
@@ -83,29 +80,74 @@ export function LB3UptimeCard({
 
   const isCurrent = result !== null && result.accessToken === accessToken;
 
+  const threshold =
+    "Measured from first reaching 3 stacks. Green ≥ 90%, orange 75–90%, red < 75%, per target. Only targets with ≥ 30% overall LB uptime are shown — one-off casts don't count as maintained.";
+
+  if (!isCurrent) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="LB3 uptime per target"
+        threshold={threshold}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if ("error" in result) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="LB3 uptime per target"
+        threshold={threshold}
+      >
+        <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
   return (
-    <section>
-      <h3>{fight.name}</h3>
-      {!isCurrent && <p>Calculating…</p>}
-      {isCurrent && "error" in result && <p role="alert">{result.error}</p>}
-      {isCurrent && !("error" in result) && (
-        <>
-          {result.result.targets.length === 0 ? (
-            <p>No maintained targets.</p>
-          ) : (
-            <ul>
-              {result.result.targets.map((target) => (
-                <li key={target.targetId}>
+    <MetricCard
+      icon={lifebloomIcon}
+      title="LB3 uptime per target"
+      threshold={threshold}
+    >
+      {result.result.targets.length === 0 ? (
+        <p>No maintained targets.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {result.result.targets.map((target) => (
+            <div key={target.targetId}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "8px",
+                  fontSize: "var(--text-small-size)",
+                }}
+              >
+                <span>
                   {targetNames.get(target.targetId) ??
                     `Target #${target.targetId}`}
-                  : {Math.round(target.lb3UptimePct)}% —{" "}
-                  {JUDGEMENT_LABEL[target.judgement]}
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+                </span>
+                <span
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <strong style={{ color: "var(--text-h)" }}>
+                    {Math.round(target.lb3UptimePct)}%
+                  </strong>
+                  <JudgementChip judgement={target.judgement} />
+                </span>
+              </div>
+              <ProgressBar
+                pct={Math.min(100, target.lb3UptimePct)}
+                judgement={target.judgement}
+              />
+            </div>
+          ))}
+        </div>
       )}
-    </section>
+    </MetricCard>
   );
 }
