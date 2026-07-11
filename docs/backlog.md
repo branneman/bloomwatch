@@ -150,7 +150,7 @@ I want per-target uptime of 3-stack Lifebloom on my maintained targets, so that 
 - "Maintained targets" = targets with ≥ 30 % LB uptime (filters out one-off casts).
 - R/O/G per target, measured from first reaching 3 stacks: green ≥ 90 %, orange 75–90 %, red < 75 %.
 
-### 202 — Refresh cadence histogram
+### 202 — Refresh cadence histogram ✅ Done
 
 I want a histogram of intervals between my Lifebloom refreshes on 3-stacked targets, with median and early/late percentages, so that I can see whether I refresh too eagerly (wasted mana/GCDs) or too late (accidental blooms).
 
