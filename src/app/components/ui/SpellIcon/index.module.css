@@ -1,0 +1,6 @@
+.icon {
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
