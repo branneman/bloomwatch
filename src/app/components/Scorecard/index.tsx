@@ -122,7 +122,15 @@ export function Scorecard({
           targetNames={targetNames}
           fetchEvents={fetchEvents}
         />
-        <RestackTaxCard />
+        <RestackTaxCard
+          accessToken={accessToken}
+          reportCode={reportCode}
+          fight={fight}
+          druidId={druidId}
+          lifebloomAbilityIds={lifebloomAbilityIds}
+          targetNames={targetNames}
+          fetchEvents={fetchEvents}
+        />
         <ConcurrentTargetsCard />
       </div>
 

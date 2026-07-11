@@ -1,28 +1,154 @@
+import { useEffect, useState } from "react";
+import type { Fight } from "../../../wcl/client";
+import type { WclEvent, WclEventDataType } from "../../../wcl/events";
+import type { EventFetcherFight } from "../../../wcl/eventCache";
+import {
+  computeRestackTax,
+  type RestackTaxResult,
+} from "../../../metrics/restackTax";
+import { formatDuration } from "../../../report/fightRows";
+import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 
-export function RestackTaxCard() {
+export interface RestackTaxCardProps {
+  accessToken: string;
+  reportCode: string;
+  fight: Fight;
+  druidId: number;
+  lifebloomAbilityIds: Set<number>;
+  targetNames: Map<number, string>;
+  fetchEvents: (
+    accessToken: string,
+    reportCode: string,
+    fight: EventFetcherFight,
+    dataType: WclEventDataType,
+  ) => Promise<WclEvent[]>;
+}
+
+type FetchResult =
+  | { accessToken: string; result: RestackTaxResult }
+  | { accessToken: string; error: string };
+
+const THRESHOLD =
+  "R/O/G scales with fight length: roughly one green-tier cast per 2 minutes elapsed, one orange-tier cast per minute elapsed. Each target's first ramp to 3 stacks is free — only casts that rebuild a stack after it was already established count, at an estimated 220 mana each (Lifebloom's flat TBC base cost, not adjusted for talents or gear).";
+
+export function RestackTaxCard({
+  accessToken,
+  reportCode,
+  fight,
+  druidId,
+  lifebloomAbilityIds,
+  targetNames,
+  fetchEvents,
+}: RestackTaxCardProps) {
+  const [result, setResult] = useState<FetchResult | null>(null);
+
+  useEffect(() => {
+    const fightArg = {
+      id: fight.id,
+      startTime: fight.startTime,
+      endTime: fight.endTime,
+    };
+    Promise.all([
+      fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
+      fetchEvents(accessToken, reportCode, fightArg, "Casts"),
+    ])
+      .then(([buffEvents, castEvents]) => {
+        const computed = computeRestackTax(
+          buffEvents,
+          castEvents,
+          druidId,
+          lifebloomAbilityIds,
+          fight.endTime - fight.startTime,
+        );
+        setResult({ accessToken, result: computed });
+      })
+      .catch((err: unknown) =>
+        setResult({
+          accessToken,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to calculate re-stack tax.",
+        }),
+      );
+  }, [
+    accessToken,
+    reportCode,
+    fight.id,
+    fight.startTime,
+    fight.endTime,
+    druidId,
+    lifebloomAbilityIds,
+    fetchEvents,
+  ]);
+
+  const isCurrent = result !== null && result.accessToken === accessToken;
+
+  if (!isCurrent) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="Re-stack tax"
+        threshold={THRESHOLD}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if ("error" in result) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="Re-stack tax"
+        threshold={THRESHOLD}
+      >
+        <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  const { casts, castCount, estimatedMana, judgement } = result.result;
+
   return (
     <MetricCard
       icon={lifebloomIcon}
       title="Re-stack tax"
-      value="3 casts · ~2,400 mana"
-      judgement="orange"
-      threshold="R/O/G scales with fight length. For a fight this length (5:41), 0–2 re-stack casts is green, 3–5 is orange, 6+ is red. Excludes the opener and each target's first, free ramp."
+      value={`${castCount} casts · ~${estimatedMana} mana`}
+      judgement={judgement}
+      threshold={THRESHOLD}
     >
-      <span
-        style={{
-          fontSize: "var(--text-small-size)",
-          fontStyle: "italic",
-          color: "var(--text)",
-        }}
-      >
-        Sample — not yet computed
-      </span>
-      <p style={{ fontSize: "var(--text-small-size)", margin: 0 }}>
-        Lifebloom casts spent rebuilding a stack that had dropped below 3 — the
-        concrete cost of dropped stacks, after the opener.
-      </p>
+      {casts.length === 0 ? (
+        <p>No re-stack tax this fight.</p>
+      ) : (
+        <ul
+          style={{
+            margin: "0 0 4px",
+            paddingLeft: "16px",
+            fontSize: "var(--text-small-size)",
+          }}
+        >
+          {casts.map((cast) => (
+            <li key={`${cast.timestampMs}-${cast.targetId}`}>
+              <a
+                href={buildFightTimeUrl(
+                  reportCode,
+                  fight.id,
+                  cast.timestampMs,
+                  cast.timestampMs,
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {formatDuration(cast.timestampMs - fight.startTime)} —{" "}
+                {targetNames.get(cast.targetId) ?? `Target #${cast.targetId}`}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </MetricCard>
   );
 }
