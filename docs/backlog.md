@@ -161,7 +161,7 @@ I want a histogram of intervals between my Lifebloom refreshes on 3-stacked targ
 - Buckets: < 5.5 s (early), 5.5–7 s (ideal), > 7 s (late).
 - R/O/G on median: green 6–7 s, orange 5–6 s, red < 5 s or > 7 s. Consistently late refreshes correlate with near-bloom timing and are judged as severely as refreshing too eagerly; actual bloom events are counted separately by story 203.
 
-### 203 — Accidental bloom counter
+### 203 — Accidental bloom counter ✅ Done
 
 I want a count of accidental blooms (bloom fired, then the stack was immediately rebuilt), separated from probable intentional blooms, so that dropped stacks are visible as the concrete errors they are.
 
