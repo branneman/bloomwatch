@@ -105,7 +105,14 @@ export function Scorecard({
           targetNames={targetNames}
           fetchEvents={fetchEvents}
         />
-        <RefreshCadenceCard />
+        <RefreshCadenceCard
+          accessToken={accessToken}
+          reportCode={reportCode}
+          fight={fight}
+          druidId={druidId}
+          lifebloomAbilityIds={lifebloomAbilityIds}
+          fetchEvents={fetchEvents}
+        />
         <AccidentalBloomsCard />
         <RestackTaxCard />
         <ConcurrentTargetsCard />

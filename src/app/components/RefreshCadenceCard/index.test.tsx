@@ -1,18 +1,112 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { RefreshCadenceCard } from "./index";
+import {
+  aFight,
+  anApplyBuffEvent,
+  anApplyBuffStackEvent,
+  aRefreshBuffEvent,
+  aRemoveBuffEvent,
+} from "../../../testUtils/factories";
 
 describe("RefreshCadenceCard", () => {
-  it("renders the static mock refresh-cadence content", () => {
-    render(<RefreshCadenceCard />);
+  it("renders the median, judgement, and histogram once loaded", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 20000 });
+    const events = [
+      anApplyBuffEvent({ timestamp: 1880312, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 1881811, stack: 2, targetID: 42 }),
+      aRefreshBuffEvent({ timestamp: 1881811, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 1883327, stack: 3, targetID: 42 }),
+      aRefreshBuffEvent({ timestamp: 1883327, targetID: 42 }),
+      aRefreshBuffEvent({ timestamp: 1889731, targetID: 42 }),
+      aRefreshBuffEvent({ timestamp: 1896347, targetID: 42 }),
+      aRemoveBuffEvent({ timestamp: 1903349, targetID: 42 }),
+    ];
+    const fetchEvents = () => Promise.resolve(events);
+
+    render(
+      <RefreshCadenceCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
     expect(
       screen.getByRole("heading", { name: "Refresh cadence" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Median 6.4s")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText("Median 6.5s")).toBeInTheDocument(),
+    );
     expect(screen.getByText("Green")).toBeInTheDocument();
-    expect(screen.getByText("Sample — not yet computed")).toBeInTheDocument();
     expect(screen.getByText("Early (< 5.5s)")).toBeInTheDocument();
     expect(screen.getByText("Ideal (5.5–7s)")).toBeInTheDocument();
     expect(screen.getByText("Late (> 7s)")).toBeInTheDocument();
+  });
+
+  it("shows a message when no 3-stack refreshes happened", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 20000 });
+    const fetchEvents = () => Promise.resolve([]);
+
+    render(
+      <RefreshCadenceCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("No 3-stack refreshes recorded this fight."),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows a loading message before the fetch resolves", () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = () => new Promise<never>(() => {});
+
+    render(
+      <RefreshCadenceCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    expect(screen.getByText("Calculating…")).toBeInTheDocument();
+  });
+
+  it("shows an error message when the fetch fails", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = () =>
+      Promise.reject(new Error("WCL API responded 500: server error"));
+
+    render(
+      <RefreshCadenceCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "WCL API responded 500: server error",
+      ),
+    );
   });
 });
