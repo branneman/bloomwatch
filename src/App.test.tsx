@@ -6,6 +6,7 @@ import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
+  WclApiError,
 } from "./wcl/client";
 import { fetchEventsPage } from "./wcl/events";
 import {
@@ -62,18 +63,41 @@ async function loadReportAndReachPicker(
 
 describe("App", () => {
   beforeEach(() => {
+    localStorage.clear();
     sessionStorage.clear();
     vi.clearAllMocks();
   });
 
-  it("renders the Connect screen when there is no access token", () => {
+  it("renders the Connect screen when there is no access token, with no Client ID required upfront", () => {
     render(<App />);
 
     expect(
       screen.getByRole("heading", { name: "Bloomwatch" }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("WCL Client ID")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Connect" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Connect to Warcraft Logs (WCL)" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("WCL API Client ID"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Optional: Use your own WCL API Client ID instead",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("reveals the optional own-Client-ID field when its disclosure is expanded", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Optional: Use your own WCL API Client ID instead",
+      }),
+    );
+
+    expect(screen.getByLabelText("WCL API Client ID")).toBeInTheDocument();
   });
 
   it("renders the report-input screen (not Connect) once a token is present but no report is loaded", () => {
@@ -161,5 +185,37 @@ describe("App", () => {
     expect(
       screen.queryByRole("heading", { name: "Bloomwatch" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows the rate-limit fallback banner (without unmounting the current screen) when a request hits the default client's rate limit, and lets the user submit their own Client ID", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockResolvedValue(
+      aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
+    );
+    vi.mocked(fetchCastsTable).mockRejectedValue(
+      new WclApiError(429, "rate limited"),
+    );
+    vi.mocked(fetchMasterDataAbilities).mockResolvedValue([aReportAbility()]);
+    const user = userEvent.setup();
+
+    render(<App />);
+    await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
+    await user.click(screen.getByRole("button", { name: "Load report" }));
+
+    await screen.findByRole("heading", { name: REPORT_TITLE });
+    await screen.findByText(/temporarily over capacity/);
+
+    await user.type(
+      screen.getByLabelText("WCL API Client ID"),
+      "my-own-client-id",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Connect with this Client ID" }),
+    );
+
+    expect(localStorage.getItem("wcl_client_id")).toBe("my-own-client-id");
+    expect(
+      screen.getByRole("heading", { name: REPORT_TITLE }),
+    ).toBeInTheDocument();
   });
 });

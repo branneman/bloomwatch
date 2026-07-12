@@ -20,16 +20,17 @@ import { DruidPicker } from "./app/components/DruidPicker";
 import { AbilityResolver } from "./app/components/AbilityResolver";
 import { Scorecard } from "./app/components/Scorecard";
 import { Shell } from "./app/components/ui/Shell";
-import { Field } from "./app/components/ui/Field";
-import { Input } from "./app/components/ui/Input";
 import { Button } from "./app/components/ui/Button";
 import { Alert } from "./app/components/ui/Alert";
+import { Disclosure } from "./app/components/ui/Disclosure";
+import { OwnClientIdField } from "./app/components/OwnClientIdField";
+import { withRateLimitDetection } from "./wcl/client";
 import type { DruidCandidate } from "./report/druidDetection";
 import logo from "./assets/logo/lifebloom.jpg";
 import styles from "./App.module.css";
 
 function App() {
-  const { clientId, setClientId, connect, accessToken, authError } =
+  const { connect, accessToken, authError, rateLimited, reportRateLimited } =
     useWclAuth();
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
@@ -45,6 +46,23 @@ function App() {
   > | null>(null);
   const [scorecardRequested, setScorecardRequested] = useState(false);
   const [eventFetcher] = useState(() => createEventFetcher());
+
+  const wrappedFetchReportFights = useMemo(
+    () => withRateLimitDetection(fetchReportFights, reportRateLimited),
+    [reportRateLimited],
+  );
+  const wrappedFetchCastsTable = useMemo(
+    () => withRateLimitDetection(fetchCastsTable, reportRateLimited),
+    [reportRateLimited],
+  );
+  const wrappedFetchMasterDataAbilities = useMemo(
+    () => withRateLimitDetection(fetchMasterDataAbilities, reportRateLimited),
+    [reportRateLimited],
+  );
+  const wrappedFetchEvents = useMemo(
+    () => withRateLimitDetection(eventFetcher.fetchEvents, reportRateLimited),
+    [eventFetcher, reportRateLimited],
+  );
 
   function resetReportState() {
     setLoadedReport(null);
@@ -99,14 +117,12 @@ function App() {
             scorecard that judges your process — not another parse percentile
             that healing, being zero-sum, can&apos;t fairly measure.
           </p>
-          <Field label="WCL Client ID">
-            <Input
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              placeholder="Paste your Client ID"
-            />
-          </Field>
-          <Button onClick={() => connect()}>Connect</Button>
+          <Button onClick={() => connect()}>
+            Connect to Warcraft Logs (WCL)
+          </Button>
+          <Disclosure summary="Optional: Use your own WCL API Client ID instead">
+            <OwnClientIdField onConnect={connect} />
+          </Disclosure>
           {authError && <Alert tone="warning">{authError}</Alert>}
           <p className={styles.connectFooter}>
             No account, no server, no secret — every request to Warcraft Logs is
@@ -115,101 +131,118 @@ function App() {
         </Shell>
       )}
 
-      {accessToken && !loadedReport && (
+      {accessToken && rateLimited && (
         <Shell>
-          <ReportInput onSubmit={handleReportSubmit} />
-          {report && (
-            <ConnectPanel
-              accessToken={accessToken}
-              reportCode={report.reportCode}
-              fetchReportFights={fetchReportFights}
-              onReportLoaded={setLoadedReport}
-            />
-          )}
-          {report && (
-            <AbilityResolver
-              accessToken={accessToken}
-              reportCode={report.reportCode}
-              fetchMasterDataAbilities={fetchMasterDataAbilities}
-              onResolved={setResolvedAbilities}
-            />
-          )}
+          <Alert tone="warning">
+            The shared connection is temporarily over capacity — too many people
+            are using Bloomwatch&apos;s default connection right now. Register
+            your own free WCL API client to keep going; it only takes a minute.
+          </Alert>
+          <OwnClientIdField onConnect={connect} />
         </Shell>
       )}
 
-      {accessToken && report && loadedReport && !scorecardRequested && (
-        <Shell>
-          <h2>{loadedReport.title}</h2>
-          {resolvedAbilities === null && (
-            <AbilityResolver
-              accessToken={accessToken}
-              reportCode={report.reportCode}
-              fetchMasterDataAbilities={fetchMasterDataAbilities}
-              onResolved={setResolvedAbilities}
-            />
-          )}
-          <FightPicker
-            fights={loadedReport.fights}
-            initialFightId={report.fightId}
-            onSelectionChange={setSelectedFightIds}
-          />
-          <DruidDetector
-            accessToken={accessToken}
-            reportCode={report.reportCode}
-            fightIds={loadedReport.fights.map((f) => f.id)}
-            fetchCastsTable={fetchCastsTable}
-            onDruidsDetected={setDruidCandidates}
-            onEntriesLoaded={handleEntriesLoaded}
-          />
-          {druidCandidates !== null &&
-            (druidCandidates.length > 1 ? (
-              <div className={styles.druidSection}>
-                <h3>Druid</h3>
-                <DruidPicker
-                  candidates={druidCandidates}
-                  selectedDruidId={selectedDruidId}
-                  onSelect={setSelectedDruidId}
+      {accessToken && (
+        <div
+          className={rateLimited ? styles.dimmed : undefined}
+          inert={rateLimited}
+        >
+          {!loadedReport && (
+            <Shell>
+              <ReportInput onSubmit={handleReportSubmit} />
+              {report && (
+                <ConnectPanel
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fetchReportFights={wrappedFetchReportFights}
+                  onReportLoaded={setLoadedReport}
                 />
-              </div>
-            ) : (
-              <DruidPicker
-                candidates={druidCandidates}
-                selectedDruidId={selectedDruidId}
-                onSelect={setSelectedDruidId}
-              />
-            ))}
-          <Button
-            disabled={!canGetScorecard}
-            onClick={() => setScorecardRequested(true)}
-          >
-            Get scorecard
-          </Button>
-        </Shell>
-      )}
+              )}
+              {report && (
+                <AbilityResolver
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
+                  onResolved={setResolvedAbilities}
+                />
+              )}
+            </Shell>
+          )}
 
-      {accessToken &&
-        report &&
-        loadedReport &&
-        scorecardRequested &&
-        selectedDruid !== null &&
-        lifebloomAbilityIds !== null &&
-        loadedReport.fights
-          .filter((f) => selectedFightIds.includes(f.id))
-          .map((f) => (
-            <Shell width={800} key={f.id}>
-              <Scorecard
+          {report && loadedReport && !scorecardRequested && (
+            <Shell>
+              <h2>{loadedReport.title}</h2>
+              {resolvedAbilities === null && (
+                <AbilityResolver
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
+                  onResolved={setResolvedAbilities}
+                />
+              )}
+              <FightPicker
+                fights={loadedReport.fights}
+                initialFightId={report.fightId}
+                onSelectionChange={setSelectedFightIds}
+              />
+              <DruidDetector
                 accessToken={accessToken}
                 reportCode={report.reportCode}
-                fight={f}
-                druidId={selectedDruid.id}
-                druid={selectedDruid}
-                lifebloomAbilityIds={lifebloomAbilityIds}
-                targetNames={actorNames}
-                fetchEvents={eventFetcher.fetchEvents}
-                onStartOver={handleStartOver}
+                fightIds={loadedReport.fights.map((f) => f.id)}
+                fetchCastsTable={wrappedFetchCastsTable}
+                onDruidsDetected={setDruidCandidates}
+                onEntriesLoaded={handleEntriesLoaded}
               />
+              {druidCandidates !== null &&
+                (druidCandidates.length > 1 ? (
+                  <div className={styles.druidSection}>
+                    <h3>Druid</h3>
+                    <DruidPicker
+                      candidates={druidCandidates}
+                      selectedDruidId={selectedDruidId}
+                      onSelect={setSelectedDruidId}
+                    />
+                  </div>
+                ) : (
+                  <DruidPicker
+                    candidates={druidCandidates}
+                    selectedDruidId={selectedDruidId}
+                    onSelect={setSelectedDruidId}
+                  />
+                ))}
+              <Button
+                disabled={!canGetScorecard}
+                onClick={() => setScorecardRequested(true)}
+              >
+                Get scorecard
+              </Button>
             </Shell>
-          ))}
+          )}
+
+          {report &&
+            loadedReport &&
+            scorecardRequested &&
+            selectedDruid !== null &&
+            lifebloomAbilityIds !== null &&
+            loadedReport.fights
+              .filter((f) => selectedFightIds.includes(f.id))
+              .map((f) => (
+                <Shell width={800} key={f.id}>
+                  <Scorecard
+                    accessToken={accessToken}
+                    reportCode={report.reportCode}
+                    fight={f}
+                    druidId={selectedDruid.id}
+                    druid={selectedDruid}
+                    lifebloomAbilityIds={lifebloomAbilityIds}
+                    targetNames={actorNames}
+                    fetchEvents={wrappedFetchEvents}
+                    onStartOver={handleStartOver}
+                  />
+                </Shell>
+              ))}
+        </div>
+      )}
     </>
   );
 }

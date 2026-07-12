@@ -18,3 +18,6 @@
 .druidSection {
   margin-bottom: var(--space-6);
 }
+.dimmed {
+  opacity: 0.4;
+}
