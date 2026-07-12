@@ -95,6 +95,20 @@ function App() {
         : null,
     [resolvedAbilities],
   );
+  const rejuvenationAbilityIds = useMemo(
+    () =>
+      resolvedAbilities
+        ? resolveSpellAbilityIds(resolvedAbilities, "Rejuvenation")
+        : null,
+    [resolvedAbilities],
+  );
+  const regrowthAbilityIds = useMemo(
+    () =>
+      resolvedAbilities
+        ? resolveSpellAbilityIds(resolvedAbilities, "Regrowth")
+        : null,
+    [resolvedAbilities],
+  );
 
   const selectedDruid =
     druidCandidates?.find((d) => d.id === selectedDruidId) ?? null;
@@ -102,6 +116,8 @@ function App() {
   const canGetScorecard =
     selectedDruid !== null &&
     lifebloomAbilityIds !== null &&
+    rejuvenationAbilityIds !== null &&
+    regrowthAbilityIds !== null &&
     selectedFightIds.length > 0;
 
   return (
@@ -224,6 +240,8 @@ function App() {
             scorecardRequested &&
             selectedDruid !== null &&
             lifebloomAbilityIds !== null &&
+            rejuvenationAbilityIds !== null &&
+            regrowthAbilityIds !== null &&
             loadedReport.fights
               .filter((f) => selectedFightIds.includes(f.id))
               .map((f) => (
@@ -235,6 +253,8 @@ function App() {
                     druidId={selectedDruid.id}
                     druid={selectedDruid}
                     lifebloomAbilityIds={lifebloomAbilityIds}
+                    rejuvenationAbilityIds={rejuvenationAbilityIds}
+                    regrowthAbilityIds={regrowthAbilityIds}
                     targetNames={actorNames}
                     fetchEvents={wrappedFetchEvents}
                     onStartOver={handleStartOver}
