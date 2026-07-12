@@ -1,0 +1,71 @@
+import type { Judgement } from "./judgement";
+import type { GcdUtilizationResult } from "./gcdUtilization";
+import type { IdleGapsResult } from "./idleGaps";
+import type { Lb3TargetResult, Lb3UptimeResult } from "./lb3Uptime";
+import type { RefreshCadenceResult } from "./refreshCadence";
+import type { AccidentalBloomsResult } from "./accidentalBlooms";
+import type { RestackTaxResult } from "./restackTax";
+
+export interface EpicSummary {
+  judgement: Judgement;
+  stats: string[];
+}
+
+const JUDGEMENT_RANK: Record<Judgement, number> = {
+  red: 2,
+  orange: 1,
+  green: 0,
+};
+
+export function worstJudgement(judgements: (Judgement | null)[]): Judgement {
+  const present = judgements.filter((j): j is Judgement => j !== null);
+  return present.reduce(
+    (worst, current) =>
+      JUDGEMENT_RANK[current] > JUDGEMENT_RANK[worst] ? current : worst,
+    "green" as Judgement,
+  );
+}
+
+export function summarizeGcdEconomy(
+  gcd: GcdUtilizationResult,
+  idleGaps: IdleGapsResult,
+): EpicSummary {
+  return {
+    judgement: worstJudgement([gcd.judgement, idleGaps.judgement]),
+    stats: [
+      `GCD utilization: ${Math.round(gcd.utilizationPct)}%`,
+      `Idle gaps: ${idleGaps.deadTimePct.toFixed(1)}% dead time`,
+    ],
+  };
+}
+
+function formatLb3UptimeStat(targets: Lb3TargetResult[]): string {
+  if (targets.length === 0) return "LB3 uptime: no maintained targets";
+  const pcts = targets.map((target) => Math.round(target.lb3UptimePct));
+  if (pcts.length === 1) return `LB3 uptime: ${pcts[0]}%`;
+  return `LB3 uptime: ${Math.min(...pcts)}–${Math.max(...pcts)}%`;
+}
+
+export function summarizeLifebloomDiscipline(
+  lb3: Lb3UptimeResult,
+  refresh: RefreshCadenceResult,
+  blooms: AccidentalBloomsResult,
+  restack: RestackTaxResult,
+): EpicSummary {
+  const judgement = worstJudgement([
+    ...lb3.targets.map((target) => target.judgement),
+    refresh.judgement,
+    blooms.judgement,
+    restack.judgement,
+  ]);
+
+  const cadenceStat =
+    refresh.medianMs === null
+      ? "Refresh cadence: no refreshes"
+      : `Refresh cadence: ${(refresh.medianMs / 1000).toFixed(1)}s median`;
+
+  return {
+    judgement,
+    stats: [formatLb3UptimeStat(lb3.targets), cadenceStat],
+  };
+}
