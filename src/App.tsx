@@ -188,14 +188,6 @@ function App() {
           {report && loadedReport && !scorecardRequested && (
             <Shell>
               <h2>{loadedReport.title}</h2>
-              {resolvedAbilities === null && (
-                <AbilityResolver
-                  accessToken={accessToken}
-                  reportCode={report.reportCode}
-                  fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
-                  onResolved={setResolvedAbilities}
-                />
-              )}
               <FightPicker
                 fights={loadedReport.fights}
                 initialFightId={report.fightId}

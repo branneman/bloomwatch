@@ -125,6 +125,33 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("fetches master data abilities exactly once per report, even when that fetch is still in flight when the report finishes loading", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockResolvedValue(
+      aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
+    );
+    vi.mocked(fetchCastsTable).mockResolvedValue([aCastTableEntry()]);
+    // Master data intentionally never resolves in this test: it models the
+    // real-world case (a large report's ability list is slower than the
+    // small fights query) where the fetch is still in flight at the exact
+    // moment `loadedReport` flips and the app transitions screens.
+    vi.mocked(fetchMasterDataAbilities).mockReturnValue(new Promise(() => {}));
+    vi.mocked(fetchEventsPage).mockResolvedValue({
+      events: [],
+      nextPageTimestamp: null,
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+    await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
+    await user.click(screen.getByRole("button", { name: "Load report" }));
+
+    // Reaching the fight/druid picker screen proves the loadedReport
+    // transition happened while master data was still unresolved.
+    await screen.findByText(/Pull 1/);
+    expect(vi.mocked(fetchMasterDataAbilities)).toHaveBeenCalledTimes(1);
+  });
+
   it("enables Get scorecard once the sole druid auto-selects and a fight is checked, then shows the Scorecard screen (not the picker)", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
