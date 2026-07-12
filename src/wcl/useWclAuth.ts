@@ -34,8 +34,9 @@ export function useWclAuth() {
   const reportRateLimited = useCallback(() => setRateLimited(true), []);
 
   async function connect(clientIdOverride?: string) {
-    const effectiveClientId = clientIdOverride ?? clientId;
-    if (clientIdOverride) setClientId(clientIdOverride);
+    const trimmedOverride = clientIdOverride?.trim();
+    const effectiveClientId = trimmedOverride || clientId;
+    if (trimmedOverride) setClientId(trimmedOverride);
     const { verifier, state, challenge } = await createPkceParams();
     sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier);
     sessionStorage.setItem(PKCE_STATE_STORAGE_KEY, state);

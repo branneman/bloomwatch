@@ -54,6 +54,18 @@ describe("useWclAuth", () => {
     expect(result.current.usingDefaultClient).toBe(false);
   });
 
+  it("treats a blank or whitespace-only override as no override, falling back to the current Client ID", async () => {
+    const { result } = renderHook(() => useWclAuth());
+
+    await act(async () => {
+      await result.current.connect("   ");
+    });
+
+    expect(localStorage.getItem(CLIENT_ID_STORAGE_KEY)).toBeNull();
+    expect(result.current.clientId).toBe(DEFAULT_CLIENT_ID);
+    expect(result.current.usingDefaultClient).toBe(true);
+  });
+
   it("reportRateLimited flips rateLimited without touching the access token", () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "existing-token");
     const { result } = renderHook(() => useWclAuth());
