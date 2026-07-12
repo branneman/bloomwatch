@@ -305,7 +305,7 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
 
 ## Epic H — Reporting & UX
 
-### 701 — Single-fight scorecard
+### 701 — Single-fight scorecard ✅ Done
 
 I want one fight's results as a dashboard of small summary widgets — one per epic (GCD economy, Lifebloom discipline, spell discipline, mana economy, death forensics, prep hygiene) — all visible in one view with no scrolling, so that I get the whole fight's verdict at a glance. I want to click any widget to zoom into that epic's full detail — every metric a number + R/O/G chip + one-line explanation with a "why/threshold" expander — so that I can drill from summary to evidence without losing the overview.
 
