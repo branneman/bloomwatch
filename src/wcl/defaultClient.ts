@@ -1,0 +1,1 @@
+export const DEFAULT_CLIENT_ID = "a235d515-9630-4344-95e0-319bdee35734";

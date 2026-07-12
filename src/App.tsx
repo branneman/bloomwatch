@@ -106,7 +106,7 @@ function App() {
               placeholder="Paste your Client ID"
             />
           </Field>
-          <Button onClick={connect}>Connect</Button>
+          <Button onClick={() => connect()}>Connect</Button>
           {authError && <Alert tone="warning">{authError}</Alert>}
           <p className={styles.connectFooter}>
             No account, no server, no secret — every request to Warcraft Logs is

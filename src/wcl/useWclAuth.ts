@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { buildAuthorizeUrl, createPkceParams } from "./pkce";
 import { exchangeCodeForToken, WclApiError } from "./client";
+import { DEFAULT_CLIENT_ID } from "./defaultClient";
 
 class OAuthStateMismatchError extends Error {}
 
@@ -14,29 +15,32 @@ function redirectUri(): string {
 }
 
 export function useWclAuth() {
-  const [clientId, setClientIdState] = useState(
-    () => localStorage.getItem(CLIENT_ID_STORAGE_KEY) ?? "",
+  const [customClientId, setCustomClientIdState] = useState(() =>
+    localStorage.getItem(CLIENT_ID_STORAGE_KEY),
   );
+  const clientId = customClientId ?? DEFAULT_CLIENT_ID;
+  const usingDefaultClient = customClientId === null;
   const [accessToken, setAccessToken] = useState(() =>
     sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY),
   );
   const [authError, setAuthError] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
 
   function setClientId(value: string) {
     localStorage.setItem(CLIENT_ID_STORAGE_KEY, value);
-    setClientIdState(value);
+    setCustomClientIdState(value);
   }
 
-  async function connect() {
-    if (!clientId) {
-      setAuthError("Save a Client ID first.");
-      return;
-    }
+  const reportRateLimited = useCallback(() => setRateLimited(true), []);
+
+  async function connect(clientIdOverride?: string) {
+    const effectiveClientId = clientIdOverride ?? clientId;
+    if (clientIdOverride) setClientId(clientIdOverride);
     const { verifier, state, challenge } = await createPkceParams();
     sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier);
     sessionStorage.setItem(PKCE_STATE_STORAGE_KEY, state);
     window.location.href = buildAuthorizeUrl({
-      clientId,
+      clientId: effectiveClientId,
       redirectUri: redirectUri(),
       challenge,
       state,
@@ -81,5 +85,14 @@ export function useWclAuth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { clientId, setClientId, connect, accessToken, authError };
+  return {
+    clientId,
+    usingDefaultClient,
+    setClientId,
+    connect,
+    accessToken,
+    authError,
+    rateLimited,
+    reportRateLimited,
+  };
 }
