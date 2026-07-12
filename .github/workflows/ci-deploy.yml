@@ -55,6 +55,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Wait for deployed site to be reachable
+        # actions/deploy-pages@v5 returns once the deployment is registered as live, but
+        # GitHub Pages' CDN can take a few more seconds to stop serving a stale edge-cached
+        # response — a bare push straight into test:e2e occasionally hit that window and
+        # failed on the first real-data assertion. Poll for a 200, then give the CDN a short
+        # buffer to finish propagating before running the actual test.
+        run: |
+          url="${{ needs.deploy.outputs.page_url }}"
+          for i in $(seq 1 12); do
+            if curl -sf -o /dev/null "$url"; then
+              echo "Site reachable after $i attempt(s); waiting 10s for CDN propagation."
+              sleep 10
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Deployed site never became reachable at $url"
+          exit 1
       - run: npm run test:e2e
         env:
           PLAYWRIGHT_BASE_URL: ${{ needs.deploy.outputs.page_url }}
