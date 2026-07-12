@@ -8,8 +8,10 @@ import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { GcdEconomyContent } from "../GcdEconomyContent";
 import { LifebloomDisciplineContent } from "../LifebloomDisciplineContent";
+import { SpellDisciplineContent } from "../SpellDisciplineContent";
 import { useGcdEconomySummary } from "./useGcdEconomySummary";
 import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
+import { useSpellDisciplineSummary } from "./useSpellDisciplineSummary";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -25,6 +27,8 @@ export interface ScorecardProps {
   druidId: number;
   druid: DruidCandidate;
   lifebloomAbilityIds: Set<number>;
+  rejuvenationAbilityIds: Set<number>;
+  regrowthAbilityIds: Set<number>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -39,13 +43,10 @@ type EpicId = "gcd" | "lifebloom" | "spell" | "mana" | "death" | "prep";
 
 const GCD_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/ability_druid_forceofnature.jpg";
+const SPELL_DISCIPLINE_ICON =
+  "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg";
 
 const DISABLED_EPICS: { id: EpicId; label: string; icon: string }[] = [
-  {
-    id: "spell",
-    label: "Spell discipline",
-    icon: "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg",
-  },
   {
     id: "mana",
     label: "Mana economy",
@@ -70,6 +71,8 @@ export function Scorecard({
   druidId,
   druid,
   lifebloomAbilityIds,
+  rejuvenationAbilityIds,
+  regrowthAbilityIds,
   targetNames,
   fetchEvents,
   onStartOver,
@@ -89,6 +92,15 @@ export function Scorecard({
     fight,
     druidId,
     lifebloomAbilityIds,
+    fetchEvents,
+  );
+  const spellSummary = useSpellDisciplineSummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    rejuvenationAbilityIds,
+    regrowthAbilityIds,
     fetchEvents,
   );
 
@@ -165,6 +177,26 @@ export function Scorecard({
                   : undefined
             }
           />
+          <Widget
+            icon={SPELL_DISCIPLINE_ICON}
+            label="Spell discipline"
+            onOpen={() => setActiveEpic("spell")}
+            judgement={
+              spellSummary.status === "ready"
+                ? spellSummary.judgement
+                : undefined
+            }
+            stats={
+              spellSummary.status === "ready" ? spellSummary.stats : undefined
+            }
+            note={
+              spellSummary.status === "loading"
+                ? "Calculating…"
+                : spellSummary.status === "error"
+                  ? spellSummary.error
+                  : undefined
+            }
+          />
           {DISABLED_EPICS.map((epic) => (
             <Widget
               key={epic.id}
@@ -224,6 +256,35 @@ export function Scorecard({
             fight={fight}
             druidId={druidId}
             lifebloomAbilityIds={lifebloomAbilityIds}
+            targetNames={targetNames}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+
+      {activeEpic === "spell" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => setActiveEpic(null)}
+          >
+            ← All epics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={SPELL_DISCIPLINE_ICON} />
+            <h2 className={styles.epicTitle}>Spell discipline</h2>
+            {spellSummary.status === "ready" && (
+              <JudgementChip judgement={spellSummary.judgement} />
+            )}
+          </div>
+          <SpellDisciplineContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            fight={fight}
+            druidId={druidId}
+            rejuvenationAbilityIds={rejuvenationAbilityIds}
+            regrowthAbilityIds={regrowthAbilityIds}
             targetNames={targetNames}
             fetchEvents={fetchEvents}
           />

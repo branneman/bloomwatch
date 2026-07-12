@@ -33,6 +33,8 @@ describe("Scorecard", () => {
         druidId={101}
         druid={druid}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
         onStartOver={onStartOver}
@@ -50,18 +52,13 @@ describe("Scorecard", () => {
     expect(
       screen.getByRole("button", { name: /Lifebloom discipline/ }),
     ).toBeInTheDocument();
-    for (const label of [
-      "Spell discipline",
-      "Mana economy",
-      "Death forensics",
-      "Prep hygiene",
-    ]) {
+    expect(
+      screen.getByRole("button", { name: /Spell discipline/ }),
+    ).toBeInTheDocument();
+    for (const label of ["Mana economy", "Death forensics", "Prep hygiene"]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    expect(screen.getAllByText("Not yet available")).toHaveLength(4);
-    expect(
-      screen.queryByRole("button", { name: /Spell discipline/ }),
-    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Not yet available")).toHaveLength(3);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       /can't judge target selection/,
@@ -94,6 +91,8 @@ describe("Scorecard", () => {
         druidId={101}
         druid={druid}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
         onStartOver={vi.fn()}
