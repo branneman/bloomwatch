@@ -98,13 +98,39 @@ export function computeConcurrentLb3Targets(
 
   const avgConcurrent = fightDurationMs > 0 ? weightedSum / fightDurationMs : 0;
 
-  const levels: ConcurrentLb3Level[] = [...durationByCount.entries()]
+  const entries = [...durationByCount.entries()]
     .filter(([, durationMs]) => durationMs > 0)
-    .sort(([a], [b]) => a - b)
-    .map(([count, durationMs]) => ({
-      count,
-      pct: (durationMs / fightDurationMs) * 100,
-    }));
+    .sort(([a], [b]) => a - b);
+
+  const rawPcts = entries.map(
+    ([, durationMs]) => (durationMs / fightDurationMs) * 100,
+  );
+  const roundedPcts = roundToWhole(rawPcts);
+
+  const levels: ConcurrentLb3Level[] = entries.map(([count], i) => ({
+    count,
+    pct: roundedPcts[i],
+  }));
 
   return { avgConcurrent, peakConcurrent, levels };
+}
+
+// Largest-remainder rounding: rounds each value down, then distributes the
+// remaining points (100 - sum of floors) to the values with the largest
+// fractional part, so the rounded results always sum to 100.
+function roundToWhole(pcts: number[]): number[] {
+  if (pcts.length === 0) return [];
+
+  const floors = pcts.map(Math.floor);
+  const deficit = 100 - floors.reduce((sum, v) => sum + v, 0);
+
+  const remainderOrder = pcts
+    .map((pct, i) => ({ i, remainder: pct - floors[i] }))
+    .sort((a, b) => b.remainder - a.remainder);
+
+  const rounded = [...floors];
+  for (let j = 0; j < deficit; j++) {
+    rounded[remainderOrder[j].i]++;
+  }
+  return rounded;
 }
