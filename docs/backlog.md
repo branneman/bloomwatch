@@ -193,7 +193,7 @@ I want a timeline/summary of how many targets simultaneously had my LB3, so that
 
 ## Epic D — Spell discipline
 
-### 301 — HoT clip detection (Rejuvenation & Regrowth)
+### 301 — HoT clip detection (Rejuvenation & Regrowth) ✅ Done
 
 I want a count of Rejuvenation/Regrowth refreshes that clipped remaining ticks, so that I stop wasting the tail of HoTs that should be allowed to expire.
 
