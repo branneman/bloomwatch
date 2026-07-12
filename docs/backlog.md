@@ -180,7 +180,7 @@ I want to see how many GCDs and how much mana I spent rebuilding Lifebloom stack
 - Counts LB casts on targets at < 3 stacks, excluding the opener and excluding deliberate new-target ramps (first ramp per target is free).
 - Reported as casts + estimated mana; R/O/G scales with fight length.
 
-### 205 — Concurrent LB3 targets
+### 205 — Concurrent LB3 targets ✅ Done
 
 I want a timeline/summary of how many targets simultaneously had my LB3, so that maintaining multiple tanks is recognized as the skill it is.
 

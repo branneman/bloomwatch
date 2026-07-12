@@ -7,7 +7,7 @@ import {
 // Backlog story 201's "maintained target" filter (>=30% any-stack uptime),
 // reused here so a one-off/incidental 3-stack on a non-tank doesn't count as
 // a second concurrent target. Kept as an independent constant rather than an
-// import from lb3Uptime.ts — see docs/specs/concurrent-lb3-targets-design.md.
+// import from lb3Uptime.ts.
 const MAINTAINED_MIN_UPTIME_PCT = 30;
 
 export interface ConcurrentLb3Level {
