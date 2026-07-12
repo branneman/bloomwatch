@@ -126,10 +126,10 @@ describe("App", () => {
     await user.click(getScorecardButton);
 
     expect(
-      await screen.findByRole("heading", { name: "GCD economy" }),
+      await screen.findByRole("button", { name: /GCD economy/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Lifebloom discipline" }),
+      screen.getByRole("button", { name: /Lifebloom discipline/ }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Coilfang Frenzy/)).toBeInTheDocument();
     expect(
@@ -152,7 +152,7 @@ describe("App", () => {
       ).toBeEnabled(),
     );
     await user.click(screen.getByRole("button", { name: "Get scorecard" }));
-    await screen.findByRole("heading", { name: "GCD economy" });
+    await screen.findByRole("button", { name: /GCD economy/ });
 
     await user.click(screen.getByRole("button", { name: "Start over" }));
 
