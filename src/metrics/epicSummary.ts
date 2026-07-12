@@ -5,6 +5,7 @@ import type { Lb3TargetResult, Lb3UptimeResult } from "./lb3Uptime";
 import type { RefreshCadenceResult } from "./refreshCadence";
 import type { AccidentalBloomsResult } from "./accidentalBlooms";
 import type { RestackTaxResult } from "./restackTax";
+import type { HotClipDetectionResult } from "./hotClipDetection";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -67,5 +68,21 @@ export function summarizeLifebloomDiscipline(
   return {
     judgement,
     stats: [formatLb3UptimeStat(lb3.targets), cadenceStat],
+  };
+}
+
+export function summarizeSpellDiscipline(
+  hotClips: HotClipDetectionResult,
+): EpicSummary {
+  const judgement = worstJudgement([
+    hotClips.rejuvenation.judgement,
+    hotClips.regrowth.judgement,
+  ]);
+  return {
+    judgement,
+    stats: [
+      `Rejuvenation clips: ${hotClips.rejuvenation.clipPct.toFixed(1)}%`,
+      `Regrowth clips: ${hotClips.regrowth.clipPct.toFixed(1)}%`,
+    ],
   };
 }

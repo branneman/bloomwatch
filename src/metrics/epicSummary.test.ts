@@ -3,7 +3,9 @@ import {
   worstJudgement,
   summarizeGcdEconomy,
   summarizeLifebloomDiscipline,
+  summarizeSpellDiscipline,
 } from "./epicSummary";
+import type { HotClipDetectionResult } from "./hotClipDetection";
 import type { GcdUtilizationResult } from "./gcdUtilization";
 import type { IdleGapsResult } from "./idleGaps";
 import type { Lb3UptimeResult } from "./lb3Uptime";
@@ -160,5 +162,54 @@ describe("summarizeLifebloomDiscipline", () => {
     expect(
       summarizeLifebloomDiscipline(lb3, refresh, blooms, restack).stats[0],
     ).toBe("LB3 uptime: no maintained targets");
+  });
+});
+
+describe("summarizeSpellDiscipline", () => {
+  it("takes the worst-of judgement and formats both spells' clip rates", () => {
+    const hotClips: HotClipDetectionResult = {
+      rejuvenation: {
+        spell: "Rejuvenation",
+        castCount: 64,
+        clipCount: 4,
+        clipPct: 6.25,
+        judgement: "orange",
+      },
+      regrowth: {
+        spell: "Regrowth",
+        castCount: 22,
+        clipCount: 3,
+        clipPct: 13.636363636363637,
+        judgement: "orange",
+      },
+      clipEvents: [],
+    };
+
+    expect(summarizeSpellDiscipline(hotClips)).toEqual({
+      judgement: "orange",
+      stats: ["Rejuvenation clips: 6.3%", "Regrowth clips: 13.6%"],
+    });
+  });
+
+  it("is green when both spells are green", () => {
+    const hotClips: HotClipDetectionResult = {
+      rejuvenation: {
+        spell: "Rejuvenation",
+        castCount: 100,
+        clipCount: 1,
+        clipPct: 1,
+        judgement: "green",
+      },
+      regrowth: {
+        spell: "Regrowth",
+        castCount: 30,
+        clipCount: 0,
+        clipPct: 0,
+        judgement: "green",
+      },
+      clipEvents: [],
+    };
+
+    expect(summarizeSpellDiscipline(hotClips).judgement).toBe("green");
   });
 });
