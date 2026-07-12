@@ -12,6 +12,20 @@ export class WclApiError extends Error {
   }
 }
 
+export function withRateLimitDetection<Args extends unknown[], R>(
+  fn: (...args: Args) => Promise<R>,
+  onRateLimited: () => void,
+): (...args: Args) => Promise<R> {
+  return async (...args: Args) => {
+    try {
+      return await fn(...args);
+    } catch (err) {
+      if (err instanceof WclApiError && err.status === 429) onRateLimited();
+      throw err;
+    }
+  };
+}
+
 export interface TokenResult {
   accessToken: string;
   expiresIn: number;

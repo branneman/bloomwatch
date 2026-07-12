@@ -1,4 +1,12 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 import {
@@ -7,6 +15,7 @@ import {
   fetchCastsTable,
   fetchMasterDataAbilities,
   WclApiError,
+  withRateLimitDetection,
   TOKEN_URL,
   USER_API_URL,
 } from "../../src/wcl/client";
@@ -173,5 +182,38 @@ describe("fetchMasterDataAbilities", () => {
 
     expect(requestBody?.query).toContain("masterData");
     expect(requestBody?.query).toContain("4GYHZRdtL3bvhpc8");
+  });
+});
+
+describe("withRateLimitDetection", () => {
+  it("calls onRateLimited and rethrows when the wrapped function throws a 429 WclApiError", async () => {
+    const onRateLimited = vi.fn();
+    const wrapped = withRateLimitDetection(async () => {
+      throw new WclApiError(429, "rate limited");
+    }, onRateLimited);
+
+    await expect(wrapped()).rejects.toThrow(WclApiError);
+    expect(onRateLimited).toHaveBeenCalledOnce();
+  });
+
+  it("does not call onRateLimited for a non-429 error", async () => {
+    const onRateLimited = vi.fn();
+    const wrapped = withRateLimitDetection(async () => {
+      throw new WclApiError(500, "server error");
+    }, onRateLimited);
+
+    await expect(wrapped()).rejects.toThrow(WclApiError);
+    expect(onRateLimited).not.toHaveBeenCalled();
+  });
+
+  it("passes through arguments and the return value on success", async () => {
+    const onRateLimited = vi.fn();
+    const wrapped = withRateLimitDetection(
+      async (a: number, b: number) => a + b,
+      onRateLimited,
+    );
+
+    await expect(wrapped(2, 3)).resolves.toBe(5);
+    expect(onRateLimited).not.toHaveBeenCalled();
   });
 });
