@@ -1,35 +1,142 @@
+import { useEffect, useState } from "react";
+import type { Fight } from "../../../wcl/client";
+import type { WclEvent, WclEventDataType } from "../../../wcl/events";
+import type { EventFetcherFight } from "../../../wcl/eventCache";
+import {
+  computeConcurrentLb3Targets,
+  type ConcurrentLb3Result,
+} from "../../../metrics/concurrentLb3Targets";
 import { MetricCard } from "../ui/MetricCard";
 import { StackedBar } from "../ui/StackedBar";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 
-export function ConcurrentTargetsCard() {
+export interface ConcurrentTargetsCardProps {
+  accessToken: string;
+  reportCode: string;
+  fight: Fight;
+  druidId: number;
+  lifebloomAbilityIds: Set<number>;
+  fetchEvents: (
+    accessToken: string,
+    reportCode: string,
+    fight: EventFetcherFight,
+    dataType: WclEventDataType,
+  ) => Promise<WclEvent[]>;
+}
+
+type FetchResult =
+  | { accessToken: string; result: ConcurrentLb3Result }
+  | { accessToken: string; error: string };
+
+const THRESHOLD =
+  "No R/O/G — the right number of concurrent targets depends on your assignments, not a universal target.";
+
+const LEVEL_COLORS = [
+  "var(--border)",
+  "var(--accent-border)",
+  "var(--accent)",
+  "var(--purple-600)",
+];
+
+function colorForLevel(count: number): string {
+  return LEVEL_COLORS[Math.min(count, LEVEL_COLORS.length - 1)];
+}
+
+export function ConcurrentTargetsCard({
+  accessToken,
+  reportCode,
+  fight,
+  druidId,
+  lifebloomAbilityIds,
+  fetchEvents,
+}: ConcurrentTargetsCardProps) {
+  const [result, setResult] = useState<FetchResult | null>(null);
+
+  useEffect(() => {
+    fetchEvents(
+      accessToken,
+      reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "Buffs",
+    )
+      .then((events) => {
+        const computed = computeConcurrentLb3Targets(
+          events,
+          druidId,
+          lifebloomAbilityIds,
+          fight.startTime,
+          fight.endTime,
+        );
+        setResult({ accessToken, result: computed });
+      })
+      .catch((err: unknown) =>
+        setResult({
+          accessToken,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Failed to calculate concurrent LB3 targets.",
+        }),
+      );
+  }, [
+    accessToken,
+    reportCode,
+    fight.id,
+    fight.startTime,
+    fight.endTime,
+    druidId,
+    lifebloomAbilityIds,
+    fetchEvents,
+  ]);
+
+  const isCurrent = result !== null && result.accessToken === accessToken;
+
+  if (!isCurrent) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="Concurrent LB3 targets"
+        note="Informational — no judgement"
+        threshold={THRESHOLD}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if ("error" in result) {
+    return (
+      <MetricCard
+        icon={lifebloomIcon}
+        title="Concurrent LB3 targets"
+        note="Informational — no judgement"
+        threshold={THRESHOLD}
+      >
+        <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  const { avgConcurrent, peakConcurrent, levels } = result.result;
+
   return (
     <MetricCard
       icon={lifebloomIcon}
       title="Concurrent LB3 targets"
-      value="Avg 1.6 · Peak 2"
+      value={`Avg ${avgConcurrent.toFixed(1)} · Peak ${peakConcurrent}`}
       note="Informational — no judgement"
-      threshold="No R/O/G — the right number of concurrent targets depends on your assignments, not a universal target."
+      threshold={THRESHOLD}
     >
-      <span
-        style={{
-          fontSize: "var(--text-small-size)",
-          fontStyle: "italic",
-          color: "var(--text)",
-        }}
-      >
-        Sample — not yet computed
-      </span>
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
         How many targets simultaneously had your LB3, as a share of the fight.
         Maintaining multiple tanks at once is recognized as the skill it is.
       </p>
       <StackedBar
-        segments={[
-          { label: "0 targets", pct: 3, color: "var(--border)" },
-          { label: "1 target", pct: 41, color: "var(--accent-border)" },
-          { label: "2 targets", pct: 56, color: "var(--accent)" },
-        ]}
+        segments={levels.map((level) => ({
+          label: `${level.count} target${level.count === 1 ? "" : "s"}`,
+          pct: level.pct,
+          color: colorForLevel(level.count),
+        }))}
       />
     </MetricCard>
   );

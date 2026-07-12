@@ -131,7 +131,14 @@ export function Scorecard({
           targetNames={targetNames}
           fetchEvents={fetchEvents}
         />
-        <ConcurrentTargetsCard />
+        <ConcurrentTargetsCard
+          accessToken={accessToken}
+          reportCode={reportCode}
+          fight={fight}
+          druidId={druidId}
+          lifebloomAbilityIds={lifebloomAbilityIds}
+          fetchEvents={fetchEvents}
+        />
       </div>
 
       <div className={styles.footer}>
