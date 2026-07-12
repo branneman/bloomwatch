@@ -99,7 +99,7 @@ As a developer, I want a per-report lookup that maps ability IDs to (spell, rank
 - Covers: Lifebloom, Rejuvenation, Regrowth, Healing Touch, Swiftmend, Nature's Swiftness, Tranquility, Innervate, mana potions, Dark/Demonic Runes.
 - Multiple ranks of one spell resolve to one logical spell with a rank attribute.
 
-### 008 — Default API client with graceful rate-limit fallback
+### 008 — Default API client with graceful rate-limit fallback ✅ Done
 
 As a druid pasting a report link for the first time, I want the app to just work without registering my own WCL API client, so that "paste link → judged scorecard" isn't blocked by an API-client-registration detour. As the app's maintainer, I want a rate-limit hit on the shared default client to degrade gracefully into asking that one user for their own client_id, so that one busy raid night doesn't lock everyone else out.
 
