@@ -11,6 +11,7 @@ export interface AbilityResolverProps {
   fetchMasterDataAbilities: (
     accessToken: string,
     reportCode: string,
+    signal?: AbortSignal,
   ) => Promise<ReportAbility[]>;
   onResolved: (resolved: Map<number, ResolvedAbility>) => void;
 }
@@ -28,19 +29,22 @@ export function AbilityResolver({
   const [result, setResult] = useState<FetchResult | null>(null);
 
   useEffect(() => {
-    fetchMasterDataAbilities(accessToken, reportCode)
+    const controller = new AbortController();
+    fetchMasterDataAbilities(accessToken, reportCode, controller.signal)
       .then((abilities) => {
         const resolved = resolveAbilities(abilities);
         setResult({ accessToken, resolved });
         onResolved(resolved);
       })
-      .catch((err: unknown) =>
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setResult({
           accessToken,
           error:
             err instanceof Error ? err.message : "Failed to resolve abilities.",
-        }),
-      );
+        });
+      });
+    return () => controller.abort();
   }, [accessToken, reportCode, fetchMasterDataAbilities, onResolved]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;

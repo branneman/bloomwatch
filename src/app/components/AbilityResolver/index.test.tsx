@@ -53,4 +53,28 @@ describe("AbilityResolver", () => {
       ),
     );
   });
+
+  it("aborts the in-flight fetch when unmounted", () => {
+    let capturedSignal: AbortSignal | undefined;
+    const fetchMasterDataAbilities = (
+      _accessToken: string,
+      _reportCode: string,
+      signal?: AbortSignal,
+    ) => {
+      capturedSignal = signal;
+      return new Promise<never>(() => {});
+    };
+    const { unmount } = render(
+      <AbilityResolver
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fetchMasterDataAbilities={fetchMasterDataAbilities}
+        onResolved={vi.fn()}
+      />,
+    );
+
+    expect(capturedSignal?.aborted).toBe(false);
+    unmount();
+    expect(capturedSignal?.aborted).toBe(true);
+  });
 });

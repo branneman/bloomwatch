@@ -73,6 +73,7 @@ export interface ReportFights {
 export async function fetchReportFights(
   accessToken: string,
   reportCode: string,
+  signal?: AbortSignal,
 ): Promise<ReportFights> {
   const resp = await fetch(USER_API_URL, {
     method: "POST",
@@ -90,6 +91,7 @@ export async function fetchReportFights(
   }
 }`,
     }),
+    signal,
   });
   const bodyText = await resp.text();
   if (!resp.ok) throw new WclApiError(resp.status, bodyText);
@@ -171,6 +173,7 @@ export interface ReportAbility {
 export async function fetchMasterDataAbilities(
   accessToken: string,
   reportCode: string,
+  signal?: AbortSignal,
 ): Promise<ReportAbility[]> {
   const resp = await fetch(USER_API_URL, {
     method: "POST",
@@ -187,6 +190,7 @@ export async function fetchMasterDataAbilities(
   }
 }`,
     }),
+    signal,
   });
   const bodyText = await resp.text();
   if (!resp.ok) throw new WclApiError(resp.status, bodyText);

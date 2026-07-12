@@ -8,6 +8,7 @@ export interface ConnectPanelProps {
   fetchReportFights: (
     accessToken: string,
     reportCode: string,
+    signal?: AbortSignal,
   ) => Promise<ReportFights>;
   onReportLoaded: (report: ReportFights) => void;
 }
@@ -26,17 +27,20 @@ export function ConnectPanel({
 
   useEffect(() => {
     if (!accessToken) return;
-    fetchReportFights(accessToken, reportCode)
+    const controller = new AbortController();
+    fetchReportFights(accessToken, reportCode, controller.signal)
       .then((report) => {
         setResult({ accessToken, report });
         onReportLoaded(report);
       })
-      .catch((err: unknown) =>
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setResult({
           accessToken,
           error: err instanceof Error ? err.message : "Failed to fetch report.",
-        }),
-      );
+        });
+      });
+    return () => controller.abort();
   }, [accessToken, reportCode, fetchReportFights, onReportLoaded]);
 
   if (!accessToken) return <p>Not connected.</p>;

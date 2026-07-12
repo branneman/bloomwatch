@@ -63,4 +63,28 @@ describe("ConnectPanel", () => {
       ),
     );
   });
+
+  it("aborts the in-flight fetch when unmounted", () => {
+    let capturedSignal: AbortSignal | undefined;
+    const fetchReportFights = (
+      _accessToken: string,
+      _reportCode: string,
+      signal?: AbortSignal,
+    ) => {
+      capturedSignal = signal;
+      return new Promise<never>(() => {});
+    };
+    const { unmount } = render(
+      <ConnectPanel
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fetchReportFights={fetchReportFights}
+        onReportLoaded={vi.fn()}
+      />,
+    );
+
+    expect(capturedSignal?.aborted).toBe(false);
+    unmount();
+    expect(capturedSignal?.aborted).toBe(true);
+  });
 });
