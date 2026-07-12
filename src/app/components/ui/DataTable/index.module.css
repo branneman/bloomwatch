@@ -1,0 +1,24 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small-size);
+}
+
+.headerCell {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cell {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+.table tbody tr:last-child .cell {
+  border-bottom: none;
+}
