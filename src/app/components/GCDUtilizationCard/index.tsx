@@ -8,7 +8,9 @@ import {
 } from "../../../metrics/gcdUtilization";
 import { formatDuration } from "../../../report/fightRows";
 import { MetricCard } from "../ui/MetricCard";
-import instantcastIcon from "../../../assets/spell-icons/instantcast.jpg";
+
+const gcdUtilizationIcon =
+  "https://wow.zamimg.com/images/wow/icons/large/ability_rogue_sprint.jpg";
 
 export interface GCDUtilizationCardProps {
   accessToken: string;
@@ -79,7 +81,7 @@ export function GCDUtilizationCard({
   if (!isCurrent) {
     return (
       <MetricCard
-        icon={instantcastIcon}
+        icon={gcdUtilizationIcon}
         title="GCD utilization"
         threshold={threshold}
       >
@@ -91,7 +93,7 @@ export function GCDUtilizationCard({
   if ("error" in result) {
     return (
       <MetricCard
-        icon={instantcastIcon}
+        icon={gcdUtilizationIcon}
         title="GCD utilization"
         threshold={threshold}
       >
@@ -104,7 +106,7 @@ export function GCDUtilizationCard({
 
   return (
     <MetricCard
-      icon={instantcastIcon}
+      icon={gcdUtilizationIcon}
       title="GCD utilization"
       value={`${Math.round(utilizationPct)}%`}
       pct={Math.min(100, utilizationPct)}

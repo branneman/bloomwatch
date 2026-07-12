@@ -9,7 +9,9 @@ import {
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
-import instantcastIcon from "../../../assets/spell-icons/instantcast.jpg";
+
+const idleGapsIcon =
+  "https://wow.zamimg.com/images/wow/icons/large/spell_nature_timestop.jpg";
 
 export interface IdleGapsCardProps {
   accessToken: string;
@@ -79,11 +81,7 @@ export function IdleGapsCard({
 
   if (!isCurrent) {
     return (
-      <MetricCard
-        icon={instantcastIcon}
-        title="Idle gaps"
-        threshold={threshold}
-      >
+      <MetricCard icon={idleGapsIcon} title="Idle gaps" threshold={threshold}>
         <p>Calculating…</p>
       </MetricCard>
     );
@@ -91,11 +89,7 @@ export function IdleGapsCard({
 
   if ("error" in result) {
     return (
-      <MetricCard
-        icon={instantcastIcon}
-        title="Idle gaps"
-        threshold={threshold}
-      >
+      <MetricCard icon={idleGapsIcon} title="Idle gaps" threshold={threshold}>
         <p role="alert">{result.error}</p>
       </MetricCard>
     );
@@ -106,7 +100,7 @@ export function IdleGapsCard({
 
   return (
     <MetricCard
-      icon={instantcastIcon}
+      icon={idleGapsIcon}
       title="Idle gaps"
       value={`${Math.round(deadTimePct)}% dead time`}
       pct={Math.min(100, deadTimePct)}
