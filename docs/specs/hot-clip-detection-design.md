@@ -155,10 +155,13 @@ Follows `RestackTaxCard`'s structure exactly (fetch `Buffs` + `Casts`, compute, 
 - Icon: `https://wow.zamimg.com/images/wow/icons/large/ability_druid_empoweredrejuvination.jpg`
   (hotlinked constant, same pattern as `Scorecard/index.tsx`'s `GCD_ECONOMY_ICON` — per
   `docs/design_v2`'s icon convention, nothing here is a local asset).
-- Header judgement = worst of the two spells' judgements (reuse `worstJudgement`).
+- Headline `value`/`pct` on the card = overall clip% across both spells combined
+  (`totalClips / totalCasts`), matching the mockup's `value="8.1% clipped"` + `pct={8.1}`.
+  Header `judgement` = worst of the two spells' judgements (reuse `worstJudgement`) — the
+  mockup's single card-level chip, not a per-row one.
 - Body: a `DataTable` with columns `Spell | Casts | Clips | Clip %`, one row per spell
-  (`Rejuvenation`, `Regrowth`), each row's Clip % cell paired with a small `JudgementChip` for
-  that spell's own verdict.
+  (`Rejuvenation`, `Regrowth`), plain-text cells exactly matching the mockup's rows (no
+  per-row `JudgementChip` — the card's one header chip already carries the verdict).
 - Below the table: a time-sorted `<ul>` of `clipEvents`, each linking to that moment in WCL via
   `buildFightTimeUrl` (same pattern as `RestackTaxCard`/`AccidentalBloomsCard`), labeled with
   spell name, formatted time, and target name (`targetNames.get(...)` fallback to
