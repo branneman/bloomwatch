@@ -1,18 +1,21 @@
+// src/app/components/Scorecard/index.tsx
+import { useState } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { DruidCandidate } from "../../../report/druidDetection";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
-import { GCDUtilizationCard } from "../GCDUtilizationCard";
-import { IdleGapsCard } from "../IdleGapsCard";
-import { LB3UptimeCard } from "../LB3UptimeCard";
-import { RefreshCadenceCard } from "../RefreshCadenceCard";
-import { AccidentalBloomsCard } from "../AccidentalBloomsCard";
-import { RestackTaxCard } from "../RestackTaxCard";
-import { ConcurrentTargetsCard } from "../ConcurrentTargetsCard";
+import { GcdEconomyContent } from "../GcdEconomyContent";
+import { LifebloomDisciplineContent } from "../LifebloomDisciplineContent";
+import { useGcdEconomySummary } from "./useGcdEconomySummary";
+import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
+import { Widget } from "../ui/Widget";
+import { JudgementChip } from "../ui/JudgementChip";
+import { SpellIcon } from "../ui/SpellIcon";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
+import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 import styles from "./index.module.css";
 
 export interface ScorecardProps {
@@ -32,6 +35,34 @@ export interface ScorecardProps {
   onStartOver: () => void;
 }
 
+type EpicId = "gcd" | "lifebloom" | "spell" | "mana" | "death" | "prep";
+
+const GCD_ECONOMY_ICON =
+  "https://wow.zamimg.com/images/wow/icons/large/ability_druid_forceofnature.jpg";
+
+const DISABLED_EPICS: { id: EpicId; label: string; icon: string }[] = [
+  {
+    id: "spell",
+    label: "Spell discipline",
+    icon: "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg",
+  },
+  {
+    id: "mana",
+    label: "Mana economy",
+    icon: "https://wow.zamimg.com/images/wow/icons/large/inv_potion_137.jpg",
+  },
+  {
+    id: "death",
+    label: "Death forensics",
+    icon: "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathscream.jpg",
+  },
+  {
+    id: "prep",
+    label: "Prep hygiene",
+    icon: "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg",
+  },
+];
+
 export function Scorecard({
   accessToken,
   reportCode,
@@ -43,6 +74,24 @@ export function Scorecard({
   fetchEvents,
   onStartOver,
 }: ScorecardProps) {
+  const [activeEpic, setActiveEpic] = useState<EpicId | null>(null);
+
+  const gcdSummary = useGcdEconomySummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
+  const lifebloomSummary = useLifebloomDisciplineSummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    lifebloomAbilityIds,
+    fetchEvents,
+  );
+
   const outcome =
     fight.kill === true
       ? "Kill"
@@ -76,70 +125,110 @@ export function Scorecard({
         </a>
       </p>
 
-      <h2>GCD economy</h2>
-      <div className={styles.group}>
-        <GCDUtilizationCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          fetchEvents={fetchEvents}
-        />
-        <IdleGapsCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          fetchEvents={fetchEvents}
-        />
-      </div>
+      {activeEpic === null && (
+        <div className={styles.grid}>
+          <Widget
+            icon={GCD_ECONOMY_ICON}
+            label="GCD economy"
+            onOpen={() => setActiveEpic("gcd")}
+            judgement={
+              gcdSummary.status === "ready" ? gcdSummary.judgement : undefined
+            }
+            stats={gcdSummary.status === "ready" ? gcdSummary.stats : undefined}
+            note={
+              gcdSummary.status === "loading"
+                ? "Calculating…"
+                : gcdSummary.status === "error"
+                  ? gcdSummary.error
+                  : undefined
+            }
+          />
+          <Widget
+            icon={lifebloomIcon}
+            label="Lifebloom discipline"
+            onOpen={() => setActiveEpic("lifebloom")}
+            judgement={
+              lifebloomSummary.status === "ready"
+                ? lifebloomSummary.judgement
+                : undefined
+            }
+            stats={
+              lifebloomSummary.status === "ready"
+                ? lifebloomSummary.stats
+                : undefined
+            }
+            note={
+              lifebloomSummary.status === "loading"
+                ? "Calculating…"
+                : lifebloomSummary.status === "error"
+                  ? lifebloomSummary.error
+                  : undefined
+            }
+          />
+          {DISABLED_EPICS.map((epic) => (
+            <Widget
+              key={epic.id}
+              icon={epic.icon}
+              label={epic.label}
+              note="Not yet available"
+            />
+          ))}
+        </div>
+      )}
 
-      <h2>Lifebloom discipline</h2>
-      <div className={styles.group}>
-        <LB3UptimeCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          lifebloomAbilityIds={lifebloomAbilityIds}
-          targetNames={targetNames}
-          fetchEvents={fetchEvents}
-        />
-        <RefreshCadenceCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          lifebloomAbilityIds={lifebloomAbilityIds}
-          fetchEvents={fetchEvents}
-        />
-        <AccidentalBloomsCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          lifebloomAbilityIds={lifebloomAbilityIds}
-          targetNames={targetNames}
-          fetchEvents={fetchEvents}
-        />
-        <RestackTaxCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          lifebloomAbilityIds={lifebloomAbilityIds}
-          targetNames={targetNames}
-          fetchEvents={fetchEvents}
-        />
-        <ConcurrentTargetsCard
-          accessToken={accessToken}
-          reportCode={reportCode}
-          fight={fight}
-          druidId={druidId}
-          lifebloomAbilityIds={lifebloomAbilityIds}
-          fetchEvents={fetchEvents}
-        />
-      </div>
+      {activeEpic === "gcd" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => setActiveEpic(null)}
+          >
+            ← All epics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={GCD_ECONOMY_ICON} />
+            <h2 className={styles.epicTitle}>GCD economy</h2>
+            {gcdSummary.status === "ready" && (
+              <JudgementChip judgement={gcdSummary.judgement} />
+            )}
+          </div>
+          <GcdEconomyContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            fight={fight}
+            druidId={druidId}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+
+      {activeEpic === "lifebloom" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => setActiveEpic(null)}
+          >
+            ← All epics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={lifebloomIcon} />
+            <h2 className={styles.epicTitle}>Lifebloom discipline</h2>
+            {lifebloomSummary.status === "ready" && (
+              <JudgementChip judgement={lifebloomSummary.judgement} />
+            )}
+          </div>
+          <LifebloomDisciplineContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            fight={fight}
+            druidId={druidId}
+            lifebloomAbilityIds={lifebloomAbilityIds}
+            targetNames={targetNames}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
 
       <div className={styles.footer}>
         <Alert tone="warning">

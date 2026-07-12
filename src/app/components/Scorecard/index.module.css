@@ -1,3 +1,4 @@
+/* src/app/components/Scorecard/index.module.css */
 .fightHeading {
   margin-top: 0;
 }
@@ -10,15 +11,52 @@
   color: var(--text);
   margin-bottom: var(--space-6);
 }
-.group {
-  display: flex;
-  flex-direction: column;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
+  animation: fadeInUp 0.18s ease-out;
+}
+.detail {
+  margin-bottom: var(--space-6);
+  animation: fadeInUp 0.18s ease-out;
+}
+.backLink {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: var(--space-4);
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--text-small-size);
+  cursor: pointer;
+}
+.epicHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.epicTitle {
+  margin: 0;
+  flex: 1;
 }
 .footer {
   margin-top: var(--space-6);
 }
 .startOver {
   margin-top: var(--space-5);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+// src/app/components/Scorecard/index.test.tsx
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Scorecard } from "./index";
-import { aFight } from "../../../testUtils/factories";
+import { aCastEvent, aFight } from "../../../testUtils/factories";
 import type { DruidCandidate } from "../../../report/druidDetection";
 
 const druid: DruidCandidate = {
@@ -13,7 +14,7 @@ const druid: DruidCandidate = {
 };
 
 describe("Scorecard", () => {
-  it("renders the fight header, both epic groups, and the footer", async () => {
+  it("renders the fight header, all 6 epic widgets, and the footer", async () => {
     const fight = aFight({
       id: 6,
       name: "Lady Vashj",
@@ -42,15 +43,26 @@ describe("Scorecard", () => {
       screen.getByRole("heading", { name: /Lady Vashj \(Kill, 5:41\)/ }),
     ).toBeInTheDocument();
     expect(screen.getByText("Fernwhisper — Restoration")).toBeInTheDocument();
+
     expect(
-      screen.getByRole("heading", { name: "GCD economy" }),
+      screen.getByRole("button", { name: /GCD economy/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Lifebloom discipline" }),
+      screen.getByRole("button", { name: /Lifebloom discipline/ }),
     ).toBeInTheDocument();
+    for (const label of [
+      "Spell discipline",
+      "Mana economy",
+      "Death forensics",
+      "Prep hygiene",
+    ]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(screen.getAllByText("Not yet available")).toHaveLength(4);
     expect(
-      screen.getByRole("heading", { name: "Refresh cadence" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /Spell discipline/ }),
+    ).not.toBeInTheDocument();
+
     expect(screen.getByRole("alert")).toHaveTextContent(
       /can't judge target selection/,
     );
@@ -58,5 +70,61 @@ describe("Scorecard", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Start over" }));
     expect(onStartOver).toHaveBeenCalledOnce();
+  });
+
+  it("drills into GCD economy detail and back to the overview", async () => {
+    const fight = aFight({
+      id: 6,
+      name: "Lady Vashj",
+      kill: true,
+      startTime: 0,
+      endTime: 10000,
+    });
+    const events = [
+      aCastEvent({ timestamp: 1000, sourceID: 101, abilityGameID: 33763 }),
+      aCastEvent({ timestamp: 3000, sourceID: 101, abilityGameID: 33763 }),
+    ];
+    const fetchEvents = () => Promise.resolve(events);
+
+    render(
+      <Scorecard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={101}
+        druid={druid}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+        onStartOver={vi.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /GCD economy/ }),
+      ).toHaveTextContent("Red"),
+    );
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /GCD economy/ }));
+
+    expect(
+      screen.getByRole("heading", { name: "GCD utilization" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Idle gaps" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "← All epics" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Lifebloom discipline/ }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "← All epics" }));
+    expect(
+      screen.getByRole("button", { name: /Lifebloom discipline/ }),
+    ).toBeInTheDocument();
   });
 });
