@@ -230,13 +230,31 @@ Key changes from the current file: `clientId` now falls back to `DEFAULT_CLIENT_
 Run: `npx vitest run src/wcl/useWclAuth.test.ts`
 Expected: PASS (5 tests)
 
-- [ ] **Step 6: Full verification and commit**
+- [ ] **Step 6: Fix the one existing call site that `connect()`'s new signature breaks**
+
+`connect` no longer takes zero arguments — it's now `(clientIdOverride?: string) => Promise<void>`. `src/App.tsx` has exactly one existing call site, `<Button onClick={connect}>Connect</Button>`, that passes React's `MouseEvent` as the first argument when the button is clicked, which no longer type-checks against `clientIdOverride?: string`. This is the ONLY reason for this step: a full-project `tsc -b` (run by the pre-commit hook) would otherwise fail after this task's commit, even though Task 4 — not this task — owns redesigning that screen. Do not do any of Task 4's redesign here; make the smallest possible fix so the project type-checks.
+
+In `src/App.tsx`, change:
+
+```tsx
+<Button onClick={connect}>Connect</Button>
+```
+
+to:
+
+```tsx
+<Button onClick={() => connect()}>Connect</Button>
+```
+
+Nothing else in `src/App.tsx` changes. (Task 4 will replace this entire block — button label, the Client ID field, all of it — and its brief's "old block" snippet already reflects this one-line fix, not the original file.)
+
+- [ ] **Step 7: Full verification and commit**
 
 Run: `npm run typecheck && npm run lint && npm run format:check`
 Expected: all pass (format:check may require `npm run format` first if new files aren't yet Prettier-formatted)
 
 ```bash
-git add src/wcl/defaultClient.ts src/wcl/useWclAuth.ts src/wcl/useWclAuth.test.ts
+git add src/wcl/defaultClient.ts src/wcl/useWclAuth.ts src/wcl/useWclAuth.test.ts src/App.tsx
 git commit -m "feat(wcl-auth): resolve a default Client ID and add rate-limit state to useWclAuth"
 ```
 
@@ -554,201 +572,74 @@ In the JSX, replace each of these prop values:
 
 - [ ] **Step 4: Replace the initial connect screen**
 
-Replace this block:
+Replace this block (note: the fenced blocks in this step and Step 5 use plain, untagged fences rather than `tsx` — Prettier's markdown formatter mangles bare JSX fragments shown outside their surrounding `return`, e.g. adding a stray trailing semicolon — so treat the content below as exact JSX to paste, not as a syntax-checked standalone file):
 
-```tsx
-{
-  !accessToken && (
-    <Shell>
-      <div className={styles.connectHeader}>
-        <img src={logo} width={40} height={40} alt="" />
-        <h1>Bloomwatch</h1>
-      </div>
-      <p className={styles.tagline}>
-        Keep your Lifeblooms rolling. Paste a Warcraft Logs report and get a
-        scorecard that judges your process — not another parse percentile that
-        healing, being zero-sum, can&apos;t fairly measure.
-      </p>
-      <Field label="WCL Client ID">
-        <Input
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          placeholder="Paste your Client ID"
-        />
-      </Field>
-      <Button onClick={connect}>Connect</Button>
-      {authError && <Alert tone="warning">{authError}</Alert>}
-      <p className={styles.connectFooter}>
-        No account, no server, no secret — every request to Warcraft Logs is
-        made directly from your browser.
-      </p>
-    </Shell>
-  );
-}
+```
+      {!accessToken && (
+        <Shell>
+          <div className={styles.connectHeader}>
+            <img src={logo} width={40} height={40} alt="" />
+            <h1>Bloomwatch</h1>
+          </div>
+          <p className={styles.tagline}>
+            Keep your Lifeblooms rolling. Paste a Warcraft Logs report and get a
+            scorecard that judges your process — not another parse percentile
+            that healing, being zero-sum, can&apos;t fairly measure.
+          </p>
+          <Field label="WCL Client ID">
+            <Input
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              placeholder="Paste your Client ID"
+            />
+          </Field>
+          <Button onClick={() => connect()}>Connect</Button>
+          {authError && <Alert tone="warning">{authError}</Alert>}
+          <p className={styles.connectFooter}>
+            No account, no server, no secret — every request to Warcraft Logs is
+            made directly from your browser.
+          </p>
+        </Shell>
+      )}
 ```
 
 with:
 
-```tsx
-{
-  !accessToken && (
-    <Shell>
-      <div className={styles.connectHeader}>
-        <img src={logo} width={40} height={40} alt="" />
-        <h1>Bloomwatch</h1>
-      </div>
-      <p className={styles.tagline}>
-        Keep your Lifeblooms rolling. Paste a Warcraft Logs report and get a
-        scorecard that judges your process — not another parse percentile that
-        healing, being zero-sum, can&apos;t fairly measure.
-      </p>
-      <Button onClick={() => connect()}>Connect to Warcraft Logs (WCL)</Button>
-      <Disclosure summary="Optional: Use your own WCL API Client ID instead">
-        <OwnClientIdField onConnect={connect} />
-      </Disclosure>
-      {authError && <Alert tone="warning">{authError}</Alert>}
-      <p className={styles.connectFooter}>
-        No account, no server, no secret — every request to Warcraft Logs is
-        made directly from your browser.
-      </p>
-    </Shell>
-  );
-}
+```
+      {!accessToken && (
+        <Shell>
+          <div className={styles.connectHeader}>
+            <img src={logo} width={40} height={40} alt="" />
+            <h1>Bloomwatch</h1>
+          </div>
+          <p className={styles.tagline}>
+            Keep your Lifeblooms rolling. Paste a Warcraft Logs report and get a
+            scorecard that judges your process — not another parse percentile
+            that healing, being zero-sum, can&apos;t fairly measure.
+          </p>
+          <Button onClick={() => connect()}>
+            Connect to Warcraft Logs (WCL)
+          </Button>
+          <Disclosure summary="Optional: Use your own WCL API Client ID instead">
+            <OwnClientIdField onConnect={connect} />
+          </Disclosure>
+          {authError && <Alert tone="warning">{authError}</Alert>}
+          <p className={styles.connectFooter}>
+            No account, no server, no secret — every request to Warcraft Logs is
+            made directly from your browser.
+          </p>
+        </Shell>
+      )}
 ```
 
-Note `onClick={() => connect()}` (not `onClick={connect}`): `connect` now takes an optional `clientIdOverride?: string`, and a bare `onClick={connect}` would pass the click's `MouseEvent` as that argument. `OwnClientIdField`'s `onConnect={connect}` is fine as-is, since `OwnClientIdField` always calls `onConnect(value)` with a real string.
+Note the old block above already reflects Task 1's one-line fix (`onClick={() => connect()}`, not the original `onClick={connect}`) — that's what the file actually looks like at the start of this task. Note also `onClick={() => connect()}` (not `onClick={connect}`) on the new button: `connect` takes an optional `clientIdOverride?: string`, and a bare `onClick={connect}` would pass the click's `MouseEvent` as that argument. `OwnClientIdField`'s `onConnect={connect}` is fine as-is, since `OwnClientIdField` always calls `onConnect(value)` with a real string.
 
 - [ ] **Step 5: Wrap the three accessToken-gated screens in a dimmable container, and add the rate-limit banner**
 
-Replace this block (the three `{accessToken && ...}` sections, from `{accessToken && !loadedReport && (` through the end of the scorecard `.map((f) => (...))` block):
+Replace this block (the three `{accessToken && ...}` sections, from `{accessToken && !loadedReport && (` through the end of the scorecard `.map((f) => (...))` block — same untagged-fence caveat as Step 4 applies here):
 
-```tsx
-{
-  accessToken && !loadedReport && (
-    <Shell>
-      <ReportInput onSubmit={handleReportSubmit} />
-      {report && (
-        <ConnectPanel
-          accessToken={accessToken}
-          reportCode={report.reportCode}
-          fetchReportFights={wrappedFetchReportFights}
-          onReportLoaded={setLoadedReport}
-        />
-      )}
-      {report && (
-        <AbilityResolver
-          accessToken={accessToken}
-          reportCode={report.reportCode}
-          fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
-          onResolved={setResolvedAbilities}
-        />
-      )}
-    </Shell>
-  );
-}
-
-{
-  accessToken && report && loadedReport && !scorecardRequested && (
-    <Shell>
-      <h2>{loadedReport.title}</h2>
-      {resolvedAbilities === null && (
-        <AbilityResolver
-          accessToken={accessToken}
-          reportCode={report.reportCode}
-          fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
-          onResolved={setResolvedAbilities}
-        />
-      )}
-      <FightPicker
-        fights={loadedReport.fights}
-        initialFightId={report.fightId}
-        onSelectionChange={setSelectedFightIds}
-      />
-      <DruidDetector
-        accessToken={accessToken}
-        reportCode={report.reportCode}
-        fightIds={loadedReport.fights.map((f) => f.id)}
-        fetchCastsTable={wrappedFetchCastsTable}
-        onDruidsDetected={setDruidCandidates}
-        onEntriesLoaded={handleEntriesLoaded}
-      />
-      {druidCandidates !== null &&
-        (druidCandidates.length > 1 ? (
-          <div className={styles.druidSection}>
-            <h3>Druid</h3>
-            <DruidPicker
-              candidates={druidCandidates}
-              selectedDruidId={selectedDruidId}
-              onSelect={setSelectedDruidId}
-            />
-          </div>
-        ) : (
-          <DruidPicker
-            candidates={druidCandidates}
-            selectedDruidId={selectedDruidId}
-            onSelect={setSelectedDruidId}
-          />
-        ))}
-      <Button
-        disabled={!canGetScorecard}
-        onClick={() => setScorecardRequested(true)}
-      >
-        Get scorecard
-      </Button>
-    </Shell>
-  );
-}
-
-{
-  accessToken &&
-    report &&
-    loadedReport &&
-    scorecardRequested &&
-    selectedDruid !== null &&
-    lifebloomAbilityIds !== null &&
-    loadedReport.fights
-      .filter((f) => selectedFightIds.includes(f.id))
-      .map((f) => (
-        <Shell width={800} key={f.id}>
-          <Scorecard
-            accessToken={accessToken}
-            reportCode={report.reportCode}
-            fight={f}
-            druidId={selectedDruid.id}
-            druid={selectedDruid}
-            lifebloomAbilityIds={lifebloomAbilityIds}
-            targetNames={actorNames}
-            fetchEvents={wrappedFetchEvents}
-            onStartOver={handleStartOver}
-          />
-        </Shell>
-      ));
-}
 ```
-
-with:
-
-```tsx
-{
-  accessToken && rateLimited && (
-    <Shell>
-      <Alert tone="warning">
-        The shared connection is temporarily over capacity — too many people are
-        using Bloomwatch&apos;s default connection right now. Register your own
-        free WCL API client to keep going; it only takes a minute.
-      </Alert>
-      <OwnClientIdField onConnect={connect} />
-    </Shell>
-  );
-}
-
-{
-  accessToken && (
-    <div
-      className={rateLimited ? styles.dimmed : undefined}
-      inert={rateLimited}
-    >
-      {!loadedReport && (
+      {accessToken && !loadedReport && (
         <Shell>
           <ReportInput onSubmit={handleReportSubmit} />
           {report && (
@@ -770,7 +661,7 @@ with:
         </Shell>
       )}
 
-      {report && loadedReport && !scorecardRequested && (
+      {accessToken && report && loadedReport && !scorecardRequested && (
         <Shell>
           <h2>{loadedReport.title}</h2>
           {resolvedAbilities === null && (
@@ -820,7 +711,8 @@ with:
         </Shell>
       )}
 
-      {report &&
+      {accessToken &&
+        report &&
         loadedReport &&
         scorecardRequested &&
         selectedDruid !== null &&
@@ -842,9 +734,124 @@ with:
               />
             </Shell>
           ))}
-    </div>
-  );
-}
+```
+
+with:
+
+```
+      {accessToken && rateLimited && (
+        <Shell>
+          <Alert tone="warning">
+            The shared connection is temporarily over capacity — too many
+            people are using Bloomwatch&apos;s default connection right now.
+            Register your own free WCL API client to keep going; it only
+            takes a minute.
+          </Alert>
+          <OwnClientIdField onConnect={connect} />
+        </Shell>
+      )}
+
+      {accessToken && (
+        <div
+          className={rateLimited ? styles.dimmed : undefined}
+          inert={rateLimited}
+        >
+          {!loadedReport && (
+            <Shell>
+              <ReportInput onSubmit={handleReportSubmit} />
+              {report && (
+                <ConnectPanel
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fetchReportFights={wrappedFetchReportFights}
+                  onReportLoaded={setLoadedReport}
+                />
+              )}
+              {report && (
+                <AbilityResolver
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
+                  onResolved={setResolvedAbilities}
+                />
+              )}
+            </Shell>
+          )}
+
+          {report && loadedReport && !scorecardRequested && (
+            <Shell>
+              <h2>{loadedReport.title}</h2>
+              {resolvedAbilities === null && (
+                <AbilityResolver
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
+                  onResolved={setResolvedAbilities}
+                />
+              )}
+              <FightPicker
+                fights={loadedReport.fights}
+                initialFightId={report.fightId}
+                onSelectionChange={setSelectedFightIds}
+              />
+              <DruidDetector
+                accessToken={accessToken}
+                reportCode={report.reportCode}
+                fightIds={loadedReport.fights.map((f) => f.id)}
+                fetchCastsTable={wrappedFetchCastsTable}
+                onDruidsDetected={setDruidCandidates}
+                onEntriesLoaded={handleEntriesLoaded}
+              />
+              {druidCandidates !== null &&
+                (druidCandidates.length > 1 ? (
+                  <div className={styles.druidSection}>
+                    <h3>Druid</h3>
+                    <DruidPicker
+                      candidates={druidCandidates}
+                      selectedDruidId={selectedDruidId}
+                      onSelect={setSelectedDruidId}
+                    />
+                  </div>
+                ) : (
+                  <DruidPicker
+                    candidates={druidCandidates}
+                    selectedDruidId={selectedDruidId}
+                    onSelect={setSelectedDruidId}
+                  />
+                ))}
+              <Button
+                disabled={!canGetScorecard}
+                onClick={() => setScorecardRequested(true)}
+              >
+                Get scorecard
+              </Button>
+            </Shell>
+          )}
+
+          {report &&
+            loadedReport &&
+            scorecardRequested &&
+            selectedDruid !== null &&
+            lifebloomAbilityIds !== null &&
+            loadedReport.fights
+              .filter((f) => selectedFightIds.includes(f.id))
+              .map((f) => (
+                <Shell width={800} key={f.id}>
+                  <Scorecard
+                    accessToken={accessToken}
+                    reportCode={report.reportCode}
+                    fight={f}
+                    druidId={selectedDruid.id}
+                    druid={selectedDruid}
+                    lifebloomAbilityIds={lifebloomAbilityIds}
+                    targetNames={actorNames}
+                    fetchEvents={wrappedFetchEvents}
+                    onStartOver={handleStartOver}
+                  />
+                </Shell>
+              ))}
+        </div>
+      )}
 ```
 
 - [ ] **Step 6: Add the dimmed style**
