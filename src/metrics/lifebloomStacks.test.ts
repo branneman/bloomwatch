@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { reconstructLifebloomTimelines } from "./lifebloomStacks";
+import {
+  reconstructLifebloomTimelines,
+  deriveLifebloomTargetState,
+} from "./lifebloomStacks";
 import {
   anApplyBuffEvent,
   anApplyBuffStackEvent,
@@ -109,5 +112,92 @@ describe("reconstructLifebloomTimelines", () => {
     const timelines = reconstructLifebloomTimelines(events, 2, LB_IDS);
 
     expect(timelines.size).toBe(0);
+  });
+});
+
+describe("deriveLifebloomTargetState", () => {
+  it("accumulates any-stack time and records a single stack-3 interval", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [
+        anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 1000, stack: 2, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 2000, stack: 3, targetID: 42 }),
+        aRemoveBuffEvent({ timestamp: 10000, targetID: 42 }),
+      ],
+      2,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 20000);
+
+    expect(state).toEqual({
+      totalAnyStackMs: 10000,
+      stack3Intervals: [{ start: 2000, end: 10000 }],
+    });
+  });
+
+  it("records a second interval after a drop and re-ramp", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [
+        anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 500, stack: 2, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 1000, stack: 3, targetID: 42 }),
+        aRemoveBuffEvent({ timestamp: 3000, targetID: 42 }),
+        anApplyBuffEvent({ timestamp: 5000, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 5500, stack: 2, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 6000, stack: 3, targetID: 42 }),
+        aRemoveBuffEvent({ timestamp: 9000, targetID: 42 }),
+      ],
+      2,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 10000);
+
+    expect(state).toEqual({
+      totalAnyStackMs: 7000,
+      stack3Intervals: [
+        { start: 1000, end: 3000 },
+        { start: 6000, end: 9000 },
+      ],
+    });
+  });
+
+  it("closes an open interval and open any-stack window at fightEnd", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [
+        anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 1000, stack: 2, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 2000, stack: 3, targetID: 42 }),
+      ],
+      2,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 5000);
+
+    expect(state).toEqual({
+      totalAnyStackMs: 5000,
+      stack3Intervals: [{ start: 2000, end: 5000 }],
+    });
+  });
+
+  it("returns an empty interval list for a target that never reaches 3 stacks", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [
+        anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 1000, stack: 2, targetID: 42 }),
+        aRemoveBuffEvent({ timestamp: 8000, targetID: 42 }),
+      ],
+      2,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 10000);
+
+    expect(state).toEqual({
+      totalAnyStackMs: 8000,
+      stack3Intervals: [],
+    });
   });
 });

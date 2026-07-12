@@ -102,3 +102,63 @@ export function reconstructLifebloomTimelines(
 
   return result;
 }
+
+export interface LifebloomTargetState {
+  totalAnyStackMs: number;
+  stack3Intervals: { start: number; end: number }[];
+}
+
+// Walks one target's timeline once, computing both any-stack uptime (used by
+// story 201's "maintained target" filter) and closed stack-3 intervals (used
+// by 201's LB3 window and 205's concurrency sweep) in a single pass, so the
+// two stories' metric modules don't each re-implement this state machine.
+export function deriveLifebloomTargetState(
+  timeline: LifebloomTimelineEvent[],
+  fightEnd: number,
+): LifebloomTargetState {
+  let openAt: number | null = null;
+  let stack3OpenAt: number | null = null;
+  let totalAnyStackMs = 0;
+  const stack3Intervals: { start: number; end: number }[] = [];
+
+  for (const event of timeline) {
+    if (event.kind === "open") {
+      openAt = event.timestamp;
+      continue;
+    }
+
+    if (event.kind === "stack-change") {
+      const stack = event.stack ?? 0;
+      if (stack >= 3 && stack3OpenAt === null) {
+        stack3OpenAt = event.timestamp;
+      } else if (stack < 3 && stack3OpenAt !== null) {
+        stack3Intervals.push({ start: stack3OpenAt, end: event.timestamp });
+        stack3OpenAt = null;
+      }
+      continue;
+    }
+
+    if (event.kind === "close") {
+      if (openAt !== null) {
+        totalAnyStackMs += event.timestamp - openAt;
+        openAt = null;
+      }
+      if (stack3OpenAt !== null) {
+        stack3Intervals.push({ start: stack3OpenAt, end: event.timestamp });
+        stack3OpenAt = null;
+      }
+      continue;
+    }
+
+    // "refresh": no stack change, nothing to record.
+  }
+
+  if (openAt !== null) {
+    totalAnyStackMs += fightEnd - openAt;
+  }
+  if (stack3OpenAt !== null) {
+    stack3Intervals.push({ start: stack3OpenAt, end: fightEnd });
+  }
+
+  return { totalAnyStackMs, stack3Intervals };
+}
