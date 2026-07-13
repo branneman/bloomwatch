@@ -8,6 +8,7 @@ import type { RestackTaxResult } from "./restackTax";
 import type { HotClipDetectionResult } from "./hotClipDetection";
 import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
+import type { ManaCurveResult } from "./manaCurve";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -93,6 +94,17 @@ export function summarizeSpellDiscipline(
     stats: [
       `Rejuvenation clips: ${hotClips.rejuvenation.clipPct.toFixed(1)}%`,
       `Swiftmend wasteful: ${swiftmendAudit.wastefulPct.toFixed(1)}%`,
+    ],
+  };
+}
+
+export function summarizeManaEconomy(manaCurve: ManaCurveResult): EpicSummary {
+  return {
+    judgement: worstJudgement([manaCurve.judgement]),
+    stats: [
+      manaCurve.endingPct === null
+        ? "Ending mana: no data"
+        : `Ending mana: ${Math.round(manaCurve.endingPct)}%`,
     ],
   };
 }

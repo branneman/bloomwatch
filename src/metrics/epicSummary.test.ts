@@ -4,6 +4,7 @@ import {
   summarizeGcdEconomy,
   summarizeLifebloomDiscipline,
   summarizeSpellDiscipline,
+  summarizeManaEconomy,
 } from "./epicSummary";
 import type { HotClipDetectionResult } from "./hotClipDetection";
 import type { GcdUtilizationResult } from "./gcdUtilization";
@@ -14,6 +15,7 @@ import type { AccidentalBloomsResult } from "./accidentalBlooms";
 import type { RestackTaxResult } from "./restackTax";
 import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
+import type { ManaCurveResult } from "./manaCurve";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -324,5 +326,31 @@ describe("summarizeSpellDiscipline", () => {
       "Rejuvenation clips: 1.0%",
       "Swiftmend wasteful: 0.0%",
     ]);
+  });
+});
+
+describe("summarizeManaEconomy", () => {
+  it("reports the mana curve's own judgement and ending mana stat", () => {
+    const manaCurve: ManaCurveResult = {
+      points: [{ timestampMs: 1000, pct: 20 }],
+      endingPct: 20,
+      judgement: "green",
+    };
+    expect(summarizeManaEconomy(manaCurve)).toEqual({
+      judgement: "green",
+      stats: ["Ending mana: 20%"],
+    });
+  });
+
+  it("reports a no-data stat and defaults to green when there are no samples", () => {
+    const manaCurve: ManaCurveResult = {
+      points: [],
+      endingPct: null,
+      judgement: null,
+    };
+    expect(summarizeManaEconomy(manaCurve)).toEqual({
+      judgement: "green",
+      stats: ["Ending mana: no data"],
+    });
   });
 });
