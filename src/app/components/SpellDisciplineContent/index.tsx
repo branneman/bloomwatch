@@ -4,6 +4,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { HotClipDetectionCard } from "../HotClipDetectionCard";
 import { SwiftmendAuditCard } from "../SwiftmendAuditCard";
+import { DownrankingDisciplineCard } from "../DownrankingDisciplineCard";
 import { NaturesSwiftnessCard } from "../NaturesSwiftnessCard";
 import styles from "./index.module.css";
 
@@ -61,6 +62,14 @@ export function SpellDisciplineContent({
         rejuvenationAbilityIds={rejuvenationAbilityIds}
         regrowthAbilityIds={regrowthAbilityIds}
         targetNames={targetNames}
+        fetchEvents={fetchEvents}
+      />
+      <DownrankingDisciplineCard
+        accessToken={accessToken}
+        reportCode={reportCode}
+        fight={fight}
+        druidId={druidId}
+        resolvedAbilities={resolvedAbilities}
         fetchEvents={fetchEvents}
       />
       <NaturesSwiftnessCard
