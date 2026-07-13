@@ -11,6 +11,7 @@ import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
+import type { PrepHygieneResult } from "./prepHygiene";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -106,5 +107,33 @@ export function summarizeDeathForensics(
       deaths.length === 0
         ? ["No friendly deaths"]
         : [`Deaths: ${deaths.length}`, `Flagged: ${flaggedCount}`],
+  };
+}
+
+export function summarizePrepHygiene(prep: PrepHygieneResult): EpicSummary {
+  const { flaskOrElixir, foodBuffPresent, weaponOilPresent, judgement } = prep;
+
+  const flaskOrElixirStat = flaskOrElixir.hasFlask
+    ? "Prep: flask active"
+    : flaskOrElixir.hasBattleElixir && flaskOrElixir.hasGuardianElixir
+      ? "Prep: battle + guardian elixir active"
+      : flaskOrElixir.hasBattleElixir
+        ? "Prep: only battle elixir active"
+        : flaskOrElixir.hasGuardianElixir
+          ? "Prep: only guardian elixir active"
+          : "Prep: no flask or elixir";
+
+  const foodOilStat =
+    foodBuffPresent && weaponOilPresent
+      ? "Food & oil: both present"
+      : !foodBuffPresent && !weaponOilPresent
+        ? "Food & oil: both missing"
+        : foodBuffPresent
+          ? "Food & oil: oil missing"
+          : "Food & oil: food missing";
+
+  return {
+    judgement,
+    stats: [flaskOrElixirStat, foodOilStat],
   };
 }

@@ -6,6 +6,7 @@ import {
   summarizeSpellDiscipline,
   summarizeManaEconomy,
   summarizeDeathForensics,
+  summarizePrepHygiene,
 } from "./epicSummary";
 import type { HotClipDetectionResult } from "./hotClipDetection";
 import type { GcdUtilizationResult } from "./gcdUtilization";
@@ -18,6 +19,7 @@ import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
+import type { PrepHygieneResult } from "./prepHygiene";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -405,5 +407,94 @@ describe("summarizeDeathForensics", () => {
       judgement: "green",
       stats: ["No friendly deaths"],
     });
+  });
+});
+
+describe("summarizePrepHygiene", () => {
+  it("passes through the judgement and formats both stat lines", () => {
+    const prep: PrepHygieneResult = {
+      flaskOrElixir: {
+        hasFlask: true,
+        hasBattleElixir: false,
+        hasGuardianElixir: false,
+        judgement: "green",
+      },
+      foodBuffPresent: true,
+      weaponOilPresent: false,
+      judgement: "red",
+    };
+
+    expect(summarizePrepHygiene(prep)).toEqual({
+      judgement: "red",
+      stats: ["Prep: flask active", "Food & oil: oil missing"],
+    });
+  });
+
+  it("describes battle + guardian elixir coverage without a flask", () => {
+    const prep: PrepHygieneResult = {
+      flaskOrElixir: {
+        hasFlask: false,
+        hasBattleElixir: true,
+        hasGuardianElixir: true,
+        judgement: "green",
+      },
+      foodBuffPresent: true,
+      weaponOilPresent: true,
+      judgement: "green",
+    };
+
+    expect(summarizePrepHygiene(prep).stats).toEqual([
+      "Prep: battle + guardian elixir active",
+      "Food & oil: both present",
+    ]);
+  });
+
+  it("describes only-battle and only-guardian elixir coverage", () => {
+    const onlyBattle: PrepHygieneResult = {
+      flaskOrElixir: {
+        hasFlask: false,
+        hasBattleElixir: true,
+        hasGuardianElixir: false,
+        judgement: "orange",
+      },
+      foodBuffPresent: false,
+      weaponOilPresent: false,
+      judgement: "red",
+    };
+    expect(summarizePrepHygiene(onlyBattle).stats[0]).toBe(
+      "Prep: only battle elixir active",
+    );
+
+    const onlyGuardian: PrepHygieneResult = {
+      ...onlyBattle,
+      flaskOrElixir: {
+        hasFlask: false,
+        hasBattleElixir: false,
+        hasGuardianElixir: true,
+        judgement: "orange",
+      },
+    };
+    expect(summarizePrepHygiene(onlyGuardian).stats[0]).toBe(
+      "Prep: only guardian elixir active",
+    );
+  });
+
+  it("describes no coverage at all", () => {
+    const prep: PrepHygieneResult = {
+      flaskOrElixir: {
+        hasFlask: false,
+        hasBattleElixir: false,
+        hasGuardianElixir: false,
+        judgement: "red",
+      },
+      foodBuffPresent: false,
+      weaponOilPresent: false,
+      judgement: "red",
+    };
+
+    expect(summarizePrepHygiene(prep).stats).toEqual([
+      "Prep: no flask or elixir",
+      "Food & oil: both missing",
+    ]);
   });
 });
