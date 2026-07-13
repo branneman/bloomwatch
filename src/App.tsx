@@ -35,6 +35,7 @@ function App() {
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
   const [selectedFightIds, setSelectedFightIds] = useState<number[]>([]);
+  const [fightsConfirmed, setFightsConfirmed] = useState(false);
   const [druidCandidates, setDruidCandidates] = useState<
     DruidCandidate[] | null
   >(null);
@@ -67,6 +68,7 @@ function App() {
   function resetReportState() {
     setLoadedReport(null);
     setSelectedFightIds([]);
+    setFightsConfirmed(false);
     setDruidCandidates(null);
     setSelectedDruidId(null);
     setActorNames(new Map());
@@ -82,6 +84,12 @@ function App() {
   function handleStartOver() {
     setReport(null);
     resetReportState();
+  }
+
+  function handleChangeFightSelection() {
+    setFightsConfirmed(false);
+    setDruidCandidates(null);
+    setSelectedDruidId(null);
   }
 
   const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
@@ -188,42 +196,66 @@ function App() {
           {report && loadedReport && !scorecardRequested && (
             <Shell>
               <h2>{loadedReport.title}</h2>
-              <FightPicker
-                fights={loadedReport.fights}
-                initialFightId={report.fightId}
-                onSelectionChange={setSelectedFightIds}
-              />
-              <DruidDetector
-                accessToken={accessToken}
-                reportCode={report.reportCode}
-                fightIds={loadedReport.fights.map((f) => f.id)}
-                fetchCastsTable={wrappedFetchCastsTable}
-                onDruidsDetected={setDruidCandidates}
-                onEntriesLoaded={handleEntriesLoaded}
-              />
-              {druidCandidates !== null &&
-                (druidCandidates.length > 1 ? (
-                  <div className={styles.druidSection}>
-                    <h3>Druid</h3>
-                    <DruidPicker
-                      candidates={druidCandidates}
-                      selectedDruidId={selectedDruidId}
-                      onSelect={setSelectedDruidId}
-                    />
-                  </div>
-                ) : (
-                  <DruidPicker
-                    candidates={druidCandidates}
-                    selectedDruidId={selectedDruidId}
-                    onSelect={setSelectedDruidId}
+              {/* Kept mounted (just hidden) rather than conditionally
+                  rendered when confirmed: FightPicker owns its checkbox
+                  state internally, and unmounting it would lose the user's
+                  selection if they come back to change it. */}
+              <div style={{ display: fightsConfirmed ? "none" : undefined }}>
+                <FightPicker
+                  fights={loadedReport.fights}
+                  initialFightId={report.fightId}
+                  onSelectionChange={setSelectedFightIds}
+                />
+                <Button
+                  disabled={selectedFightIds.length === 0}
+                  onClick={() => setFightsConfirmed(true)}
+                >
+                  Confirm fights
+                </Button>
+              </div>
+
+              {fightsConfirmed && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.backLink}
+                    onClick={handleChangeFightSelection}
+                  >
+                    ← Change fight selection
+                  </button>
+                  <DruidDetector
+                    accessToken={accessToken}
+                    reportCode={report.reportCode}
+                    fightIds={selectedFightIds}
+                    fetchCastsTable={wrappedFetchCastsTable}
+                    onDruidsDetected={setDruidCandidates}
+                    onEntriesLoaded={handleEntriesLoaded}
                   />
-                ))}
-              <Button
-                disabled={!canGetScorecard}
-                onClick={() => setScorecardRequested(true)}
-              >
-                Get scorecard
-              </Button>
+                  {druidCandidates !== null &&
+                    (druidCandidates.length > 1 ? (
+                      <div className={styles.druidSection}>
+                        <h3>Druid</h3>
+                        <DruidPicker
+                          candidates={druidCandidates}
+                          selectedDruidId={selectedDruidId}
+                          onSelect={setSelectedDruidId}
+                        />
+                      </div>
+                    ) : (
+                      <DruidPicker
+                        candidates={druidCandidates}
+                        selectedDruidId={selectedDruidId}
+                        onSelect={setSelectedDruidId}
+                      />
+                    ))}
+                  <Button
+                    disabled={!canGetScorecard}
+                    onClick={() => setScorecardRequested(true)}
+                  >
+                    Get scorecard
+                  </Button>
+                </>
+              )}
             </Shell>
           )}
 

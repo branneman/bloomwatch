@@ -76,4 +76,62 @@ describe("DruidDetector", () => {
       expect(onEntriesLoaded).toHaveBeenCalledWith([dassz, fanah]),
     );
   });
+
+  it("aborts the in-flight fetch when unmounted", () => {
+    let capturedSignal: AbortSignal | undefined;
+    const fetchCastsTable = (
+      _accessToken: string,
+      _reportCode: string,
+      _fightIds: number[],
+      signal?: AbortSignal,
+    ) => {
+      capturedSignal = signal;
+      return new Promise<never>(() => {});
+    };
+    const { unmount } = render(
+      <DruidDetector
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fightIds={[6]}
+        fetchCastsTable={fetchCastsTable}
+        onDruidsDetected={vi.fn()}
+      />,
+    );
+
+    expect(capturedSignal?.aborted).toBe(false);
+    unmount();
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
+  it("shows the loading message again, not stale candidates, once fightIds changes", async () => {
+    const dassz = aCastTableEntry({ id: 2, name: "Dassz" });
+    const fetchCastsTable = vi
+      .fn()
+      .mockResolvedValueOnce([dassz])
+      .mockReturnValueOnce(new Promise<never>(() => {}));
+    const onDruidsDetected = vi.fn();
+
+    const { rerender } = render(
+      <DruidDetector
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fightIds={[6]}
+        fetchCastsTable={fetchCastsTable}
+        onDruidsDetected={onDruidsDetected}
+      />,
+    );
+    await waitFor(() => expect(onDruidsDetected).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <DruidDetector
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fightIds={[7]}
+        fetchCastsTable={fetchCastsTable}
+        onDruidsDetected={onDruidsDetected}
+      />,
+    );
+
+    expect(screen.getByText("Detecting druids…")).toBeInTheDocument();
+  });
 });

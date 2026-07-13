@@ -13,14 +13,15 @@ export interface DruidDetectorProps {
     accessToken: string,
     reportCode: string,
     fightIds: number[],
+    signal?: AbortSignal,
   ) => Promise<CastTableEntry[]>;
   onDruidsDetected: (candidates: DruidCandidate[]) => void;
   onEntriesLoaded?: (entries: CastTableEntry[]) => void;
 }
 
 type FetchResult =
-  | { accessToken: string; candidates: DruidCandidate[] }
-  | { accessToken: string; error: string };
+  | { accessToken: string; fightIdsKey: string; candidates: DruidCandidate[] }
+  | { accessToken: string; fightIdsKey: string; error: string };
 
 export function DruidDetector({
   accessToken,
@@ -41,20 +42,24 @@ export function DruidDetector({
 
   useEffect(() => {
     const ids = fightIdsKey === "" ? [] : fightIdsKey.split(",").map(Number);
-    fetchCastsTable(accessToken, reportCode, ids)
+    const controller = new AbortController();
+    fetchCastsTable(accessToken, reportCode, ids, controller.signal)
       .then((entries) => {
         const candidates = detectDruids(entries);
-        setResult({ accessToken, candidates });
+        setResult({ accessToken, fightIdsKey, candidates });
         onDruidsDetected(candidates);
         onEntriesLoaded?.(entries);
       })
-      .catch((err: unknown) =>
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setResult({
           accessToken,
+          fightIdsKey,
           error:
             err instanceof Error ? err.message : "Failed to detect druids.",
-        }),
-      );
+        });
+      });
+    return () => controller.abort();
   }, [
     accessToken,
     reportCode,
@@ -64,7 +69,10 @@ export function DruidDetector({
     onEntriesLoaded,
   ]);
 
-  const isCurrent = result !== null && result.accessToken === accessToken;
+  const isCurrent =
+    result !== null &&
+    result.accessToken === accessToken &&
+    result.fightIdsKey === fightIdsKey;
   if (!isCurrent) return <p>Detecting druids…</p>;
   if ("error" in result) return <p role="alert">{result.error}</p>;
 

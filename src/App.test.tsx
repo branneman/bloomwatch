@@ -61,6 +61,15 @@ async function loadReportAndReachPicker(
   await screen.findByRole("heading", { name: REPORT_TITLE });
 }
 
+async function confirmFightsAndReachDruidStage(
+  user: ReturnType<typeof userEvent.setup>,
+) {
+  await loadReportAndReachPicker(user);
+  await user.click(screen.getByLabelText(/Pull 1/));
+  await user.click(screen.getByRole("button", { name: "Confirm fights" }));
+  await screen.findByRole("button", { name: "← Change fight selection" });
+}
+
 describe("App", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -111,7 +120,7 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("renders the fight/druid picker screen after a report loads, and not the report-input screen", async () => {
+  it("renders the fight picker screen after a report loads, and not the report-input screen", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
@@ -123,6 +132,50 @@ describe("App", () => {
     expect(
       screen.queryByLabelText("Report URL or code"),
     ).not.toBeInTheDocument();
+    // Druid detection is scoped to the confirmed fight selection (it fetches
+    // real cast data, which gets expensive across a whole report) — it
+    // shouldn't run before the user has picked and confirmed any fights.
+    expect(vi.mocked(fetchCastsTable)).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("button", { name: "Get scorecard" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("only detects druids in the confirmed fight selection, once fights are confirmed", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await confirmFightsAndReachDruidStage(user);
+
+    expect(vi.mocked(fetchCastsTable)).toHaveBeenCalledWith(
+      "test-token",
+      REPORT_CODE,
+      [1],
+      expect.anything(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Confirm fights", hidden: true }),
+    ).not.toBeVisible();
+  });
+
+  it("returns to the fight picker with the prior selection intact when changing fight selection", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await confirmFightsAndReachDruidStage(user);
+
+    await user.click(
+      screen.getByRole("button", { name: "← Change fight selection" }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Confirm fights" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Pull 1/)).toBeChecked();
   });
 
   it("fetches master data abilities exactly once per report, even when that fetch is still in flight when the report finishes loading", async () => {
@@ -152,21 +205,20 @@ describe("App", () => {
     expect(vi.mocked(fetchMasterDataAbilities)).toHaveBeenCalledTimes(1);
   });
 
-  it("enables Get scorecard once the sole druid auto-selects and a fight is checked, then shows the Scorecard screen (not the picker)", async () => {
+  it("enables Get scorecard once the sole druid auto-selects, then shows the Scorecard screen (not the picker)", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
     render(<App />);
-    await loadReportAndReachPicker(user);
+    await confirmFightsAndReachDruidStage(user);
 
     const getScorecardButton = screen.getByRole("button", {
       name: "Get scorecard",
     });
-    expect(getScorecardButton).toBeDisabled();
-
-    await user.click(screen.getByLabelText(/Pull 1/));
-
+    // Starts disabled until druid detection resolves and the sole candidate
+    // auto-selects; not asserted as an intermediate state here since the
+    // mocked fetch can resolve before this line runs.
     await waitFor(() => expect(getScorecardButton).toBeEnabled());
     // Sole-candidate auto-select (DruidPicker returns null) shouldn't leave a
     // bare "Druid" heading with nothing under it — see Fix 4.
@@ -194,9 +246,8 @@ describe("App", () => {
     const user = userEvent.setup();
 
     render(<App />);
-    await loadReportAndReachPicker(user);
+    await confirmFightsAndReachDruidStage(user);
 
-    await user.click(screen.getByLabelText(/Pull 1/));
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: "Get scorecard" }),
@@ -230,6 +281,8 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Load report" }));
 
     await screen.findByRole("heading", { name: REPORT_TITLE });
+    await user.click(screen.getByLabelText(/Pull 1/));
+    await user.click(screen.getByRole("button", { name: "Confirm fights" }));
     await screen.findByText(/temporarily over capacity/);
 
     await user.type(

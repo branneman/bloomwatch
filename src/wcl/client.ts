@@ -116,6 +116,7 @@ export async function fetchCastsTable(
   accessToken: string,
   reportCode: string,
   fightIds: number[],
+  signal?: AbortSignal,
 ): Promise<CastTableEntry[]> {
   const resp = await fetch(USER_API_URL, {
     method: "POST",
@@ -132,6 +133,7 @@ export async function fetchCastsTable(
   }
 }`,
     }),
+    signal,
   });
   const bodyText = await resp.text();
   if (!resp.ok) throw new WclApiError(resp.status, bodyText);
