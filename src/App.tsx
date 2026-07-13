@@ -128,6 +128,16 @@ function App() {
     regrowthAbilityIds !== null &&
     selectedFightIds.length > 0;
 
+  // A single candidate has no picker to interact with (DruidPicker
+  // auto-selects it silently) — requiring a Get scorecard click on top of
+  // that would be a confirmation step with nothing left to confirm. Updated
+  // directly during render (React's "adjusting state" pattern) rather than
+  // in an effect, since it's purely derived from already-rendered state and
+  // naturally settles once scorecardRequested flips true.
+  if (druidCandidates?.length === 1 && canGetScorecard && !scorecardRequested) {
+    setScorecardRequested(true);
+  }
+
   return (
     <>
       {!accessToken && (

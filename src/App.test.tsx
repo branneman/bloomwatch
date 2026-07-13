@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -68,7 +68,11 @@ async function confirmFightsAndReachDruidStage(
   await loadReportAndReachPicker(user);
   await user.click(screen.getByLabelText(/Pull 1/));
   await user.click(screen.getByRole("button", { name: "Confirm fights" }));
-  await screen.findByRole("button", { name: "← Change fight selection" });
+  // Not "await screen.findByRole('← Change fight selection')": with a sole
+  // detected druid, that screen can auto-advance straight to the Scorecard
+  // fast enough that this checkpoint never becomes observable — the confirm
+  // click above already synchronously flushes the fightsConfirmed state
+  // change, so callers can rely on it without a separate wait here.
 }
 
 describe("App", () => {
@@ -145,6 +149,13 @@ describe("App", () => {
   it("only detects druids in the confirmed fight selection, once fights are confirmed", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
+    // Two candidates, not one: a sole candidate auto-advances straight to
+    // the Scorecard screen, unmounting the fight-picker screen this test
+    // asserts against.
+    vi.mocked(fetchCastsTable).mockResolvedValue([
+      aCastTableEntry(),
+      aCastTableEntry({ id: 3, name: "Barrychuckle" }),
+    ]);
     const user = userEvent.setup();
 
     render(<App />);
@@ -164,6 +175,12 @@ describe("App", () => {
   it("returns to the fight picker with the prior selection intact when changing fight selection", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
+    // Two candidates, not one: a sole candidate auto-advances straight to
+    // the Scorecard screen, which would race this test's own navigation.
+    vi.mocked(fetchCastsTable).mockResolvedValue([
+      aCastTableEntry(),
+      aCastTableEntry({ id: 3, name: "Barrychuckle" }),
+    ]);
     const user = userEvent.setup();
 
     render(<App />);
@@ -246,14 +263,15 @@ describe("App", () => {
       }),
     ]);
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Get scorecard" }),
-      ).toBeEnabled(),
-    );
+    // Sole candidate auto-advances straight to the Scorecard once
+    // resolvedAbilities is the last piece canGetScorecard was waiting on —
+    // no "Get scorecard" button to wait on here.
+    expect(
+      await screen.findByRole("button", { name: /GCD economy/ }),
+    ).toBeInTheDocument();
   });
 
-  it("enables Get scorecard once the sole druid auto-selects, then shows the Scorecard screen (not the picker)", async () => {
+  it("jumps straight to the Scorecard screen once the sole druid auto-selects, with no Get scorecard click needed", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
@@ -261,20 +279,11 @@ describe("App", () => {
     render(<App />);
     await confirmFightsAndReachDruidStage(user);
 
-    const getScorecardButton = screen.getByRole("button", {
-      name: "Get scorecard",
-    });
-    // Starts disabled until druid detection resolves and the sole candidate
-    // auto-selects; not asserted as an intermediate state here since the
-    // mocked fetch can resolve before this line runs.
-    await waitFor(() => expect(getScorecardButton).toBeEnabled());
     // Sole-candidate auto-select (DruidPicker returns null) shouldn't leave a
     // bare "Druid" heading with nothing under it — see Fix 4.
     expect(
       screen.queryByRole("heading", { name: "Druid" }),
     ).not.toBeInTheDocument();
-
-    await user.click(getScorecardButton);
 
     expect(
       await screen.findByRole("button", { name: /GCD economy/ }),
@@ -295,13 +304,6 @@ describe("App", () => {
 
     render(<App />);
     await confirmFightsAndReachDruidStage(user);
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: "Get scorecard" }),
-      ).toBeEnabled(),
-    );
-    await user.click(screen.getByRole("button", { name: "Get scorecard" }));
     await screen.findByRole("button", { name: /GCD economy/ });
 
     await user.click(screen.getByRole("button", { name: "Start over" }));
