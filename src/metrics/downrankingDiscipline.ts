@@ -17,6 +17,14 @@ import { REJUVENATION_DURATION_MS } from "./hotClipDetection";
 // pattern. See docs/backlog.md story 303.
 const DIRECT_HEAL_MATCH_TOLERANCE_MS = 50;
 
+// Tolerance for the boundary between a Rejuvenation's final natural tick
+// and its full-duration expiry — the last tick lands at/around exactly
+// REJUVENATION_DURATION_MS after application (live-validated, see
+// docs/testing.md), so a strict less-than window would drop it. Kept well
+// under the 3000ms tick cadence so it can never reach into a following
+// application's ticks.
+const TICK_BOUNDARY_TOLERANCE_MS = 50;
+
 export type DownrankingSpell = "Rejuvenation" | "Regrowth" | "Healing Touch";
 
 function isTrackedSpell(spell: DruidHealingSpell): spell is DownrankingSpell {
@@ -160,7 +168,8 @@ export function computeDownrankingDiscipline(
     for (let i = 0; i < targetCasts.length; i++) {
       const cast = targetCasts[i];
       const nextCast = targetCasts[i + 1];
-      const fullDurationEnd = cast.timestamp + REJUVENATION_DURATION_MS;
+      const fullDurationEnd =
+        cast.timestamp + REJUVENATION_DURATION_MS + TICK_BOUNDARY_TOLERANCE_MS;
       rejuvenationWindowEnd.set(
         cast,
         nextCast

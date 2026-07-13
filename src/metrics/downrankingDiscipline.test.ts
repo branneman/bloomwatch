@@ -320,6 +320,61 @@ describe("computeDownrankingDiscipline", () => {
     ]);
   });
 
+  it("sums all natural-expiry ticks for an un-refreshed Rejuvenation, including the one landing at the full duration boundary", () => {
+    const castEvents = [
+      aCastEvent({ timestamp: 0, targetID: 50, abilityGameID: 26982 }),
+    ];
+    const healingEvents = [
+      aHealEvent({
+        timestamp: 3000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 10,
+        overheal: 0,
+        tick: true,
+      }),
+      aHealEvent({
+        timestamp: 6000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 10,
+        overheal: 0,
+        tick: true,
+      }),
+      aHealEvent({
+        timestamp: 9000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 10,
+        overheal: 0,
+        tick: true,
+      }),
+      // Lands exactly at REJUVENATION_DURATION_MS (12000ms) — the natural
+      // expiry tick, which a strict < windowEnd check would drop.
+      aHealEvent({
+        timestamp: 12000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 10,
+        overheal: 0,
+        tick: true,
+      }),
+    ];
+
+    const result = computeDownrankingDiscipline(
+      castEvents,
+      healingEvents,
+      DRUID_ID,
+      RESOLVED_ABILITIES,
+    );
+
+    expect(result.breakdown[0]).toMatchObject({
+      spell: "Rejuvenation",
+      castCount: 1,
+      avgEffectiveHeal: 40,
+    });
+  });
+
   it("skips a Rejuvenation cast with no ticks observed in its window", () => {
     const castEvents = [
       aCastEvent({ timestamp: 1000, targetID: 50, abilityGameID: 26982 }),
