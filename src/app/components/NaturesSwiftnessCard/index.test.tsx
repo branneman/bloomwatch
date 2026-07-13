@@ -49,7 +49,7 @@ describe("NaturesSwiftnessCard", () => {
     ).toBeInTheDocument();
     await waitFor(() =>
       expect(
-        screen.getByText("Used 1× of 2 available windows"),
+        screen.getByText("Used 1× of 3 available windows"),
       ).toBeInTheDocument(),
     );
     expect(

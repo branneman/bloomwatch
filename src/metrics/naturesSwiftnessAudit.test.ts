@@ -14,7 +14,7 @@ const RESOLVED: Map<number, ResolvedAbility> = new Map([
 ]);
 
 describe("computeNaturesSwiftnessAudit", () => {
-  it("returns no casts and the floor of fight duration over 180s with no events", () => {
+  it("returns no casts and the floor of fight duration over 180s, plus one, with no events", () => {
     const result = computeNaturesSwiftnessAudit(
       [],
       DRUID_ID,
@@ -23,7 +23,7 @@ describe("computeNaturesSwiftnessAudit", () => {
       400000,
     );
 
-    expect(result).toEqual({ casts: [], castCount: 0, availableWindows: 2 });
+    expect(result).toEqual({ casts: [], castCount: 0, availableWindows: 3 });
   });
 
   it("matches a Nature's Swiftness cast to the next tracked healing spell cast, with its target", () => {
@@ -142,6 +142,6 @@ describe("computeNaturesSwiftnessAudit", () => {
       341000,
     );
 
-    expect(result.availableWindows).toBe(1);
+    expect(result.availableWindows).toBe(2);
   });
 });

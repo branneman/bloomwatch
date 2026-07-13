@@ -86,8 +86,9 @@ export function computeNaturesSwiftnessAudit(
   return {
     casts,
     castCount: casts.length,
-    availableWindows: Math.floor(
-      fightDurationMs / NATURES_SWIFTNESS_COOLDOWN_MS,
-    ),
+    // +1: NS is available at the pull (t=0), then again every cooldown
+    // period after — so a fight of any length has at least one window.
+    availableWindows:
+      Math.floor(fightDurationMs / NATURES_SWIFTNESS_COOLDOWN_MS) + 1,
   };
 }
