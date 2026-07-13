@@ -10,11 +10,13 @@ import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { GcdEconomyContent } from "../GcdEconomyContent";
 import { LifebloomDisciplineContent } from "../LifebloomDisciplineContent";
 import { SpellDisciplineContent } from "../SpellDisciplineContent";
+import { ManaEconomyContent } from "../ManaEconomyContent";
+import { DeathForensicsContent } from "../DeathForensicsContent";
 import { useGcdEconomySummary } from "./useGcdEconomySummary";
 import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
 import { useSpellDisciplineSummary } from "./useSpellDisciplineSummary";
-import { ManaEconomyContent } from "../ManaEconomyContent";
 import { useManaEconomySummary } from "./useManaEconomySummary";
+import { useDeathForensicsSummary } from "./useDeathForensicsSummary";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -52,16 +54,12 @@ const GCD_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/ability_druid_forceofnature.jpg";
 const SPELL_DISCIPLINE_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg";
-
 const MANA_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_potion_137.jpg";
+const DEATH_FORENSICS_ICON =
+  "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathscream.jpg";
 
 const DISABLED_EPICS: { id: EpicId; label: string; icon: string }[] = [
-  {
-    id: "death",
-    label: "Death forensics",
-    icon: "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathscream.jpg",
-  },
   {
     id: "prep",
     label: "Prep hygiene",
@@ -119,6 +117,16 @@ export function Scorecard({
     reportCode,
     fight,
     druidId,
+    fetchEvents,
+  );
+  const deathSummary = useDeathForensicsSummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    swiftmendAbilityIds,
+    naturesSwiftnessAbilityIds,
+    lifebloomAbilityIds,
     fetchEvents,
   );
 
@@ -252,6 +260,26 @@ export function Scorecard({
                     : undefined
               }
             />
+            <Widget
+              icon={DEATH_FORENSICS_ICON}
+              label="Death forensics"
+              onOpen={() => setActiveEpic("death")}
+              judgement={
+                deathSummary.status === "ready"
+                  ? deathSummary.judgement
+                  : undefined
+              }
+              stats={
+                deathSummary.status === "ready" ? deathSummary.stats : undefined
+              }
+              note={
+                deathSummary.status === "loading"
+                  ? "Calculating…"
+                  : deathSummary.status === "error"
+                    ? deathSummary.error
+                    : undefined
+              }
+            />
             {DISABLED_EPICS.map((epic) => (
               <Widget
                 key={epic.id}
@@ -371,6 +399,36 @@ export function Scorecard({
             reportCode={reportCode}
             fight={fight}
             druidId={druidId}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+
+      {activeEpic === "death" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => setActiveEpic(null)}
+          >
+            ← All metrics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={DEATH_FORENSICS_ICON} />
+            <h2 className={styles.epicTitle}>Death forensics</h2>
+            {deathSummary.status === "ready" && (
+              <JudgementChip judgement={deathSummary.judgement} />
+            )}
+          </div>
+          <DeathForensicsContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            fight={fight}
+            druidId={druidId}
+            swiftmendAbilityIds={swiftmendAbilityIds}
+            naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
+            lifebloomAbilityIds={lifebloomAbilityIds}
+            targetNames={targetNames}
             fetchEvents={fetchEvents}
           />
         </div>
