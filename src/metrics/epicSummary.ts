@@ -10,6 +10,7 @@ import type { HotClipDetectionResult } from "./hotClipDetection";
 import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
+import type { DeathForensicsResult } from "./deathForensics";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -92,5 +93,18 @@ export function summarizeManaEconomy(manaCurve: ManaCurveResult): EpicSummary {
         ? "Ending mana: no data"
         : `Ending mana: ${Math.round(manaCurve.endingPct)}%`,
     ],
+  };
+}
+
+export function summarizeDeathForensics(
+  deathForensics: DeathForensicsResult,
+): EpicSummary {
+  const { deaths, flaggedCount, judgement } = deathForensics;
+  return {
+    judgement,
+    stats:
+      deaths.length === 0
+        ? ["No friendly deaths"]
+        : [`Deaths: ${deaths.length}`, `Flagged: ${flaggedCount}`],
   };
 }

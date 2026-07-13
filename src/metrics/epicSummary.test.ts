@@ -5,6 +5,7 @@ import {
   summarizeLifebloomDiscipline,
   summarizeSpellDiscipline,
   summarizeManaEconomy,
+  summarizeDeathForensics,
 } from "./epicSummary";
 import type { HotClipDetectionResult } from "./hotClipDetection";
 import type { GcdUtilizationResult } from "./gcdUtilization";
@@ -16,6 +17,7 @@ import type { RestackTaxResult } from "./restackTax";
 import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
+import type { DeathForensicsResult } from "./deathForensics";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -351,6 +353,57 @@ describe("summarizeManaEconomy", () => {
     expect(summarizeManaEconomy(manaCurve)).toEqual({
       judgement: "green",
       stats: ["Ending mana: no data"],
+    });
+  });
+});
+
+describe("summarizeDeathForensics", () => {
+  it("reports the deaths/flagged stat lines and the rollup judgement", () => {
+    const deathForensics: DeathForensicsResult = {
+      deaths: [
+        {
+          timestampMs: 90000,
+          targetId: 50,
+          maintained: true,
+          lb3Rolling: false,
+          swiftmendReady: true,
+          nsReady: true,
+          idlePreceding: true,
+          unspentCount: 3,
+          judgement: "red",
+        },
+        {
+          timestampMs: 91000,
+          targetId: 60,
+          maintained: true,
+          lb3Rolling: true,
+          swiftmendReady: false,
+          nsReady: false,
+          idlePreceding: false,
+          unspentCount: 0,
+          judgement: "green",
+        },
+      ],
+      flaggedCount: 1,
+      judgement: "red",
+    };
+
+    expect(summarizeDeathForensics(deathForensics)).toEqual({
+      judgement: "red",
+      stats: ["Deaths: 2", "Flagged: 1"],
+    });
+  });
+
+  it("reports a single 'No friendly deaths' stat and green judgement when there were none", () => {
+    const deathForensics: DeathForensicsResult = {
+      deaths: [],
+      flaggedCount: 0,
+      judgement: "green",
+    };
+
+    expect(summarizeDeathForensics(deathForensics)).toEqual({
+      judgement: "green",
+      stats: ["No friendly deaths"],
     });
   });
 });
