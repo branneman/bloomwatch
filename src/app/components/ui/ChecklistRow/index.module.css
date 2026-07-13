@@ -1,0 +1,34 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-small-size);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.present {
+  color: var(--judgement-green);
+  background: var(--judgement-green-bg);
+}
+.missing {
+  color: var(--judgement-red);
+  background: var(--judgement-red-bg);
+}
+.label {
+  color: var(--text-h);
+  font-size: var(--text-small-size);
+}
+.status {
+  margin-left: auto;
+  font-size: var(--text-small-size);
+  color: var(--text);
+}
