@@ -1,0 +1,19 @@
+.chart {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.area {
+  fill: var(--accent-bg);
+  stroke: none;
+}
+
+.line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.endMarker {
+  fill: var(--text-h);
+}
