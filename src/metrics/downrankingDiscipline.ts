@@ -145,12 +145,13 @@ export function computeDownrankingDiscipline(
   const breakdown: DownrankingRankBreakdown[] = Array.from(groups.values()).map(
     (group) => {
       const total = group.totalAmount + group.totalOverheal;
-      const directOverhealPct =
-        total === 0 ? 0 : Math.round((group.totalOverheal / total) * 100);
+      const rawOverhealPct =
+        total === 0 ? 0 : (group.totalOverheal / total) * 100;
+      const directOverhealPct = Math.round(rawOverhealPct);
       const isMaxRank =
         group.rank !== null && group.rank === getMaxRank(group.spell);
       const flagged =
-        isMaxRank && directOverhealPct > 50 && isFlaggable(group.spell);
+        isMaxRank && rawOverhealPct > 50 && isFlaggable(group.spell);
 
       return {
         spell: group.spell,
