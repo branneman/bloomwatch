@@ -1,12 +1,12 @@
 import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
+import { worstJudgement } from "./epicSummary";
 
 // Sourced from the restoration druid healer consumables guide (Wowhead/Icy
 // Veins) plus live confirmation against real reports — a combatant-info
 // aura's `name` is the buff's spell name, not always the item's flavor name
 // (e.g. Elixir of Healing Power's aura is just "Healing Power"; Flask of
-// Distilled Wisdom's is "Distilled Wisdom"). See docs/backlog.md story 601
-// and docs/specs/prep-hygiene-design.md.
+// Distilled Wisdom's is "Distilled Wisdom"). See docs/backlog.md story 601.
 export const BATTLE_ELIXIR_NAMES = ["Healing Power"]; // Elixir of Healing Power
 export const GUARDIAN_ELIXIR_NAMES = ["Elixir of Draenic Wisdom"];
 export const FLASK_NAMES = [
@@ -49,18 +49,6 @@ export interface PrepHygieneResult {
   judgement: Judgement;
 }
 
-const JUDGEMENT_SEVERITY: Record<Judgement, number> = {
-  green: 0,
-  orange: 1,
-  red: 2,
-};
-
-function worstOf(judgements: Judgement[]): Judgement {
-  return judgements.reduce((worst, current) =>
-    JUDGEMENT_SEVERITY[current] > JUDGEMENT_SEVERITY[worst] ? current : worst,
-  );
-}
-
 function judgeFlaskOrElixir(
   hasFlask: boolean,
   hasBattleElixir: boolean,
@@ -79,8 +67,9 @@ export function computePrepHygiene(
     (event) => event.sourceID === druidId,
   );
 
-  const auras = Array.isArray(combatant?.auras)
-    ? (combatant?.auras as CombatantAura[])
+  const combatantAuras = combatant?.auras;
+  const auras = Array.isArray(combatantAuras)
+    ? (combatantAuras as CombatantAura[])
     : [];
   const auraNames = new Set(auras.map((aura) => aura.name));
 
@@ -93,8 +82,9 @@ export function computePrepHygiene(
   );
   const foodBuffPresent = auraNames.has("Well Fed");
 
-  const gear = Array.isArray(combatant?.gear)
-    ? (combatant?.gear as CombatantGearEntry[])
+  const combatantGear = combatant?.gear;
+  const gear = Array.isArray(combatantGear)
+    ? (combatantGear as CombatantGearEntry[])
     : [];
   const mainHand = gear[MAIN_HAND_GEAR_INDEX];
   const weaponOilPresent =
@@ -106,7 +96,7 @@ export function computePrepHygiene(
     hasGuardianElixir,
   );
 
-  const judgement = worstOf([
+  const judgement = worstJudgement([
     flaskOrElixirJudgement,
     foodBuffPresent ? "green" : "red",
     weaponOilPresent ? "green" : "red",
