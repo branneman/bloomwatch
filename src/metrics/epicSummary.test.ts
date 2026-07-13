@@ -166,7 +166,7 @@ describe("summarizeLifebloomDiscipline", () => {
 });
 
 describe("summarizeSpellDiscipline", () => {
-  it("takes the worst-of judgement and formats both spells' clip rates", () => {
+  it("takes Rejuvenation's judgement and formats both spells' clip rates", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -180,7 +180,6 @@ describe("summarizeSpellDiscipline", () => {
         castCount: 22,
         clipCount: 3,
         clipPct: 13.636363636363637,
-        judgement: "orange",
       },
       clipEvents: [],
     };
@@ -191,7 +190,7 @@ describe("summarizeSpellDiscipline", () => {
     });
   });
 
-  it("is green when both spells are green", () => {
+  it("is green when Rejuvenation is green", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -205,7 +204,31 @@ describe("summarizeSpellDiscipline", () => {
         castCount: 30,
         clipCount: 0,
         clipPct: 0,
+      },
+      clipEvents: [],
+    };
+
+    expect(summarizeSpellDiscipline(hotClips).judgement).toBe("green");
+  });
+
+  it("stays green even when Regrowth's own clip rate would be red on its own", () => {
+    // A druid spamming Regrowth for its direct-heal component (after
+    // Swiftmend is on cooldown, the only non-cooldown direct heal available
+    // in Tree of Life) can rack up a high Regrowth clip rate that isn't a
+    // process error — see docs/backlog.md story 301.
+    const hotClips: HotClipDetectionResult = {
+      rejuvenation: {
+        spell: "Rejuvenation",
+        castCount: 50,
+        clipCount: 1,
+        clipPct: 2,
         judgement: "green",
+      },
+      regrowth: {
+        spell: "Regrowth",
+        castCount: 20,
+        clipCount: 15,
+        clipPct: 75,
       },
       clipEvents: [],
     };

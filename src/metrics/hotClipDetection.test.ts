@@ -28,15 +28,46 @@ describe("computeHotClipDetection", () => {
         clipPct: 0,
         judgement: "green",
       },
+      // No judgement field — Regrowth clipping is informational only, see
+      // docs/backlog.md story 301.
       regrowth: {
         spell: "Regrowth",
         castCount: 0,
         clipCount: 0,
         clipPct: 0,
-        judgement: "green",
       },
       clipEvents: [],
     });
+  });
+
+  it("never produces a judgement for Regrowth, even at a high clip rate", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+      // Regrowth lasts 27000ms; refreshing at 1000ms leaves 26000ms
+      // (>3000ms) remaining — a clip by the same rule Rejuvenation uses,
+      // but Regrowth is never judged for it (see docs/backlog.md story 301).
+      aRefreshBuffEvent({
+        timestamp: 1000,
+        targetID: 48,
+        abilityGameID: 26980,
+      }),
+    ];
+    const castEvents = [
+      aCastEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+      aCastEvent({ timestamp: 1000, targetID: 48, abilityGameID: 26980 }),
+    ];
+
+    const result = computeHotClipDetection(
+      buffEvents,
+      castEvents,
+      DRUID_ID,
+      REJUV_IDS,
+      REGROWTH_IDS,
+    );
+
+    expect(result.regrowth.clipCount).toBe(1);
+    expect(result.regrowth.clipPct).toBe(50);
+    expect(result.regrowth).not.toHaveProperty("judgement");
   });
 
   it("counts a refresh with more than one tick remaining as a clip", () => {

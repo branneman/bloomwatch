@@ -6,7 +6,6 @@ import {
   computeHotClipDetection,
   type HotClipDetectionResult,
 } from "../../../metrics/hotClipDetection";
-import { worstJudgement } from "../../../metrics/epicSummary";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -36,7 +35,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/ability_druid_empoweredrejuvination.jpg";
 
 const THRESHOLD =
-  "A refresh counts as a clip if the existing aura had > 1 tick (> 3s) remaining. Clips consumed by Swiftmend are excluded — that's audited separately by story 302. Green < 5%, orange 5-15%, red > 15% of that spell's casts.";
+  "A refresh counts as a clip if the existing aura had > 1 tick (> 3s) remaining. Clips consumed by Swiftmend are excluded — that's audited separately by story 302. Only Rejuvenation's clip rate drives this card's judgement (green < 5%, orange 5-15%, red > 15% of its casts) — Regrowth's clip rate is shown for information only and never turns this red. In Tree of Life form, Regrowth is the only direct heal available without a cooldown (Healing Touch forces a shapeshift out of form), so once Swiftmend is on cooldown, spamming Regrowth for its direct-heal component is the correct response to burst damage — even though it clips Regrowth's own HoT tail as a side effect. Judging that the same as a clipped Rejuvenation, whose entire purpose is the HoT, would punish a druid for correctly prioritizing direct healing.";
 
 export function HotClipDetectionCard({
   accessToken,
@@ -110,10 +109,9 @@ export function HotClipDetectionCard({
   }
 
   const { rejuvenation, regrowth, clipEvents } = result.result;
-  const judgement = worstJudgement([
-    rejuvenation.judgement,
-    regrowth.judgement,
-  ]);
+  // Regrowth clipping is informational only and never affects this
+  // judgement — see the threshold text and docs/backlog.md story 301.
+  const judgement = rejuvenation.judgement;
   const totalCasts = rejuvenation.castCount + regrowth.castCount;
   const totalClips = rejuvenation.clipCount + regrowth.clipCount;
   const overallPct = totalCasts === 0 ? 0 : (totalClips / totalCasts) * 100;

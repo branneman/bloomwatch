@@ -74,12 +74,10 @@ export function summarizeLifebloomDiscipline(
 export function summarizeSpellDiscipline(
   hotClips: HotClipDetectionResult,
 ): EpicSummary {
-  const judgement = worstJudgement([
-    hotClips.rejuvenation.judgement,
-    hotClips.regrowth.judgement,
-  ]);
+  // Regrowth clipping has no judgement of its own (informational only —
+  // see docs/backlog.md story 301), so it can't move this verdict.
   return {
-    judgement,
+    judgement: hotClips.rejuvenation.judgement,
     stats: [
       `Rejuvenation clips: ${hotClips.rejuvenation.clipPct.toFixed(1)}%`,
       `Regrowth clips: ${hotClips.regrowth.clipPct.toFixed(1)}%`,

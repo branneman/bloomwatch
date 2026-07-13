@@ -30,11 +30,18 @@ export interface HotClipSpellResult {
   castCount: number;
   clipCount: number;
   clipPct: number;
-  judgement: Judgement;
 }
 
 export interface HotClipDetectionResult {
-  rejuvenation: HotClipSpellResult;
+  rejuvenation: HotClipSpellResult & { judgement: Judgement };
+  // Informational only, no judgement — see docs/backlog.md story 301: a
+  // resto druid in Tree of Life has exactly one non-cooldown direct heal
+  // (Healing Touch forces them out of form), so once Swiftmend is on
+  // cooldown, spamming Regrowth for its direct-heal component — clipping
+  // its own HoT tail as a side effect — is the only viable response to
+  // burst damage, not a process error. Judging it the same as a clipped
+  // Rejuvenation (whose entire purpose is the HoT) would punish a druid
+  // for correctly prioritizing direct healing.
   regrowth: HotClipSpellResult;
   clipEvents: HotClipEvent[];
 }
@@ -105,13 +112,7 @@ function computeSpellResult(
   const clipPct = castCount === 0 ? 0 : (clipCount / castCount) * 100;
 
   return {
-    result: {
-      spell,
-      castCount,
-      clipCount,
-      clipPct,
-      judgement: judgeClipPct(clipPct),
-    },
+    result: { spell, castCount, clipCount, clipPct },
     clipEvents,
   };
 }
@@ -145,7 +146,10 @@ export function computeHotClipDetection(
   );
 
   return {
-    rejuvenation: rejuv.result,
+    rejuvenation: {
+      ...rejuv.result,
+      judgement: judgeClipPct(rejuv.result.clipPct),
+    },
     regrowth: regrowth.result,
     clipEvents,
   };
