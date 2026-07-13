@@ -118,8 +118,10 @@ definition.
 - `src/metrics/epicSummary.ts`: `summarizeSpellDiscipline` gains a `downranking` parameter; its
   judgement joins the existing worst-of calc (`hotClips.rejuvenation.judgement`,
   `swiftmendAudit.judgement`) — same precedent as story 203's accidental-blooms judgement
-  rolling into the Lifebloom epic summary. Add a third stat line
-  (`` `Downranking flags: ${flaggedCount}` ``).
+  rolling into the Lifebloom epic summary. The `stats` array is unchanged (still the existing two
+  lines) — story 701's acceptance criteria caps a dashboard widget at "1–2 key stats", so a third
+  line isn't added; the judgement still moves the widget's worst-of chip even without its own
+  stat line.
 - `src/app/components/Scorecard/useSpellDisciplineSummary.ts`: gains a `resolvedAbilities`
   parameter (Scorecard already has this in scope — no new prop threading above Scorecard),
   computes `computeDownrankingDiscipline`, passes it to `summarizeSpellDiscipline`.
