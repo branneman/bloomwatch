@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import styles from "./index.module.css";
 
 export interface ClassTagProps {
-  tone: "efficient" | "emergency" | "wasteful";
+  tone: "efficient" | "emergency" | "wasteful" | "flagged";
   children: ReactNode;
 }
 

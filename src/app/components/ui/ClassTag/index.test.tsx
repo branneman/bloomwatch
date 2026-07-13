@@ -7,6 +7,7 @@ describe("ClassTag", () => {
     ["efficient", "Efficient"],
     ["emergency", "Emergency"],
     ["wasteful", "Wasteful"],
+    ["flagged", "Flagged"],
   ] as const)("renders %s tone content", (tone, text) => {
     render(<ClassTag tone={tone}>{text}</ClassTag>);
     expect(screen.getByText(text)).toBeInTheDocument();
