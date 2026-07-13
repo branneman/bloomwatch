@@ -236,7 +236,7 @@ I want to see whether Nature's Swiftness was used, when, and on what follow-up s
 
 ## Epic E — Mana economy
 
-### 401 — Mana curve & ending mana
+### 401 — Mana curve & ending mana ✅ Done
 
 I want my mana-over-time curve with fight-end mana highlighted, so that I can see whether I hoarded mana (should have cast more Regrowths) or ran dry too early.
 
