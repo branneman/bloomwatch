@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { resolveAbilities, resolveSpellAbilityIds } from "./resolveAbilities";
+import {
+  resolveAbilities,
+  resolveSpellAbilityIds,
+  getMaxRank,
+} from "./resolveAbilities";
 import { aReportAbility } from "../testUtils/factories";
 
 describe("resolveAbilities", () => {
@@ -120,5 +124,18 @@ describe("resolveSpellAbilityIds", () => {
       aReportAbility({ gameID: 26982, name: "Rejuvenation" }),
     ]);
     expect(resolveSpellAbilityIds(resolved, "Lifebloom")).toEqual(new Set());
+  });
+});
+
+describe("getMaxRank", () => {
+  it("returns the highest known rank for a multi-rank spell", () => {
+    expect(getMaxRank("Rejuvenation")).toBe(13);
+    expect(getMaxRank("Regrowth")).toBe(10);
+    expect(getMaxRank("Healing Touch")).toBe(13);
+  });
+
+  it("returns the single rank for a one-rank spell", () => {
+    expect(getMaxRank("Swiftmend")).toBe(1);
+    expect(getMaxRank("Nature's Swiftness")).toBe(1);
   });
 });
