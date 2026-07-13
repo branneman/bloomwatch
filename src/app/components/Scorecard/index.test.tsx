@@ -66,10 +66,10 @@ describe("Scorecard", () => {
     expect(
       screen.getByRole("button", { name: /Death forensics/ }),
     ).toBeInTheDocument();
-    for (const label of ["Prep hygiene"]) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
-    expect(screen.getAllByText("Not yet available")).toHaveLength(1);
+    expect(
+      screen.getByRole("button", { name: /Prep hygiene/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Not yet available")).not.toBeInTheDocument();
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       /can't judge target selection/,

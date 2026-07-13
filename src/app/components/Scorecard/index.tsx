@@ -12,11 +12,13 @@ import { LifebloomDisciplineContent } from "../LifebloomDisciplineContent";
 import { SpellDisciplineContent } from "../SpellDisciplineContent";
 import { ManaEconomyContent } from "../ManaEconomyContent";
 import { DeathForensicsContent } from "../DeathForensicsContent";
+import { PrepHygieneContent } from "../PrepHygieneContent";
 import { useGcdEconomySummary } from "./useGcdEconomySummary";
 import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
 import { useSpellDisciplineSummary } from "./useSpellDisciplineSummary";
 import { useManaEconomySummary } from "./useManaEconomySummary";
 import { useDeathForensicsSummary } from "./useDeathForensicsSummary";
+import { usePrepHygieneSummary } from "./usePrepHygieneSummary";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -58,14 +60,8 @@ const MANA_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_potion_137.jpg";
 const DEATH_FORENSICS_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathscream.jpg";
-
-const DISABLED_EPICS: { id: EpicId; label: string; icon: string }[] = [
-  {
-    id: "prep",
-    label: "Prep hygiene",
-    icon: "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg",
-  },
-];
+const PREP_HYGIENE_ICON =
+  "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg";
 
 export function Scorecard({
   accessToken,
@@ -127,6 +123,13 @@ export function Scorecard({
     swiftmendAbilityIds,
     naturesSwiftnessAbilityIds,
     lifebloomAbilityIds,
+    fetchEvents,
+  );
+  const prepSummary = usePrepHygieneSummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
     fetchEvents,
   );
 
@@ -280,14 +283,26 @@ export function Scorecard({
                     : undefined
               }
             />
-            {DISABLED_EPICS.map((epic) => (
-              <Widget
-                key={epic.id}
-                icon={epic.icon}
-                label={epic.label}
-                note="Not yet available"
-              />
-            ))}
+            <Widget
+              icon={PREP_HYGIENE_ICON}
+              label="Prep hygiene"
+              onOpen={() => setActiveEpic("prep")}
+              judgement={
+                prepSummary.status === "ready"
+                  ? prepSummary.judgement
+                  : undefined
+              }
+              stats={
+                prepSummary.status === "ready" ? prepSummary.stats : undefined
+              }
+              note={
+                prepSummary.status === "loading"
+                  ? "Calculating…"
+                  : prepSummary.status === "error"
+                    ? prepSummary.error
+                    : undefined
+              }
+            />
           </div>
         </>
       )}
@@ -429,6 +444,32 @@ export function Scorecard({
             naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
             lifebloomAbilityIds={lifebloomAbilityIds}
             targetNames={targetNames}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+
+      {activeEpic === "prep" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => setActiveEpic(null)}
+          >
+            ← All metrics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={PREP_HYGIENE_ICON} />
+            <h2 className={styles.epicTitle}>Prep hygiene</h2>
+            {prepSummary.status === "ready" && (
+              <JudgementChip judgement={prepSummary.judgement} />
+            )}
+          </div>
+          <PrepHygieneContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            fight={fight}
+            druidId={druidId}
             fetchEvents={fetchEvents}
           />
         </div>
