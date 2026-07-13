@@ -25,7 +25,6 @@ Read both docs before starting substantial feature work — they define scope, t
 - **A story isn't done until its paperwork is retired.** The moment a story ships, mark it `✅ Done` in `docs/backlog.md` and delete its `docs/specs/*-design.md` / `docs/plans/*-plan.md` files in the same commit (fix any dangling references first, per the point above). This is the standard for every story going forward — don't leave completed specs/plans lying around for a later cleanup pass.
 - Static analysis (typecheck, ESLint, Prettier) runs full-project — via a pre-commit hook and in CI, per `docs/testing.md` — not scoped to changed files only. Don't bypass the pre-commit hook.
 - **Merging branches: fast-forward only.** Never create a merge commit (`git merge --no-ff`, or a merge commit from a PR's "Merge" button). Integrate branches via rebase (`git rebase`) followed by a fast-forward merge (`git merge --ff-only`), or a rebase-and-merge / squash-and-merge on GitHub. Keeps history linear.
-- **Executing an approved implementation plan: use the subagent-driven-development skill, directly on `main`.** No separate review-checkpoint session (skip executing-plans) and no git worktree isolation (skip using-git-worktrees) — work happens in the current session, on the current branch, unless the user says otherwise for a specific task.
 
 ## Running live WCL queries yourself
 
