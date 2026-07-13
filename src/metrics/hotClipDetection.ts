@@ -6,16 +6,16 @@ import { judgeThresholdBelow } from "./judgement";
 // cost/heal-per-tick scale by rank) — live-validated against report
 // 4GYHZRdtL3bvhpc8 fight 34: 6 natural full-duration instances all landed at
 // 12006-12023ms. See docs/testing.md's known-reports table.
-const REJUVENATION_DURATION_MS = 12_000;
+export const REJUVENATION_DURATION_MS = 12_000;
 
 // Regrowth's HoT component duration (9 ticks), same live validation: 4
 // natural full-duration instances all landed at 26971-27009ms, cross-checked
 // against periodic Healing-event tick timestamps for one instance.
-const REGROWTH_DURATION_MS = 27_000;
+export const REGROWTH_DURATION_MS = 27_000;
 
 // "> 1 tick (> 3s) remaining" per docs/backlog.md story 301 — both spells
 // tick every 3s.
-const CLIP_THRESHOLD_MS = 3_000;
+export const CLIP_THRESHOLD_MS = 3_000;
 
 export type HotClipSpell = "Rejuvenation" | "Regrowth";
 
