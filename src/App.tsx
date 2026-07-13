@@ -171,6 +171,24 @@ function App() {
           className={rateLimited ? styles.dimmed : undefined}
           inert={rateLimited}
         >
+          {/* Rendered for the whole lifetime of `report` (not just while
+              !loadedReport) rather than only on the first screen: its fetch
+              can still be in flight when loadedReport resolves (masterData
+              is a bigger query than the fights list), and unmounting a
+              component aborts its in-flight fetch (see ConnectPanel/
+              AbilityResolver's AbortSignal cleanup) — mounting it here once,
+              for the whole flow, means that abort only ever fires for a
+              genuine report change/reset, never for a normal screen
+              transition. */}
+          {report && (
+            <AbilityResolver
+              accessToken={accessToken}
+              reportCode={report.reportCode}
+              fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
+              onResolved={setResolvedAbilities}
+            />
+          )}
+
           {!loadedReport && (
             <Shell>
               <ReportInput onSubmit={handleReportSubmit} />
@@ -180,14 +198,6 @@ function App() {
                   reportCode={report.reportCode}
                   fetchReportFights={wrappedFetchReportFights}
                   onReportLoaded={setLoadedReport}
-                />
-              )}
-              {report && (
-                <AbilityResolver
-                  accessToken={accessToken}
-                  reportCode={report.reportCode}
-                  fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
-                  onResolved={setResolvedAbilities}
                 />
               )}
             </Shell>

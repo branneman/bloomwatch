@@ -7,6 +7,7 @@ import {
   fetchCastsTable,
   fetchMasterDataAbilities,
   WclApiError,
+  type ReportAbility,
 } from "./wcl/client";
 import { fetchEventsPage } from "./wcl/events";
 import {
@@ -203,6 +204,53 @@ describe("App", () => {
     // transition happened while master data was still unresolved.
     await screen.findByText(/Pull 1/);
     expect(vi.mocked(fetchMasterDataAbilities)).toHaveBeenCalledTimes(1);
+  });
+
+  it("still resolves master data abilities fetched before the report finished loading, not aborted by the later screen transitions", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockResolvedValue(
+      aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
+    );
+    vi.mocked(fetchCastsTable).mockResolvedValue([aCastTableEntry()]);
+    let resolveMasterData: (abilities: ReportAbility[]) => void;
+    // Mirrors real fetch()'s AbortSignal contract (reject with AbortError
+    // once the signal fires) — a mock that ignores the signal can't
+    // reproduce a bug that only exists because of that contract.
+    vi.mocked(fetchMasterDataAbilities).mockImplementation(
+      (_accessToken, _reportCode, signal) =>
+        new Promise<ReportAbility[]>((resolve, reject) => {
+          resolveMasterData = resolve;
+          signal?.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        }),
+    );
+    vi.mocked(fetchEventsPage).mockResolvedValue({
+      events: [],
+      nextPageTimestamp: null,
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+    // Reaches the druid-detection screen — two full screen transitions past
+    // the point AbilityResolver's original mount would have unmounted,
+    // if it were still gated on `!loadedReport`.
+    await confirmFightsAndReachDruidStage(user);
+
+    resolveMasterData!([
+      aReportAbility(),
+      aReportAbility({
+        gameID: 33763,
+        name: "Lifebloom",
+        icon: "spell_nature_lifebloom.jpg",
+      }),
+    ]);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Get scorecard" }),
+      ).toBeEnabled(),
+    );
   });
 
   it("enables Get scorecard once the sole druid auto-selects, then shows the Scorecard screen (not the picker)", async () => {
