@@ -213,7 +213,7 @@ I want each Swiftmend listed with the HoT it consumed, that HoT's remaining dura
 - Also reports Swiftmend usage count vs. availability windows (15 s CD) as informational context.
 - R/O/G on wasteful share: green 0 %, orange ≤ 25 %, red > 25 %.
 
-### 303 — Downranking discipline
+### 303 — Downranking discipline ✅ Done
 
 I want a per-rank breakdown of my direct heals (Regrowth, Healing Touch) with cast counts and direct-portion overheal, so that I can verify I'm using cheap ranks for spot healing and max ranks only when needed.
 

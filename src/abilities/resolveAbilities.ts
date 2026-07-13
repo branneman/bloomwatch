@@ -103,7 +103,7 @@ const SPELL_RANKS: Record<number, { spell: DruidHealingSpell; rank: number }> =
 
 // Derived from SPELL_RANKS rather than a second hardcoded rank-ceiling
 // list, so the two can't drift apart as ranks are added. See
-// docs/specs/downranking-discipline-design.md (story 303).
+// docs/backlog.md story 303.
 export function getMaxRank(spell: DruidHealingSpell): number | null {
   let max: number | null = null;
   for (const entry of Object.values(SPELL_RANKS)) {

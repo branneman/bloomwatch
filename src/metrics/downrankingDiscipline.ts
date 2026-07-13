@@ -13,7 +13,7 @@ import { getMaxRank } from "../abilities/resolveAbilities";
 // assumed to behave the same way (single instant heal on cast completion,
 // no ticks at all) by structural analogy — not directly observed live.
 // Mirrors swiftmendAudit.ts's existing SWIFTMEND_MATCH_TOLERANCE_MS
-// pattern. See docs/specs/downranking-discipline-design.md.
+// pattern. See docs/backlog.md story 303.
 const DIRECT_HEAL_MATCH_TOLERANCE_MS = 50;
 
 export type DownrankingSpell = "Rejuvenation" | "Regrowth" | "Healing Touch";
@@ -30,7 +30,7 @@ function isTrackedSpell(spell: DruidHealingSpell): spell is DownrankingSpell {
 // downranking signal. Rejuvenation is a pure HoT; HoT-tick overheal is too
 // entangled with raid overlap and situational calls (threat management,
 // mana conservation) to safely flag from logs alone. See
-// docs/specs/downranking-discipline-design.md's scope-decision section.
+// docs/backlog.md story 303.
 function isFlaggable(spell: DownrankingSpell): boolean {
   return spell !== "Rejuvenation";
 }
@@ -59,7 +59,7 @@ export interface DownrankingDisciplineResult {
 
 // Green when no flags, orange otherwise. Max possible flagged groups is 2
 // (Regrowth + Healing Touch, one max-rank group each) — red is
-// unreachable by design, per docs/specs/downranking-discipline-design.md.
+// unreachable by design, per docs/backlog.md story 303.
 function judgeFlaggedCount(flaggedCount: number): Judgement {
   return flaggedCount === 0 ? "green" : "orange";
 }
