@@ -5,7 +5,7 @@ import type {
 } from "../abilities/resolveAbilities";
 
 // TBC: Nature's Swiftness has a 3-minute cooldown.
-const NATURES_SWIFTNESS_COOLDOWN_MS = 180_000;
+export const NATURES_SWIFTNESS_COOLDOWN_MS = 180_000;
 
 export interface NaturesSwiftnessFollowUp {
   spell: DruidHealingSpell;

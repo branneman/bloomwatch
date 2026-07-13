@@ -19,3 +19,18 @@ export function judgeThresholdBelow(
   if (value <= thresholds.orangeMax) return "orange";
   return "red";
 }
+
+const JUDGEMENT_RANK: Record<Judgement, number> = {
+  red: 2,
+  orange: 1,
+  green: 0,
+};
+
+export function worstJudgement(judgements: (Judgement | null)[]): Judgement {
+  const present = judgements.filter((j): j is Judgement => j !== null);
+  return present.reduce(
+    (worst, current) =>
+      JUDGEMENT_RANK[current] > JUDGEMENT_RANK[worst] ? current : worst,
+    "green" as Judgement,
+  );
+}

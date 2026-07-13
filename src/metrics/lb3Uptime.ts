@@ -7,7 +7,7 @@ import {
 
 // Backlog story 201: targets under 30% any-stack Lifebloom uptime are
 // one-off casts, not "maintained" targets, and are excluded entirely.
-const MAINTAINED_MIN_UPTIME_PCT = 30;
+export const MAINTAINED_MIN_UPTIME_PCT = 30;
 
 // R/O/G thresholds per docs/backlog.md story 201: green >= 90%, orange 75-90%, red < 75%.
 const GREEN_MIN_PCT = 90;

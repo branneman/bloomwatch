@@ -13,6 +13,9 @@ import {
 // risking a match against an unrelated HoT removal on the same target.
 const SWIFTMEND_MATCH_TOLERANCE_MS = 50;
 
+// Swiftmend's cooldown per docs/backlog.md story 302's "15s cooldown" note.
+export const SWIFTMEND_COOLDOWN_MS = 15_000;
+
 export type SwiftmendClassification = "efficient" | "emergency" | "wasteful";
 
 export interface SwiftmendCastResult {
@@ -218,6 +221,6 @@ export function computeSwiftmendAudit(
     wastefulCount,
     wastefulPct,
     judgement: judgeWastefulShare(wastefulPct),
-    availableWindows: Math.floor(fightDurationMs / 15_000),
+    availableWindows: Math.floor(fightDurationMs / SWIFTMEND_COOLDOWN_MS),
   };
 }

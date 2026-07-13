@@ -1,4 +1,5 @@
-import type { Judgement } from "./judgement";
+import { worstJudgement, type Judgement } from "./judgement";
+export { worstJudgement } from "./judgement";
 import type { GcdUtilizationResult } from "./gcdUtilization";
 import type { IdleGapsResult } from "./idleGaps";
 import type { Lb3TargetResult, Lb3UptimeResult } from "./lb3Uptime";
@@ -13,21 +14,6 @@ import type { ManaCurveResult } from "./manaCurve";
 export interface EpicSummary {
   judgement: Judgement;
   stats: string[];
-}
-
-const JUDGEMENT_RANK: Record<Judgement, number> = {
-  red: 2,
-  orange: 1,
-  green: 0,
-};
-
-export function worstJudgement(judgements: (Judgement | null)[]): Judgement {
-  const present = judgements.filter((j): j is Judgement => j !== null);
-  return present.reduce(
-    (worst, current) =>
-      JUDGEMENT_RANK[current] > JUDGEMENT_RANK[worst] ? current : worst,
-    "green" as Judgement,
-  );
 }
 
 export function summarizeGcdEconomy(
