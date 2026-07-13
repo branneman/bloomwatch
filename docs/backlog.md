@@ -223,7 +223,7 @@ I want a per-rank breakdown of my direct heals (Regrowth, Healing Touch) with ca
 - Flag: max-rank direct heals with > 50 % overheal (should have downranked).
 - Informational plus a single R/O/G on the flag count.
 
-### 304 — Nature's Swiftness audit
+### 304 — Nature's Swiftness audit ✅ Done
 
 I want to see whether Nature's Swiftness was used, when, and on what follow-up spell, so that I know if I'm sitting on my emergency button.
 
