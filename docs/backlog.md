@@ -22,7 +22,7 @@ Epic letters (A, B, C…) are topical groupings, not a strict execution order �
 - **601 (prep hygiene) has no dependency on any other metric epic** beyond 006 — it's free-floating and can be slotted in wherever convenient.
 - **Epic H is split across phases, not one block:** 701 (single-fight scorecard) belongs right after epic C — it's the Phase 1 MVP exit criterion ("paste link → judged scorecard for GCD + Lifebloom"), not a Phase 4 story. 702–704 (zone aggregation, shareable URL, Markdown export) are genuinely Phase 4, after D/E/F/G exist to aggregate/export. 802/803 are deliberately last (Phase 5 polish): 802 exposes thresholds that should be stable by then, 803 compares metrics that need to already all exist.
 
-**Suggested path from the current state (102 next):**
+**Suggested path from the current state (402 next):**
 
 005 → 006 → 007 → 101 → 102 → 201 → 202 → 203 → 204 → 205 → **701** → 008 → 301 → 302 → 303 → 304 → 401 → 402 → 403 → 404 → 501 → 601 → 702 → 703 → 704 → 802 → 803
 
