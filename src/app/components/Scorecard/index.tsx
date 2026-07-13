@@ -13,6 +13,8 @@ import { SpellDisciplineContent } from "../SpellDisciplineContent";
 import { useGcdEconomySummary } from "./useGcdEconomySummary";
 import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
 import { useSpellDisciplineSummary } from "./useSpellDisciplineSummary";
+import { ManaEconomyContent } from "../ManaEconomyContent";
+import { useManaEconomySummary } from "./useManaEconomySummary";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -51,12 +53,10 @@ const GCD_ECONOMY_ICON =
 const SPELL_DISCIPLINE_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg";
 
+const MANA_ECONOMY_ICON =
+  "https://wow.zamimg.com/images/wow/icons/large/inv_potion_137.jpg";
+
 const DISABLED_EPICS: { id: EpicId; label: string; icon: string }[] = [
-  {
-    id: "mana",
-    label: "Mana economy",
-    icon: "https://wow.zamimg.com/images/wow/icons/large/inv_potion_137.jpg",
-  },
   {
     id: "death",
     label: "Death forensics",
@@ -112,6 +112,13 @@ export function Scorecard({
     regrowthAbilityIds,
     swiftmendAbilityIds,
     resolvedAbilities,
+    fetchEvents,
+  );
+  const manaSummary = useManaEconomySummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
     fetchEvents,
   );
 
@@ -225,6 +232,26 @@ export function Scorecard({
                     : undefined
               }
             />
+            <Widget
+              icon={MANA_ECONOMY_ICON}
+              label="Mana economy"
+              onOpen={() => setActiveEpic("mana")}
+              judgement={
+                manaSummary.status === "ready"
+                  ? manaSummary.judgement
+                  : undefined
+              }
+              stats={
+                manaSummary.status === "ready" ? manaSummary.stats : undefined
+              }
+              note={
+                manaSummary.status === "loading"
+                  ? "Calculating…"
+                  : manaSummary.status === "error"
+                    ? manaSummary.error
+                    : undefined
+              }
+            />
             {DISABLED_EPICS.map((epic) => (
               <Widget
                 key={epic.id}
@@ -318,6 +345,32 @@ export function Scorecard({
             naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
             resolvedAbilities={resolvedAbilities}
             targetNames={targetNames}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+
+      {activeEpic === "mana" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => setActiveEpic(null)}
+          >
+            ← All metrics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={MANA_ECONOMY_ICON} />
+            <h2 className={styles.epicTitle}>Mana economy</h2>
+            {manaSummary.status === "ready" && (
+              <JudgementChip judgement={manaSummary.judgement} />
+            )}
+          </div>
+          <ManaEconomyContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            fight={fight}
+            druidId={druidId}
             fetchEvents={fetchEvents}
           />
         </div>
