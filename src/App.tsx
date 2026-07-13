@@ -87,6 +87,7 @@ function App() {
   }
 
   function handleChangeFightSelection() {
+    setScorecardRequested(false);
     setFightsConfirmed(false);
     setDruidCandidates(null);
     setSelectedDruidId(null);
@@ -213,14 +214,22 @@ function App() {
             </Shell>
           )}
 
-          {report && loadedReport && !scorecardRequested && (
-            <Shell>
-              <h2>{loadedReport.title}</h2>
-              {/* Kept mounted (just hidden) rather than conditionally
-                  rendered when confirmed: FightPicker owns its checkbox
-                  state internally, and unmounting it would lose the user's
-                  selection if they come back to change it. */}
-              <div style={{ display: fightsConfirmed ? "none" : undefined }}>
+          {/* Kept mounted (just hidden) whenever the user has moved past
+              this step — via "Confirm fights" or all the way to the
+              Scorecard — rather than conditionally rendered: FightPicker
+              owns its checkbox state internally, and unmounting it would
+              lose the user's selection if they come back to change it
+              (from the druid stage, or from the Scorecard's "All fights"
+              link). */}
+          {report && loadedReport && (
+            <div
+              style={{
+                display:
+                  fightsConfirmed || scorecardRequested ? "none" : undefined,
+              }}
+            >
+              <Shell>
+                <h2>{loadedReport.title}</h2>
                 <FightPicker
                   fights={loadedReport.fights}
                   initialFightId={report.fightId}
@@ -232,50 +241,51 @@ function App() {
                 >
                   Confirm fights
                 </Button>
-              </div>
+              </Shell>
+            </div>
+          )}
 
-              {fightsConfirmed && (
-                <>
-                  <button
-                    type="button"
-                    className={styles.backLink}
-                    onClick={handleChangeFightSelection}
-                  >
-                    ← Change fight selection
-                  </button>
-                  <DruidDetector
-                    accessToken={accessToken}
-                    reportCode={report.reportCode}
-                    fightIds={selectedFightIds}
-                    fetchCastsTable={wrappedFetchCastsTable}
-                    onDruidsDetected={setDruidCandidates}
-                    onEntriesLoaded={handleEntriesLoaded}
+          {report && loadedReport && fightsConfirmed && !scorecardRequested && (
+            <Shell>
+              <h2>{loadedReport.title}</h2>
+              <button
+                type="button"
+                className={styles.backLink}
+                onClick={handleChangeFightSelection}
+              >
+                ← Change fight selection
+              </button>
+              <DruidDetector
+                accessToken={accessToken}
+                reportCode={report.reportCode}
+                fightIds={selectedFightIds}
+                fetchCastsTable={wrappedFetchCastsTable}
+                onDruidsDetected={setDruidCandidates}
+                onEntriesLoaded={handleEntriesLoaded}
+              />
+              {druidCandidates !== null &&
+                (druidCandidates.length > 1 ? (
+                  <div className={styles.druidSection}>
+                    <h3>Druid</h3>
+                    <DruidPicker
+                      candidates={druidCandidates}
+                      selectedDruidId={selectedDruidId}
+                      onSelect={setSelectedDruidId}
+                    />
+                  </div>
+                ) : (
+                  <DruidPicker
+                    candidates={druidCandidates}
+                    selectedDruidId={selectedDruidId}
+                    onSelect={setSelectedDruidId}
                   />
-                  {druidCandidates !== null &&
-                    (druidCandidates.length > 1 ? (
-                      <div className={styles.druidSection}>
-                        <h3>Druid</h3>
-                        <DruidPicker
-                          candidates={druidCandidates}
-                          selectedDruidId={selectedDruidId}
-                          onSelect={setSelectedDruidId}
-                        />
-                      </div>
-                    ) : (
-                      <DruidPicker
-                        candidates={druidCandidates}
-                        selectedDruidId={selectedDruidId}
-                        onSelect={setSelectedDruidId}
-                      />
-                    ))}
-                  <Button
-                    disabled={!canGetScorecard}
-                    onClick={() => setScorecardRequested(true)}
-                  >
-                    Get scorecard
-                  </Button>
-                </>
-              )}
+                ))}
+              <Button
+                disabled={!canGetScorecard}
+                onClick={() => setScorecardRequested(true)}
+              >
+                Get scorecard
+              </Button>
             </Shell>
           )}
 
@@ -301,6 +311,7 @@ function App() {
                     regrowthAbilityIds={regrowthAbilityIds}
                     targetNames={actorNames}
                     fetchEvents={wrappedFetchEvents}
+                    onBackToFights={handleChangeFightSelection}
                     onStartOver={handleStartOver}
                   />
                 </Shell>

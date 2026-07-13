@@ -22,6 +22,7 @@ describe("Scorecard", () => {
       startTime: 0,
       endTime: 341000,
     });
+    const onBackToFights = vi.fn();
     const onStartOver = vi.fn();
     const fetchEvents = () => Promise.resolve([]);
 
@@ -37,6 +38,7 @@ describe("Scorecard", () => {
         regrowthAbilityIds={new Set([26980])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        onBackToFights={onBackToFights}
         onStartOver={onStartOver}
       />,
     );
@@ -65,7 +67,12 @@ describe("Scorecard", () => {
     );
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Start over" }));
+    await user.click(screen.getByRole("button", { name: "← All fights" }));
+    expect(onBackToFights).toHaveBeenCalledOnce();
+
+    await user.click(
+      screen.getByRole("button", { name: "Load different WCL report" }),
+    );
     expect(onStartOver).toHaveBeenCalledOnce();
   });
 
@@ -95,6 +102,7 @@ describe("Scorecard", () => {
         regrowthAbilityIds={new Set([26980])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        onBackToFights={vi.fn()}
         onStartOver={vi.fn()}
       />,
     );
@@ -115,13 +123,21 @@ describe("Scorecard", () => {
       screen.getByRole("heading", { name: "Idle gaps" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "← All epics" }),
+      screen.getByRole("button", { name: "← All metrics" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Lifebloom discipline/ }),
     ).not.toBeInTheDocument();
+    // Fight/report navigation only makes sense on the dashboard — the
+    // metric-detail view already has its own way back to the dashboard.
+    expect(
+      screen.queryByRole("button", { name: "← All fights" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Load different WCL report" }),
+    ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "← All epics" }));
+    await user.click(screen.getByRole("button", { name: "← All metrics" }));
     expect(
       screen.getByRole("button", { name: /Lifebloom discipline/ }),
     ).toBeInTheDocument();

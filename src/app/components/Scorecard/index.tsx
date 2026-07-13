@@ -16,7 +16,6 @@ import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
 import { Alert } from "../ui/Alert";
-import { Button } from "../ui/Button";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 import styles from "./index.module.css";
 
@@ -36,6 +35,7 @@ export interface ScorecardProps {
     fight: EventFetcherFight,
     dataType: WclEventDataType,
   ) => Promise<WclEvent[]>;
+  onBackToFights: () => void;
   onStartOver: () => void;
 }
 
@@ -75,6 +75,7 @@ export function Scorecard({
   regrowthAbilityIds,
   targetNames,
   fetchEvents,
+  onBackToFights,
   onStartOver,
 }: ScorecardProps) {
   const [activeEpic, setActiveEpic] = useState<EpicId | null>(null);
@@ -138,74 +139,85 @@ export function Scorecard({
       </p>
 
       {activeEpic === null && (
-        <div className={styles.grid}>
-          <Widget
-            icon={GCD_ECONOMY_ICON}
-            label="GCD economy"
-            onOpen={() => setActiveEpic("gcd")}
-            judgement={
-              gcdSummary.status === "ready" ? gcdSummary.judgement : undefined
-            }
-            stats={gcdSummary.status === "ready" ? gcdSummary.stats : undefined}
-            note={
-              gcdSummary.status === "loading"
-                ? "Calculating…"
-                : gcdSummary.status === "error"
-                  ? gcdSummary.error
-                  : undefined
-            }
-          />
-          <Widget
-            icon={lifebloomIcon}
-            label="Lifebloom discipline"
-            onOpen={() => setActiveEpic("lifebloom")}
-            judgement={
-              lifebloomSummary.status === "ready"
-                ? lifebloomSummary.judgement
-                : undefined
-            }
-            stats={
-              lifebloomSummary.status === "ready"
-                ? lifebloomSummary.stats
-                : undefined
-            }
-            note={
-              lifebloomSummary.status === "loading"
-                ? "Calculating…"
-                : lifebloomSummary.status === "error"
-                  ? lifebloomSummary.error
-                  : undefined
-            }
-          />
-          <Widget
-            icon={SPELL_DISCIPLINE_ICON}
-            label="Spell discipline"
-            onOpen={() => setActiveEpic("spell")}
-            judgement={
-              spellSummary.status === "ready"
-                ? spellSummary.judgement
-                : undefined
-            }
-            stats={
-              spellSummary.status === "ready" ? spellSummary.stats : undefined
-            }
-            note={
-              spellSummary.status === "loading"
-                ? "Calculating…"
-                : spellSummary.status === "error"
-                  ? spellSummary.error
-                  : undefined
-            }
-          />
-          {DISABLED_EPICS.map((epic) => (
+        <>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={onBackToFights}
+          >
+            ← All fights
+          </button>
+          <div className={styles.grid}>
             <Widget
-              key={epic.id}
-              icon={epic.icon}
-              label={epic.label}
-              note="Not yet available"
+              icon={GCD_ECONOMY_ICON}
+              label="GCD economy"
+              onOpen={() => setActiveEpic("gcd")}
+              judgement={
+                gcdSummary.status === "ready" ? gcdSummary.judgement : undefined
+              }
+              stats={
+                gcdSummary.status === "ready" ? gcdSummary.stats : undefined
+              }
+              note={
+                gcdSummary.status === "loading"
+                  ? "Calculating…"
+                  : gcdSummary.status === "error"
+                    ? gcdSummary.error
+                    : undefined
+              }
             />
-          ))}
-        </div>
+            <Widget
+              icon={lifebloomIcon}
+              label="Lifebloom discipline"
+              onOpen={() => setActiveEpic("lifebloom")}
+              judgement={
+                lifebloomSummary.status === "ready"
+                  ? lifebloomSummary.judgement
+                  : undefined
+              }
+              stats={
+                lifebloomSummary.status === "ready"
+                  ? lifebloomSummary.stats
+                  : undefined
+              }
+              note={
+                lifebloomSummary.status === "loading"
+                  ? "Calculating…"
+                  : lifebloomSummary.status === "error"
+                    ? lifebloomSummary.error
+                    : undefined
+              }
+            />
+            <Widget
+              icon={SPELL_DISCIPLINE_ICON}
+              label="Spell discipline"
+              onOpen={() => setActiveEpic("spell")}
+              judgement={
+                spellSummary.status === "ready"
+                  ? spellSummary.judgement
+                  : undefined
+              }
+              stats={
+                spellSummary.status === "ready" ? spellSummary.stats : undefined
+              }
+              note={
+                spellSummary.status === "loading"
+                  ? "Calculating…"
+                  : spellSummary.status === "error"
+                    ? spellSummary.error
+                    : undefined
+              }
+            />
+            {DISABLED_EPICS.map((epic) => (
+              <Widget
+                key={epic.id}
+                icon={epic.icon}
+                label={epic.label}
+                note="Not yet available"
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {activeEpic === "gcd" && (
@@ -215,7 +227,7 @@ export function Scorecard({
             className={styles.backLink}
             onClick={() => setActiveEpic(null)}
           >
-            ← All epics
+            ← All metrics
           </button>
           <div className={styles.epicHeader}>
             <SpellIcon src={GCD_ECONOMY_ICON} />
@@ -241,7 +253,7 @@ export function Scorecard({
             className={styles.backLink}
             onClick={() => setActiveEpic(null)}
           >
-            ← All epics
+            ← All metrics
           </button>
           <div className={styles.epicHeader}>
             <SpellIcon src={lifebloomIcon} />
@@ -269,7 +281,7 @@ export function Scorecard({
             className={styles.backLink}
             onClick={() => setActiveEpic(null)}
           >
-            ← All epics
+            ← All metrics
           </button>
           <div className={styles.epicHeader}>
             <SpellIcon src={SPELL_DISCIPLINE_ICON} />
@@ -297,11 +309,17 @@ export function Scorecard({
           adherence, or positioning — only your process.
         </Alert>
       </div>
-      <div className={styles.startOver}>
-        <Button variant="secondary" onClick={onStartOver}>
-          Start over
-        </Button>
-      </div>
+      {activeEpic === null && (
+        <div className={styles.startOver}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={onStartOver}
+          >
+            Load different WCL report
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -291,13 +291,15 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: /Lifebloom discipline/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Coilfang Frenzy/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Coilfang Frenzy/ }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Get scorecard" }),
     ).not.toBeInTheDocument();
   });
 
-  it("returns to the report-input screen (not Connect) after clicking Start over", async () => {
+  it("returns to the fight picker, with the prior selection intact, after clicking ← All fights on the Scorecard dashboard", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
@@ -306,7 +308,29 @@ describe("App", () => {
     await confirmFightsAndReachDruidStage(user);
     await screen.findByRole("button", { name: /GCD economy/ });
 
-    await user.click(screen.getByRole("button", { name: "Start over" }));
+    await user.click(screen.getByRole("button", { name: "← All fights" }));
+
+    expect(
+      screen.getByRole("button", { name: "Confirm fights" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Pull 1/)).toBeChecked();
+    expect(
+      screen.queryByRole("button", { name: /GCD economy/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("returns to the report-input screen (not Connect) after clicking Load different WCL report", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await confirmFightsAndReachDruidStage(user);
+    await screen.findByRole("button", { name: /GCD economy/ });
+
+    await user.click(
+      screen.getByRole("button", { name: "Load different WCL report" }),
+    );
 
     expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
     expect(screen.queryByText(REPORT_TITLE)).not.toBeInTheDocument();
