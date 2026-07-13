@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { computeHotClipDetection } from "../../../metrics/hotClipDetection";
 import { computeSwiftmendAudit } from "../../../metrics/swiftmendAudit";
+import { computeDownrankingDiscipline } from "../../../metrics/downrankingDiscipline";
 import { summarizeSpellDiscipline } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -17,6 +19,7 @@ export function useSpellDisciplineSummary(
   rejuvenationAbilityIds: Set<number>,
   regrowthAbilityIds: Set<number>,
   swiftmendAbilityIds: Set<number>,
+  resolvedAbilities: Map<number, ResolvedAbility>,
   fetchEvents: (
     accessToken: string,
     reportCode: string,
@@ -56,11 +59,17 @@ export function useSpellDisciplineSummary(
           regrowthAbilityIds,
           fight.endTime - fight.startTime,
         );
+        const downranking = computeDownrankingDiscipline(
+          castEvents,
+          healingEvents,
+          druidId,
+          resolvedAbilities,
+        );
         setState({
           accessToken,
           summary: {
             status: "ready",
-            ...summarizeSpellDiscipline(hotClips, swiftmendAudit),
+            ...summarizeSpellDiscipline(hotClips, swiftmendAudit, downranking),
           },
         });
       })
@@ -86,6 +95,7 @@ export function useSpellDisciplineSummary(
     rejuvenationAbilityIds,
     regrowthAbilityIds,
     swiftmendAbilityIds,
+    resolvedAbilities,
     fetchEvents,
   ]);
 

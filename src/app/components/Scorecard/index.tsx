@@ -111,6 +111,7 @@ export function Scorecard({
     rejuvenationAbilityIds,
     regrowthAbilityIds,
     swiftmendAbilityIds,
+    resolvedAbilities,
     fetchEvents,
   );
 

@@ -13,6 +13,7 @@ import type { RefreshCadenceResult } from "./refreshCadence";
 import type { AccidentalBloomsResult } from "./accidentalBlooms";
 import type { RestackTaxResult } from "./restackTax";
 import type { SwiftmendAuditResult } from "./swiftmendAudit";
+import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -167,6 +168,12 @@ describe("summarizeLifebloomDiscipline", () => {
 });
 
 describe("summarizeSpellDiscipline", () => {
+  const GREEN_DOWNRANKING: DownrankingDisciplineResult = {
+    breakdown: [],
+    flaggedCount: 0,
+    judgement: "green",
+  };
+
   it("takes the worst of Rejuvenation's clip judgement and the Swiftmend judgement", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
@@ -193,13 +200,15 @@ describe("summarizeSpellDiscipline", () => {
       availableWindows: 22,
     };
 
-    expect(summarizeSpellDiscipline(hotClips, swiftmendAudit)).toEqual({
+    expect(
+      summarizeSpellDiscipline(hotClips, swiftmendAudit, GREEN_DOWNRANKING),
+    ).toEqual({
       judgement: "orange",
       stats: ["Rejuvenation clips: 6.3%", "Swiftmend wasteful: 0.0%"],
     });
   });
 
-  it("is green when both Rejuvenation clips and Swiftmend wasteful share are green", () => {
+  it("is green when Rejuvenation clips, Swiftmend wasteful share, and downranking are all green", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -225,12 +234,13 @@ describe("summarizeSpellDiscipline", () => {
       availableWindows: 22,
     };
 
-    expect(summarizeSpellDiscipline(hotClips, swiftmendAudit).judgement).toBe(
-      "green",
-    );
+    expect(
+      summarizeSpellDiscipline(hotClips, swiftmendAudit, GREEN_DOWNRANKING)
+        .judgement,
+    ).toBe("green");
   });
 
-  it("turns red when Swiftmend's wasteful share is red, even if Rejuvenation clips are green", () => {
+  it("turns red when Swiftmend's wasteful share is red, even if Rejuvenation clips and downranking are green", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -256,8 +266,63 @@ describe("summarizeSpellDiscipline", () => {
       availableWindows: 22,
     };
 
-    expect(summarizeSpellDiscipline(hotClips, swiftmendAudit).judgement).toBe(
-      "red",
+    expect(
+      summarizeSpellDiscipline(hotClips, swiftmendAudit, GREEN_DOWNRANKING)
+        .judgement,
+    ).toBe("red");
+  });
+
+  it("turns orange when downranking has a flag, even if Rejuvenation clips and Swiftmend are green", () => {
+    const hotClips: HotClipDetectionResult = {
+      rejuvenation: {
+        spell: "Rejuvenation",
+        castCount: 100,
+        clipCount: 1,
+        clipPct: 1,
+        judgement: "green",
+      },
+      regrowth: {
+        spell: "Regrowth",
+        castCount: 30,
+        clipCount: 0,
+        clipPct: 0,
+      },
+      clipEvents: [],
+    };
+    const swiftmendAudit: SwiftmendAuditResult = {
+      casts: [],
+      swiftmendCastCount: 4,
+      wastefulCount: 0,
+      wastefulPct: 0,
+      judgement: "green",
+      availableWindows: 22,
+    };
+    const downranking: DownrankingDisciplineResult = {
+      breakdown: [
+        {
+          spell: "Regrowth",
+          rank: 10,
+          isMaxRank: true,
+          castCount: 3,
+          avgEffectiveHeal: 1840,
+          directOverhealPct: 62,
+          flagged: true,
+        },
+      ],
+      flaggedCount: 1,
+      judgement: "orange",
+    };
+
+    const result = summarizeSpellDiscipline(
+      hotClips,
+      swiftmendAudit,
+      downranking,
     );
+
+    expect(result.judgement).toBe("orange");
+    expect(result.stats).toEqual([
+      "Rejuvenation clips: 1.0%",
+      "Swiftmend wasteful: 0.0%",
+    ]);
   });
 });
