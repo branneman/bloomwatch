@@ -12,6 +12,16 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./test/setup.ts"],
-    exclude: ["node_modules/**", "dist/**", "test/e2e/**", "test/contract/**"],
+    // Recursive (**/…) so these also exclude nested git worktrees under
+    // .claude/worktrees/ — a bare "node_modules/**" only matched the repo
+    // root's own node_modules and let vitest crawl into every worktree's
+    // vendored package tests and e2e specs when run from the repo root.
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/test/e2e/**",
+      "**/test/contract/**",
+      ".claude/worktrees/**",
+    ],
   },
 });
