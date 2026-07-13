@@ -326,12 +326,15 @@ I want an aggregated scorecard across all selected fights in a zone (e.g. all SS
 
 ### 703 — Shareable report state
 
-I want the report/fight/druid selection encoded in the URL, so that I can share a link to a specific scorecard with my healing officer.
+I want the report/fight/druid selection encoded in the URL, so that I can share a link to a specific scorecard with my healing officer. I also want the browser's own back/forward buttons to work throughout the app, so that navigating away from a screen doesn't feel like a dead end.
 
 **Acceptance criteria**
 
 - Opening a shared URL reproduces the same scorecard (after auth).
 - No metric data is stored anywhere — the URL only encodes selection state.
+- Every screen in the flow (report input, fight picker, druid picker, dashboard, per-epic detail, per-fight scorecard) changes the URL hash as the user navigates through it — not just the final scorecard view — using hash-based routing (no server-side routes to configure, matching the static-hosting/no-backend constraint).
+- The browser's back/forward buttons move between screens the same way the in-app back-links (e.g. "← All fights", "← All metrics", "← Change fight selection") do, everywhere in the flow — not just at the top level.
+- Opening any hash-encoded URL directly (not just the fully-selected scorecard one) resumes at that exact screen once authenticated, instead of resetting to the report-input screen.
 
 ### 704 — Markdown export
 
