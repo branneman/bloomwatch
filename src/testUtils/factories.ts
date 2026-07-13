@@ -160,3 +160,61 @@ export function aDeathEvent(overrides: Partial<WclEvent> = {}): WclEvent {
     ...overrides,
   };
 }
+
+// A druid's combatant-info snapshot at fight start. Field shapes are taken
+// directly from a live capture (report 4GYHZRdtL3bvhpc8, fight 6) — see
+// docs/testing.md and docs/specs/prep-hygiene-design.md. Defaults to a fully
+// prepped druid: both healer-realistic elixirs (no flask), food, and the
+// confirmed weapon-oil enchant id all present.
+export function aCombatantInfoEvent(
+  overrides: Partial<WclEvent> = {},
+): WclEvent {
+  return {
+    timestamp: 0,
+    type: "combatantinfo",
+    sourceID: 2,
+    fight: 6,
+    auras: [
+      {
+        source: 2,
+        ability: 39627,
+        stacks: 1,
+        icon: "inv_potion_155.jpg",
+        name: "Elixir of Draenic Wisdom",
+      },
+      {
+        source: 2,
+        ability: 28491,
+        stacks: 1,
+        icon: "inv_potion_142.jpg",
+        name: "Healing Power",
+      },
+      {
+        source: 2,
+        ability: 33268,
+        stacks: 1,
+        icon: "spell_misc_food.jpg",
+        name: "Well Fed",
+      },
+    ],
+    gear: [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      { temporaryEnchant: 2678 },
+    ],
+    ...overrides,
+  };
+}
