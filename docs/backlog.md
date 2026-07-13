@@ -291,7 +291,7 @@ I want an audit for every friendly death (with emphasis on my maintained tank ta
 
 ## Epic G — Prep hygiene
 
-### 601 — Pull-time consumables check
+### 601 — Pull-time consumables check ✅ Done
 
 I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian elixir, food buff, weapon oil), so that missing prep is caught before anyone looks at gameplay.
 
