@@ -5,6 +5,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import {
   computeSwiftmendAudit,
   type SwiftmendAuditResult,
+  type SwiftmendClassification,
 } from "../../../metrics/swiftmendAudit";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
@@ -40,7 +41,7 @@ const ICON =
 const THRESHOLD =
   "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Green 0% wasteful, orange ≤ 25%, red > 25% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast — if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Usage vs. 15s-cooldown availability is informational context only.";
 
-const CLASSIFICATION_LABEL: Record<string, string> = {
+const CLASSIFICATION_LABEL: Record<SwiftmendClassification, string> = {
   efficient: "Efficient",
   emergency: "Emergency",
   wasteful: "Wasteful",

@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { SwiftmendAuditCard } from "./index";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
@@ -78,6 +78,41 @@ describe("SwiftmendAuditCard", () => {
     expect(screen.getByText("Red")).toBeInTheDocument();
   });
 
+  it("shows a dash for Target HP% when no Healing sample is available", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 26982 }),
+      aRemoveBuffEvent({
+        timestamp: 2001,
+        targetID: 50,
+        abilityGameID: 26982,
+      }),
+    ];
+    const castEvents = [
+      aCastEvent({ timestamp: 2000, targetID: 50, abilityGameID: 18562 }),
+    ];
+
+    render(
+      <SwiftmendAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map([[50, "Maintank"]])}
+        fetchEvents={makeFetchEvents(buffEvents, castEvents, [])}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("1 wasteful of 1 (100%)")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("Wasteful")).toBeInTheDocument();
+  });
+
   it("shows a message and green judgement when there are no Swiftmends", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 200000 });
 
@@ -148,5 +183,35 @@ describe("SwiftmendAuditCard", () => {
         "WCL API responded 500: server error",
       ),
     );
+  });
+
+  it("requests Healing events with includeResources: true", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = vi.fn().mockResolvedValue([]);
+
+    render(
+      <SwiftmendAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("No Swiftmends cast this fight."),
+      ).toBeInTheDocument(),
+    );
+
+    const healingCall = fetchEvents.mock.calls.find(
+      (call) => call[3] === "Healing",
+    );
+    expect(healingCall?.[4]).toBe(true);
   });
 });
