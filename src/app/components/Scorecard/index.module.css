@@ -23,7 +23,7 @@
   animation: fadeInUp 0.18s ease-out;
 }
 .backLink {
-  display: inline-block;
+  display: block;
   background: none;
   border: none;
   padding: 0;
@@ -45,9 +45,6 @@
 }
 .footer {
   margin-top: var(--space-6);
-}
-.startOver {
-  margin-top: var(--space-5);
 }
 
 @keyframes fadeInUp {

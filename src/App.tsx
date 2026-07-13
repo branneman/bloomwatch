@@ -230,6 +230,13 @@ function App() {
             >
               <Shell>
                 <h2>{loadedReport.title}</h2>
+                <button
+                  type="button"
+                  className={styles.backLink}
+                  onClick={handleStartOver}
+                >
+                  Load different WCL report
+                </button>
                 <FightPicker
                   fights={loadedReport.fights}
                   initialFightId={report.fightId}

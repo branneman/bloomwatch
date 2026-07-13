@@ -22,7 +22,7 @@
   opacity: 0.4;
 }
 .backLink {
-  display: inline-block;
+  display: block;
   background: none;
   border: none;
   padding: 0;

@@ -143,6 +143,13 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
+            onClick={onStartOver}
+          >
+            Load different WCL report
+          </button>
+          <button
+            type="button"
+            className={styles.backLink}
             onClick={onBackToFights}
           >
             ← All fights
@@ -309,17 +316,6 @@ export function Scorecard({
           adherence, or positioning — only your process.
         </Alert>
       </div>
-      {activeEpic === null && (
-        <div className={styles.startOver}>
-          <button
-            type="button"
-            className={styles.backLink}
-            onClick={onStartOver}
-          >
-            Load different WCL report
-          </button>
-        </div>
-      )}
     </div>
   );
 }

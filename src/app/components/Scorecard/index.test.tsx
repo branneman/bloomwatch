@@ -66,6 +66,15 @@ describe("Scorecard", () => {
       /can't judge target selection/,
     );
 
+    // "Load different WCL report" reads above "← All fights" — the bigger
+    // reset sits above the smaller one.
+    const buttonNames = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(buttonNames.indexOf("Load different WCL report")).toBeLessThan(
+      buttonNames.indexOf("← All fights"),
+    );
+
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "← All fights" }));
     expect(onBackToFights).toHaveBeenCalledOnce();

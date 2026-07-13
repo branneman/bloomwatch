@@ -146,6 +146,22 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("returns to the report-input screen after clicking Load different WCL report on the fight picker", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReportAndReachPicker(user);
+
+    await user.click(
+      screen.getByRole("button", { name: "Load different WCL report" }),
+    );
+
+    expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
+    expect(screen.queryByText(REPORT_TITLE)).not.toBeInTheDocument();
+  });
+
   it("only detects druids in the confirmed fight selection, once fights are confirmed", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
