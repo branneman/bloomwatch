@@ -143,6 +143,7 @@ function App() {
     regrowthAbilityIds !== null &&
     swiftmendAbilityIds !== null &&
     naturesSwiftnessAbilityIds !== null &&
+    resolvedAbilities !== null &&
     selectedFightIds.length > 0;
 
   // A single candidate has no picker to interact with (DruidPicker
