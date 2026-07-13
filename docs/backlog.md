@@ -277,7 +277,7 @@ I want per-spell overheal percentages judged against spell-appropriate threshold
 
 ## Epic F — Death forensics
 
-### 501 — Per-death resource audit
+### 501 — Per-death resource audit ✅ Done
 
 I want an audit for every friendly death (with emphasis on my maintained tank targets): did the target have my LB3 rolling, and did I have Swiftmend / Nature's Swiftness / a GCD available in the 5 s before death, so that deaths with unspent emergency resources are exposed as process failures.
 
