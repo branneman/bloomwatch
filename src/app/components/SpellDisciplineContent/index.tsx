@@ -1,8 +1,10 @@
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { HotClipDetectionCard } from "../HotClipDetectionCard";
 import { SwiftmendAuditCard } from "../SwiftmendAuditCard";
+import { NaturesSwiftnessCard } from "../NaturesSwiftnessCard";
 import styles from "./index.module.css";
 
 export interface SpellDisciplineContentProps {
@@ -13,6 +15,8 @@ export interface SpellDisciplineContentProps {
   rejuvenationAbilityIds: Set<number>;
   regrowthAbilityIds: Set<number>;
   swiftmendAbilityIds: Set<number>;
+  naturesSwiftnessAbilityIds: Set<number>;
+  resolvedAbilities: Map<number, ResolvedAbility>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -31,6 +35,8 @@ export function SpellDisciplineContent({
   rejuvenationAbilityIds,
   regrowthAbilityIds,
   swiftmendAbilityIds,
+  naturesSwiftnessAbilityIds,
+  resolvedAbilities,
   targetNames,
   fetchEvents,
 }: SpellDisciplineContentProps) {
@@ -54,6 +60,16 @@ export function SpellDisciplineContent({
         swiftmendAbilityIds={swiftmendAbilityIds}
         rejuvenationAbilityIds={rejuvenationAbilityIds}
         regrowthAbilityIds={regrowthAbilityIds}
+        targetNames={targetNames}
+        fetchEvents={fetchEvents}
+      />
+      <NaturesSwiftnessCard
+        accessToken={accessToken}
+        reportCode={reportCode}
+        fight={fight}
+        druidId={druidId}
+        naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
+        resolvedAbilities={resolvedAbilities}
         targetNames={targetNames}
         fetchEvents={fetchEvents}
       />

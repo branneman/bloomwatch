@@ -5,7 +5,7 @@ import { SpellDisciplineContent } from "./index";
 import { aFight } from "../../../testUtils/factories";
 
 describe("SpellDisciplineContent", () => {
-  it("renders the HoT clip detection card", () => {
+  it("renders the HoT clip detection, Swiftmend audit, and Nature's Swiftness cards", () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => Promise.resolve([]);
 
@@ -18,6 +18,8 @@ describe("SpellDisciplineContent", () => {
         rejuvenationAbilityIds={new Set([26982])}
         regrowthAbilityIds={new Set([26980])}
         swiftmendAbilityIds={new Set([18562])}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        resolvedAbilities={new Map()}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
       />,
@@ -28,6 +30,9 @@ describe("SpellDisciplineContent", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Swiftmend quality audit" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Nature's Swiftness audit" }),
     ).toBeInTheDocument();
   });
 });
