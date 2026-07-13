@@ -297,9 +297,13 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
 
 **Acceptance criteria**
 
-- Read from combatant-info auras at fight start.
-- Binary per item with an aggregate R/O/G: green = all present, orange = 1 missing, red = ≥ 2 missing.
-- Item list is data-driven (easy to adjust per phase/tier).
+- Read from combatant-info auras (elixirs/flask/food) and gear (weapon-oil enchant) at fight start.
+- Three rows, refined from the original binary-per-item sketch in direct conversation with the
+  product owner: (1) flask/elixir coverage — green with a recognized flask, or with both a battle
+  and a guardian elixir; orange with only one of the two; red with neither; (2) food buff —
+  present/missing; (3) weapon oil — present/missing. Overall judgement is the worst of the three
+  rows.
+- Item/flask/elixir/oil recognition lists are data-driven (easy to adjust per phase/tier).
 
 ---
 
