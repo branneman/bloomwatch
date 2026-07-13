@@ -6,6 +6,7 @@ import type { RefreshCadenceResult } from "./refreshCadence";
 import type { AccidentalBloomsResult } from "./accidentalBlooms";
 import type { RestackTaxResult } from "./restackTax";
 import type { HotClipDetectionResult } from "./hotClipDetection";
+import type { SwiftmendAuditResult } from "./swiftmendAudit";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -73,14 +74,19 @@ export function summarizeLifebloomDiscipline(
 
 export function summarizeSpellDiscipline(
   hotClips: HotClipDetectionResult,
+  swiftmendAudit: SwiftmendAuditResult,
 ): EpicSummary {
   // Regrowth clipping has no judgement of its own (informational only —
-  // see docs/backlog.md story 301), so it can't move this verdict.
+  // see docs/backlog.md story 301), so it can't move this verdict; the
+  // widget's two stat lines show the two metrics that do carry a judgement.
   return {
-    judgement: hotClips.rejuvenation.judgement,
+    judgement: worstJudgement([
+      hotClips.rejuvenation.judgement,
+      swiftmendAudit.judgement,
+    ]),
     stats: [
       `Rejuvenation clips: ${hotClips.rejuvenation.clipPct.toFixed(1)}%`,
-      `Regrowth clips: ${hotClips.regrowth.clipPct.toFixed(1)}%`,
+      `Swiftmend wasteful: ${swiftmendAudit.wastefulPct.toFixed(1)}%`,
     ],
   };
 }

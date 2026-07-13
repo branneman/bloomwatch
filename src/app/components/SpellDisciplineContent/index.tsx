@@ -2,6 +2,7 @@ import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import { HotClipDetectionCard } from "../HotClipDetectionCard";
+import { SwiftmendAuditCard } from "../SwiftmendAuditCard";
 import styles from "./index.module.css";
 
 export interface SpellDisciplineContentProps {
@@ -11,12 +12,14 @@ export interface SpellDisciplineContentProps {
   druidId: number;
   rejuvenationAbilityIds: Set<number>;
   regrowthAbilityIds: Set<number>;
+  swiftmendAbilityIds: Set<number>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -27,6 +30,7 @@ export function SpellDisciplineContent({
   druidId,
   rejuvenationAbilityIds,
   regrowthAbilityIds,
+  swiftmendAbilityIds,
   targetNames,
   fetchEvents,
 }: SpellDisciplineContentProps) {
@@ -37,6 +41,17 @@ export function SpellDisciplineContent({
         reportCode={reportCode}
         fight={fight}
         druidId={druidId}
+        rejuvenationAbilityIds={rejuvenationAbilityIds}
+        regrowthAbilityIds={regrowthAbilityIds}
+        targetNames={targetNames}
+        fetchEvents={fetchEvents}
+      />
+      <SwiftmendAuditCard
+        accessToken={accessToken}
+        reportCode={reportCode}
+        fight={fight}
+        druidId={druidId}
+        swiftmendAbilityIds={swiftmendAbilityIds}
         rejuvenationAbilityIds={rejuvenationAbilityIds}
         regrowthAbilityIds={regrowthAbilityIds}
         targetNames={targetNames}

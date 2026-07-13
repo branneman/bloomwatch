@@ -118,6 +118,13 @@ function App() {
         : null,
     [resolvedAbilities],
   );
+  const swiftmendAbilityIds = useMemo(
+    () =>
+      resolvedAbilities
+        ? resolveSpellAbilityIds(resolvedAbilities, "Swiftmend")
+        : null,
+    [resolvedAbilities],
+  );
 
   const selectedDruid =
     druidCandidates?.find((d) => d.id === selectedDruidId) ?? null;
@@ -127,6 +134,7 @@ function App() {
     lifebloomAbilityIds !== null &&
     rejuvenationAbilityIds !== null &&
     regrowthAbilityIds !== null &&
+    swiftmendAbilityIds !== null &&
     selectedFightIds.length > 0;
 
   // A single candidate has no picker to interact with (DruidPicker
@@ -303,6 +311,7 @@ function App() {
             lifebloomAbilityIds !== null &&
             rejuvenationAbilityIds !== null &&
             regrowthAbilityIds !== null &&
+            swiftmendAbilityIds !== null &&
             loadedReport.fights
               .filter((f) => selectedFightIds.includes(f.id))
               .map((f) => (
@@ -316,6 +325,7 @@ function App() {
                     lifebloomAbilityIds={lifebloomAbilityIds}
                     rejuvenationAbilityIds={rejuvenationAbilityIds}
                     regrowthAbilityIds={regrowthAbilityIds}
+                    swiftmendAbilityIds={swiftmendAbilityIds}
                     targetNames={actorNames}
                     fetchEvents={wrappedFetchEvents}
                     onBackToFights={handleChangeFightSelection}

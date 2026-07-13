@@ -28,12 +28,14 @@ export interface ScorecardProps {
   lifebloomAbilityIds: Set<number>;
   rejuvenationAbilityIds: Set<number>;
   regrowthAbilityIds: Set<number>;
+  swiftmendAbilityIds: Set<number>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
   onBackToFights: () => void;
   onStartOver: () => void;
@@ -73,6 +75,7 @@ export function Scorecard({
   lifebloomAbilityIds,
   rejuvenationAbilityIds,
   regrowthAbilityIds,
+  swiftmendAbilityIds,
   targetNames,
   fetchEvents,
   onBackToFights,
@@ -102,6 +105,7 @@ export function Scorecard({
     druidId,
     rejuvenationAbilityIds,
     regrowthAbilityIds,
+    swiftmendAbilityIds,
     fetchEvents,
   );
 
@@ -304,6 +308,7 @@ export function Scorecard({
             druidId={druidId}
             rejuvenationAbilityIds={rejuvenationAbilityIds}
             regrowthAbilityIds={regrowthAbilityIds}
+            swiftmendAbilityIds={swiftmendAbilityIds}
             targetNames={targetNames}
             fetchEvents={fetchEvents}
           />

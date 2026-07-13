@@ -12,6 +12,7 @@ import type { Lb3UptimeResult } from "./lb3Uptime";
 import type { RefreshCadenceResult } from "./refreshCadence";
 import type { AccidentalBloomsResult } from "./accidentalBlooms";
 import type { RestackTaxResult } from "./restackTax";
+import type { SwiftmendAuditResult } from "./swiftmendAudit";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -166,7 +167,7 @@ describe("summarizeLifebloomDiscipline", () => {
 });
 
 describe("summarizeSpellDiscipline", () => {
-  it("takes Rejuvenation's judgement and formats both spells' clip rates", () => {
+  it("takes the worst of Rejuvenation's clip judgement and the Swiftmend judgement", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -183,14 +184,22 @@ describe("summarizeSpellDiscipline", () => {
       },
       clipEvents: [],
     };
+    const swiftmendAudit: SwiftmendAuditResult = {
+      casts: [],
+      swiftmendCastCount: 6,
+      wastefulCount: 0,
+      wastefulPct: 0,
+      judgement: "green",
+      availableWindows: 22,
+    };
 
-    expect(summarizeSpellDiscipline(hotClips)).toEqual({
+    expect(summarizeSpellDiscipline(hotClips, swiftmendAudit)).toEqual({
       judgement: "orange",
-      stats: ["Rejuvenation clips: 6.3%", "Regrowth clips: 13.6%"],
+      stats: ["Rejuvenation clips: 6.3%", "Swiftmend wasteful: 0.0%"],
     });
   });
 
-  it("is green when Rejuvenation is green", () => {
+  it("is green when both Rejuvenation clips and Swiftmend wasteful share are green", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -207,32 +216,48 @@ describe("summarizeSpellDiscipline", () => {
       },
       clipEvents: [],
     };
+    const swiftmendAudit: SwiftmendAuditResult = {
+      casts: [],
+      swiftmendCastCount: 4,
+      wastefulCount: 0,
+      wastefulPct: 0,
+      judgement: "green",
+      availableWindows: 22,
+    };
 
-    expect(summarizeSpellDiscipline(hotClips).judgement).toBe("green");
+    expect(summarizeSpellDiscipline(hotClips, swiftmendAudit).judgement).toBe(
+      "green",
+    );
   });
 
-  it("stays green even when Regrowth's own clip rate would be red on its own", () => {
-    // A druid spamming Regrowth for its direct-heal component (after
-    // Swiftmend is on cooldown, the only non-cooldown direct heal available
-    // in Tree of Life) can rack up a high Regrowth clip rate that isn't a
-    // process error — see docs/backlog.md story 301.
+  it("turns red when Swiftmend's wasteful share is red, even if Rejuvenation clips are green", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
-        castCount: 50,
+        castCount: 100,
         clipCount: 1,
-        clipPct: 2,
+        clipPct: 1,
         judgement: "green",
       },
       regrowth: {
         spell: "Regrowth",
-        castCount: 20,
-        clipCount: 15,
-        clipPct: 75,
+        castCount: 30,
+        clipCount: 0,
+        clipPct: 0,
       },
       clipEvents: [],
     };
+    const swiftmendAudit: SwiftmendAuditResult = {
+      casts: [],
+      swiftmendCastCount: 4,
+      wastefulCount: 3,
+      wastefulPct: 75,
+      judgement: "red",
+      availableWindows: 22,
+    };
 
-    expect(summarizeSpellDiscipline(hotClips).judgement).toBe("green");
+    expect(summarizeSpellDiscipline(hotClips, swiftmendAudit).judgement).toBe(
+      "red",
+    );
   });
 });

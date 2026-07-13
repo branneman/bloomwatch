@@ -3,6 +3,7 @@ import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import { computeHotClipDetection } from "../../../metrics/hotClipDetection";
+import { computeSwiftmendAudit } from "../../../metrics/swiftmendAudit";
 import { summarizeSpellDiscipline } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -15,11 +16,13 @@ export function useSpellDisciplineSummary(
   druidId: number,
   rejuvenationAbilityIds: Set<number>,
   regrowthAbilityIds: Set<number>,
+  swiftmendAbilityIds: Set<number>,
   fetchEvents: (
     accessToken: string,
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>,
 ): EpicSummaryStatus {
   const [state, setState] = useState<TaggedState | null>(null);
@@ -33,8 +36,9 @@ export function useSpellDisciplineSummary(
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
       fetchEvents(accessToken, reportCode, fightArg, "Casts"),
+      fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
     ])
-      .then(([buffEvents, castEvents]) => {
+      .then(([buffEvents, castEvents, healingEvents]) => {
         const hotClips = computeHotClipDetection(
           buffEvents,
           castEvents,
@@ -42,11 +46,21 @@ export function useSpellDisciplineSummary(
           rejuvenationAbilityIds,
           regrowthAbilityIds,
         );
+        const swiftmendAudit = computeSwiftmendAudit(
+          buffEvents,
+          castEvents,
+          healingEvents,
+          druidId,
+          swiftmendAbilityIds,
+          rejuvenationAbilityIds,
+          regrowthAbilityIds,
+          fight.endTime - fight.startTime,
+        );
         setState({
           accessToken,
           summary: {
             status: "ready",
-            ...summarizeSpellDiscipline(hotClips),
+            ...summarizeSpellDiscipline(hotClips, swiftmendAudit),
           },
         });
       })
@@ -71,6 +85,7 @@ export function useSpellDisciplineSummary(
     druidId,
     rejuvenationAbilityIds,
     regrowthAbilityIds,
+    swiftmendAbilityIds,
     fetchEvents,
   ]);
 

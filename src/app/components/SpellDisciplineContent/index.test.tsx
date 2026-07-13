@@ -17,6 +17,7 @@ describe("SpellDisciplineContent", () => {
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}
         regrowthAbilityIds={new Set([26980])}
+        swiftmendAbilityIds={new Set([18562])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
       />,
@@ -24,6 +25,9 @@ describe("SpellDisciplineContent", () => {
 
     expect(
       screen.getByRole("heading", { name: "HoT clip detection" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Swiftmend quality audit" }),
     ).toBeInTheDocument();
   });
 });

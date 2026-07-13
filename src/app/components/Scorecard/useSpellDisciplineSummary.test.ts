@@ -30,6 +30,7 @@ describe("useSpellDisciplineSummary", () => {
         2,
         new Set([26982]),
         new Set([26980]),
+        new Set([18562]),
         fetchEvents,
       ),
     );
@@ -53,6 +54,7 @@ describe("useSpellDisciplineSummary", () => {
         2,
         new Set([26982]),
         new Set([26980]),
+        new Set([18562]),
         fetchEvents,
       ),
     );
