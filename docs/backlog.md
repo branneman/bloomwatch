@@ -203,7 +203,7 @@ I want a count of Rejuvenation/Regrowth refreshes that clipped remaining ticks, 
 - Clips consumed by Swiftmend are excluded (that's 302's domain).
 - R/O/G on Rejuvenation's clipped-tick share of its casts only: green < 5 %, orange 5–15 %, red > 15 %. Regrowth's clip share is reported alongside it as informational context, with no R/O/G of its own — in Tree of Life form, Regrowth is a resto druid's only direct heal without a cooldown (Healing Touch forces a shapeshift out of form), so once Swiftmend is on cooldown, spamming Regrowth for its direct-heal component is the correct response to burst damage even though it clips Regrowth's own HoT tail as a side effect. Judging that the same as a clipped Rejuvenation — whose entire purpose is the HoT — would punish correct play.
 
-### 302 — Swiftmend quality audit
+### 302 — Swiftmend quality audit ✅ Done
 
 I want each Swiftmend listed with the HoT it consumed, that HoT's remaining duration, and the target's HP% at cast, so that I can distinguish efficient Swiftmends (consuming a nearly-expired HoT) from justified emergencies from wasteful ones.
 
