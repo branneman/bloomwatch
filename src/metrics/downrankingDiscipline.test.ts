@@ -237,11 +237,20 @@ describe("computeDownrankingDiscipline", () => {
     ];
     const healingEvents = [
       aHealEvent({
-        timestamp: 1001,
+        timestamp: 4000,
         targetID: 50,
         abilityGameID: 26982,
-        amount: 100,
-        overheal: 900,
+        amount: 10,
+        overheal: 90,
+        tick: true,
+      }),
+      aHealEvent({
+        timestamp: 7000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 10,
+        overheal: 90,
+        tick: true,
       }),
     ];
 
@@ -260,6 +269,70 @@ describe("computeDownrankingDiscipline", () => {
     });
     expect(result.flaggedCount).toBe(0);
     expect(result.judgement).toBe("green");
+  });
+
+  it("sums Rejuvenation's periodic ticks per cast, capping the window at the next cast on the same target", () => {
+    const castEvents = [
+      aCastEvent({ timestamp: 0, targetID: 50, abilityGameID: 26982 }),
+      // Refreshed early, at 6000ms — stops the first application's ticking.
+      aCastEvent({ timestamp: 6000, targetID: 50, abilityGameID: 26982 }),
+    ];
+    const healingEvents = [
+      // Tick from the first application.
+      aHealEvent({
+        timestamp: 3000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 100,
+        overheal: 0,
+        tick: true,
+      }),
+      // A tick landing after the refresh belongs to the second cast, not
+      // the first — without window capping this would double-count into
+      // the first cast's uncapped 12s window too.
+      aHealEvent({
+        timestamp: 9000,
+        targetID: 50,
+        abilityGameID: 26982,
+        amount: 100,
+        overheal: 0,
+        tick: true,
+      }),
+    ];
+
+    const result = computeDownrankingDiscipline(
+      castEvents,
+      healingEvents,
+      DRUID_ID,
+      RESOLVED_ABILITIES,
+    );
+
+    expect(result.breakdown).toEqual([
+      {
+        spell: "Rejuvenation",
+        rank: 13,
+        isMaxRank: true,
+        castCount: 2,
+        avgEffectiveHeal: 100,
+        directOverhealPct: 0,
+        flagged: false,
+      },
+    ]);
+  });
+
+  it("skips a Rejuvenation cast with no ticks observed in its window", () => {
+    const castEvents = [
+      aCastEvent({ timestamp: 1000, targetID: 50, abilityGameID: 26982 }),
+    ];
+
+    const result = computeDownrankingDiscipline(
+      castEvents,
+      [],
+      DRUID_ID,
+      RESOLVED_ABILITIES,
+    );
+
+    expect(result.breakdown).toEqual([]);
   });
 
   it("groups casts with an unresolved rank separately and never flags them", () => {
@@ -320,15 +393,46 @@ describe("computeDownrankingDiscipline", () => {
       aCastEvent({ timestamp: 4000, targetID: 50, abilityGameID: 26980 }),
       aCastEvent({ timestamp: 5000, targetID: 50, abilityGameID: 29339 }),
     ];
-    const healingEvents: WclEvent[] = castEvents.map((cast) =>
+    const healingEvents = [
       aHealEvent({
-        timestamp: cast.timestamp + 1,
+        timestamp: 1001,
         targetID: 50,
-        abilityGameID: cast.abilityGameID,
+        abilityGameID: 9750,
         amount: 100,
         overheal: 0,
       }),
-    );
+      aHealEvent({
+        timestamp: 2001,
+        targetID: 50,
+        abilityGameID: 26979,
+        amount: 100,
+        overheal: 0,
+      }),
+      // Rejuvenation is a pure HoT — its only heal events are periodic
+      // ticks, so this must carry tick: true to be picked up at all.
+      aHealEvent({
+        timestamp: 6000,
+        targetID: 50,
+        abilityGameID: 3627,
+        amount: 100,
+        overheal: 0,
+        tick: true,
+      }),
+      aHealEvent({
+        timestamp: 4001,
+        targetID: 50,
+        abilityGameID: 26980,
+        amount: 100,
+        overheal: 0,
+      }),
+      aHealEvent({
+        timestamp: 5001,
+        targetID: 50,
+        abilityGameID: 29339,
+        amount: 100,
+        overheal: 0,
+      }),
+    ];
 
     const result = computeDownrankingDiscipline(
       castEvents,

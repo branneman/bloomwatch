@@ -5,6 +5,7 @@ import type {
   ResolvedAbility,
 } from "../abilities/resolveAbilities";
 import { getMaxRank } from "../abilities/resolveAbilities";
+import { REJUVENATION_DURATION_MS } from "./hotClipDetection";
 
 // A Regrowth cast's direct heal event lands 0-3ms after the cast event and
 // shares its abilityGameID with periodic ticks (distinguished only by
@@ -81,6 +82,41 @@ function findDirectHeal(
   );
 }
 
+// Rejuvenation is a pure HoT — it has no direct heal component, so every
+// one of its heal events is a periodic tick (tick: true). Its per-cast
+// contribution is the sum of ticks landing in [windowStart, windowEnd),
+// where windowEnd is either the next Rejuvenation cast on the same target
+// (a refresh — at any rank — stops the old application's ticking) or a
+// full REJUVENATION_DURATION_MS if nothing refreshes it first. See
+// docs/backlog.md story 303.
+function sumRejuvenationTicks(
+  healingEvents: WclEvent[],
+  targetId: number,
+  abilityGameID: number,
+  windowStart: number,
+  windowEnd: number,
+): { amount: number; overheal: number; tickCount: number } {
+  let amount = 0;
+  let overheal = 0;
+  let tickCount = 0;
+
+  for (const event of healingEvents) {
+    if (event.type !== "heal") continue;
+    if (event.targetID !== targetId) continue;
+    if (event.abilityGameID !== abilityGameID) continue;
+    if (event.tick !== true) continue;
+    if (event.timestamp < windowStart || event.timestamp >= windowEnd) {
+      continue;
+    }
+
+    amount += typeof event.amount === "number" ? event.amount : 0;
+    overheal += typeof event.overheal === "number" ? event.overheal : 0;
+    tickCount += 1;
+  }
+
+  return { amount, overheal, tickCount };
+}
+
 interface Group {
   spell: DownrankingSpell;
   rank: number | null;
@@ -95,13 +131,44 @@ export function computeDownrankingDiscipline(
   druidId: number,
   resolvedAbilities: Map<number, ResolvedAbility>,
 ): DownrankingDisciplineResult {
-  const casts = castEvents.filter(
-    (event) =>
-      event.sourceID === druidId &&
-      event.type === "cast" &&
-      event.targetID !== undefined &&
-      event.abilityGameID !== undefined,
-  );
+  const casts = castEvents
+    .filter(
+      (event) =>
+        event.sourceID === druidId &&
+        event.type === "cast" &&
+        event.targetID !== undefined &&
+        event.abilityGameID !== undefined,
+    )
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  // Rejuvenation casts grouped per target, in chronological order, so each
+  // cast's tick window can be capped at the next cast that supersedes it.
+  const rejuvenationCastsByTarget = new Map<number, WclEvent[]>();
+  for (const cast of casts) {
+    const resolved = resolvedAbilities.get(cast.abilityGameID as number);
+    if (resolved?.kind !== "spell" || resolved.spell !== "Rejuvenation") {
+      continue;
+    }
+    const targetId = cast.targetID as number;
+    const list = rejuvenationCastsByTarget.get(targetId) ?? [];
+    list.push(cast);
+    rejuvenationCastsByTarget.set(targetId, list);
+  }
+
+  const rejuvenationWindowEnd = new Map<WclEvent, number>();
+  for (const targetCasts of rejuvenationCastsByTarget.values()) {
+    for (let i = 0; i < targetCasts.length; i++) {
+      const cast = targetCasts[i];
+      const nextCast = targetCasts[i + 1];
+      const fullDurationEnd = cast.timestamp + REJUVENATION_DURATION_MS;
+      rejuvenationWindowEnd.set(
+        cast,
+        nextCast
+          ? Math.min(nextCast.timestamp, fullDurationEnd)
+          : fullDurationEnd,
+      );
+    }
+  }
 
   const groups = new Map<string, Group>();
 
@@ -111,19 +178,39 @@ export function computeDownrankingDiscipline(
     if (resolved === undefined || resolved.kind !== "spell") continue;
     if (!isTrackedSpell(resolved.spell)) continue;
     const spell = resolved.spell;
+    const targetId = cast.targetID as number;
 
-    const heal = findDirectHeal(
-      healingEvents,
-      cast.targetID as number,
-      abilityGameID,
-      cast.timestamp,
-    );
-    // No matching heal event means the cast didn't land (interrupted, no
-    // recorded data) — skip rather than guess, same as swiftmendAudit.ts.
-    if (heal === undefined) continue;
+    let amount: number;
+    let overheal: number;
 
-    const amount = typeof heal.amount === "number" ? heal.amount : 0;
-    const overheal = typeof heal.overheal === "number" ? heal.overheal : 0;
+    if (spell === "Rejuvenation") {
+      const windowEnd = rejuvenationWindowEnd.get(cast) as number;
+      const ticks = sumRejuvenationTicks(
+        healingEvents,
+        targetId,
+        abilityGameID,
+        cast.timestamp,
+        windowEnd,
+      );
+      // No ticks observed in this cast's window means the cast didn't
+      // land (interrupted, no recorded data) — skip rather than guess,
+      // same as the direct-heal spells below.
+      if (ticks.tickCount === 0) continue;
+      amount = ticks.amount;
+      overheal = ticks.overheal;
+    } else {
+      const heal = findDirectHeal(
+        healingEvents,
+        targetId,
+        abilityGameID,
+        cast.timestamp,
+      );
+      // No matching heal event means the cast didn't land (interrupted, no
+      // recorded data) — skip rather than guess, same as swiftmendAudit.ts.
+      if (heal === undefined) continue;
+      amount = typeof heal.amount === "number" ? heal.amount : 0;
+      overheal = typeof heal.overheal === "number" ? heal.overheal : 0;
+    }
 
     const key = `${spell}:${resolved.rank}`;
     const existing = groups.get(key);
