@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { DruidCandidate } from "../../../report/druidDetection";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
@@ -29,6 +30,8 @@ export interface ScorecardProps {
   rejuvenationAbilityIds: Set<number>;
   regrowthAbilityIds: Set<number>;
   swiftmendAbilityIds: Set<number>;
+  naturesSwiftnessAbilityIds: Set<number>;
+  resolvedAbilities: Map<number, ResolvedAbility>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -76,6 +79,8 @@ export function Scorecard({
   rejuvenationAbilityIds,
   regrowthAbilityIds,
   swiftmendAbilityIds,
+  naturesSwiftnessAbilityIds,
+  resolvedAbilities,
   targetNames,
   fetchEvents,
   onBackToFights,
@@ -309,6 +314,8 @@ export function Scorecard({
             rejuvenationAbilityIds={rejuvenationAbilityIds}
             regrowthAbilityIds={regrowthAbilityIds}
             swiftmendAbilityIds={swiftmendAbilityIds}
+            naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
+            resolvedAbilities={resolvedAbilities}
             targetNames={targetNames}
             fetchEvents={fetchEvents}
           />
