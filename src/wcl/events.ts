@@ -34,6 +34,7 @@ export async function fetchEventsPage(
   dataType: WclEventDataType,
   startTime: number,
   endTime: number,
+  includeResources = false,
 ): Promise<WclEventsPage> {
   const resp = await fetch(USER_API_URL, {
     method: "POST",
@@ -45,7 +46,7 @@ export async function fetchEventsPage(
       query: `query {
   reportData {
     report(code: "${reportCode}") {
-      events(fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}) {
+      events(fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}) {
         data
         nextPageTimestamp
       }

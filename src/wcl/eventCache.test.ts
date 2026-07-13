@@ -39,6 +39,7 @@ describe("createEventFetcher", () => {
       "Healing",
       1879119,
       2036920,
+      false,
     );
     expect(fakeFetchPage).toHaveBeenNthCalledWith(
       2,
@@ -48,6 +49,7 @@ describe("createEventFetcher", () => {
       "Healing",
       1900000,
       2036920,
+      false,
     );
   });
 
@@ -164,10 +166,44 @@ describe("createEventFetcher", () => {
       "Healing",
       1879119,
       2036920,
+      false,
     );
 
     // Verify we got all events from both pages
     expect(result.map((e) => e.timestamp)).toEqual([100, 200]);
     expect(result).toHaveLength(2);
+  });
+
+  it("caches includeResources: true separately from the default fetch for the same fight/dataType", async () => {
+    const fakeFetchPage = vi.fn().mockResolvedValue({
+      events: [anEvent()],
+      nextPageTimestamp: null,
+    });
+
+    const { fetchEvents } = createEventFetcher(fakeFetchPage);
+    await fetchEvents("token", "report1", fight, "Healing");
+    await fetchEvents("token", "report1", fight, "Healing", true);
+
+    expect(fakeFetchPage).toHaveBeenCalledTimes(2);
+    expect(fakeFetchPage).toHaveBeenNthCalledWith(
+      1,
+      "token",
+      "report1",
+      6,
+      "Healing",
+      1879119,
+      2036920,
+      false,
+    );
+    expect(fakeFetchPage).toHaveBeenNthCalledWith(
+      2,
+      "token",
+      "report1",
+      6,
+      "Healing",
+      1879119,
+      2036920,
+      true,
+    );
   });
 });

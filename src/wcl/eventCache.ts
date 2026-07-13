@@ -17,6 +17,7 @@ export function createEventFetcher(
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources: boolean,
   ): Promise<WclEvent[]> {
     const events: WclEvent[] = [];
     let startTime = fight.startTime;
@@ -28,6 +29,7 @@ export function createEventFetcher(
         dataType,
         startTime,
         fight.endTime,
+        includeResources,
       );
       events.push(...page.events);
       if (page.nextPageTimestamp === null) break;
@@ -41,8 +43,9 @@ export function createEventFetcher(
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources = false,
   ): Promise<WclEvent[]> {
-    const key = `${reportCode}:${fight.id}:${dataType}`;
+    const key = `${reportCode}:${fight.id}:${dataType}:${includeResources}`;
     const cached = cache.get(key);
     if (cached) return cached;
 
@@ -51,6 +54,7 @@ export function createEventFetcher(
       reportCode,
       fight,
       dataType,
+      includeResources,
     ).catch((error: unknown) => {
       cache.delete(key);
       throw error;

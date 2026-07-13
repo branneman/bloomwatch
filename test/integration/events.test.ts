@@ -6,6 +6,7 @@ import { WclApiError, USER_API_URL } from "../../src/wcl/client";
 import singlePageFixture from "./fixtures/events-healing-single-page.json";
 import paginatedPage1Fixture from "./fixtures/events-healing-paginated-page1.json";
 import paginatedPage2Fixture from "./fixtures/events-healing-paginated-page2.json";
+import withResourcesFixture from "./fixtures/events-healing-with-resources.json";
 
 const server = setupServer();
 
@@ -149,5 +150,60 @@ describe("fetchEventsPage", () => {
         2036920,
       ),
     ).rejects.toThrow(WclApiError);
+  });
+
+  it("parses hitPoints/resourceActor fields from a real includeResources response", async () => {
+    server.use(
+      http.post(USER_API_URL, () => HttpResponse.json(withResourcesFixture)),
+    );
+
+    const result = await fetchEventsPage(
+      "test-token",
+      "4GYHZRdtL3bvhpc8",
+      6,
+      "Healing",
+      1997000,
+      1999500,
+      true,
+    );
+
+    expect(result.events).toHaveLength(4);
+    const swiftmendHeal = result.events.find((e) => e.timestamp === 1998513);
+    expect(swiftmendHeal).toMatchObject({
+      resourceActor: 2,
+      hitPoints: 94,
+      maxHitPoints: 100,
+    });
+  });
+
+  it("sends includeResources: true only when requested, and defaults to false", async () => {
+    let requestBody: { query: string } | undefined;
+    server.use(
+      http.post(USER_API_URL, async ({ request }) => {
+        requestBody = (await request.json()) as { query: string };
+        return HttpResponse.json(singlePageFixture);
+      }),
+    );
+
+    await fetchEventsPage(
+      "test-token",
+      "4GYHZRdtL3bvhpc8",
+      6,
+      "Healing",
+      1879119,
+      2036920,
+    );
+    expect(requestBody?.query).toContain("includeResources: false");
+
+    await fetchEventsPage(
+      "test-token",
+      "4GYHZRdtL3bvhpc8",
+      6,
+      "Healing",
+      1879119,
+      2036920,
+      true,
+    );
+    expect(requestBody?.query).toContain("includeResources: true");
   });
 });
