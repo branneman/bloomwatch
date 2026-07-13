@@ -1,0 +1,39 @@
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+.target {
+  color: var(--text-h);
+}
+.time {
+  color: var(--text);
+  font-size: var(--text-small-size);
+  margin-left: var(--space-2);
+}
+.notJudged {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text);
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2) var(--space-4);
+}
+.row {
+  font-size: var(--text-small-size);
+}
+.label {
+  color: var(--text);
+}
+.value {
+  color: var(--text-h);
+  font-weight: 500;
+}
