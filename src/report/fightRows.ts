@@ -25,28 +25,3 @@ export function formatDuration(ms: number): string {
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
-
-export interface ZoneGroup {
-  zoneId: number;
-  zoneName: string;
-  fightIds: number[];
-}
-
-export function groupFightsByZone(fights: Fight[]): ZoneGroup[] {
-  const groups: ZoneGroup[] = [];
-  const indexByZoneId = new Map<number, number>();
-
-  for (const fight of fights) {
-    if (fight.encounterID === 0 || fight.gameZone === null) continue;
-    const { id: zoneId, name: zoneName } = fight.gameZone;
-    const existingIndex = indexByZoneId.get(zoneId);
-    if (existingIndex === undefined) {
-      indexByZoneId.set(zoneId, groups.length);
-      groups.push({ zoneId, zoneName, fightIds: [fight.id] });
-    } else {
-      groups[existingIndex].fightIds.push(fight.id);
-    }
-  }
-
-  return groups;
-}

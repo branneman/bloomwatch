@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useCallback, useMemo, useState } from "react";
 import { useWclAuth } from "./wcl/useWclAuth";
 import {
@@ -12,14 +13,14 @@ import {
   resolveSpellAbilityIds,
   type ResolvedAbility,
 } from "./abilities/resolveAbilities";
+import { buildFightRows } from "./report/fightRows";
 import { ConnectPanel } from "./app/components/ConnectPanel";
 import { Onboarding } from "./app/components/Onboarding";
 import { ReportInput, type ParsedReport } from "./app/components/ReportInput";
-import { FightPicker } from "./app/components/FightPicker";
 import { DruidDetector } from "./app/components/DruidDetector";
 import { DruidPicker } from "./app/components/DruidPicker";
 import { AbilityResolver } from "./app/components/AbilityResolver";
-import { Scorecard } from "./app/components/Scorecard";
+import { ReportDashboard } from "./app/components/ReportDashboard";
 import { Shell } from "./app/components/ui/Shell";
 import { Button } from "./app/components/ui/Button";
 import { Alert } from "./app/components/ui/Alert";
@@ -38,8 +39,6 @@ function App() {
     useWclAuth();
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
-  const [selectedFightIds, setSelectedFightIds] = useState<number[]>([]);
-  const [fightsConfirmed, setFightsConfirmed] = useState(false);
   const [druidCandidates, setDruidCandidates] = useState<
     DruidCandidate[] | null
   >(null);
@@ -52,7 +51,7 @@ function App() {
     number,
     ResolvedAbility
   > | null>(null);
-  const [scorecardRequested, setScorecardRequested] = useState(false);
+  const [dashboardRequested, setDashboardRequested] = useState(false);
   const [eventFetcher] = useState(() => createEventFetcher());
   const [onboardingDismissed, setOnboardingDismissed] = useState(
     () => localStorage.getItem(ONBOARDING_SEEN_KEY) === "true",
@@ -77,14 +76,12 @@ function App() {
 
   function resetReportState() {
     setLoadedReport(null);
-    setSelectedFightIds([]);
-    setFightsConfirmed(false);
     setDruidCandidates(null);
     setSelectedDruidId(null);
     setActorNames(new Map());
     setActorClasses(new Map());
     setResolvedAbilities(null);
-    setScorecardRequested(false);
+    setDashboardRequested(false);
   }
 
   function handleReportSubmit(parsed: ParsedReport) {
@@ -106,19 +103,22 @@ function App() {
     setOnboardingDismissed(false);
   }
 
-  function handleChangeFightSelection() {
-    setScorecardRequested(false);
-    setFightsConfirmed(false);
-    setDruidCandidates(null);
-    setSelectedDruidId(null);
-  }
-
   const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
     setActorNames(new Map(entries.map((e) => [e.id, e.name])));
     setActorClasses(
       new Map(entries.map((e) => [e.id, { class: e.type, specIcon: e.icon }])),
     );
   }, []);
+
+  const nonTrashFightIds = useMemo(
+    () =>
+      loadedReport
+        ? buildFightRows(loadedReport.fights)
+            .filter((row) => !row.isTrash)
+            .map((row) => row.fight.id)
+        : [],
+    [loadedReport],
+  );
 
   const lifebloomAbilityIds = useMemo(
     () =>
@@ -159,24 +159,23 @@ function App() {
   const selectedDruid =
     druidCandidates?.find((d) => d.id === selectedDruidId) ?? null;
 
-  const canGetScorecard =
+  const canGetDashboard =
     selectedDruid !== null &&
     lifebloomAbilityIds !== null &&
     rejuvenationAbilityIds !== null &&
     regrowthAbilityIds !== null &&
     swiftmendAbilityIds !== null &&
     naturesSwiftnessAbilityIds !== null &&
-    resolvedAbilities !== null &&
-    selectedFightIds.length > 0;
+    resolvedAbilities !== null;
 
   // A single candidate has no picker to interact with (DruidPicker
-  // auto-selects it silently) — requiring a Get scorecard click on top of
-  // that would be a confirmation step with nothing left to confirm. Updated
-  // directly during render (React's "adjusting state" pattern) rather than
-  // in an effect, since it's purely derived from already-rendered state and
-  // naturally settles once scorecardRequested flips true.
-  if (druidCandidates?.length === 1 && canGetScorecard && !scorecardRequested) {
-    setScorecardRequested(true);
+  // auto-selects it silently) — requiring a "View report dashboard" click on
+  // top of that would be a confirmation step with nothing left to confirm.
+  // Updated directly during render (React's "adjusting state" pattern)
+  // rather than in an effect, since it's purely derived from already-
+  // rendered state and naturally settles once dashboardRequested flips true.
+  if (druidCandidates?.length === 1 && canGetDashboard && !dashboardRequested) {
+    setDashboardRequested(true);
   }
 
   return (
@@ -267,58 +266,20 @@ function App() {
             </Shell>
           )}
 
-          {/* Kept mounted (just hidden) whenever the user has moved past
-              this step — via "Confirm fights" or all the way to the
-              Scorecard — rather than conditionally rendered: FightPicker
-              owns its checkbox state internally, and unmounting it would
-              lose the user's selection if they come back to change it
-              (from the druid stage, or from the Scorecard's "All fights"
-              link). */}
-          {report && loadedReport && (
-            <div
-              style={{
-                display:
-                  fightsConfirmed || scorecardRequested ? "none" : undefined,
-              }}
-            >
-              <Shell>
-                <h2>{loadedReport.title}</h2>
-                <button
-                  type="button"
-                  className={styles.backLink}
-                  onClick={handleStartOver}
-                >
-                  Load different WCL report
-                </button>
-                <FightPicker
-                  fights={loadedReport.fights}
-                  initialFightId={report.fightId}
-                  onSelectionChange={setSelectedFightIds}
-                />
-                <Button
-                  disabled={selectedFightIds.length === 0}
-                  onClick={() => setFightsConfirmed(true)}
-                >
-                  Confirm fights
-                </Button>
-              </Shell>
-            </div>
-          )}
-
-          {report && loadedReport && fightsConfirmed && !scorecardRequested && (
+          {report && loadedReport && !dashboardRequested && (
             <Shell>
               <h2>{loadedReport.title}</h2>
               <button
                 type="button"
                 className={styles.backLink}
-                onClick={handleChangeFightSelection}
+                onClick={handleStartOver}
               >
-                ← Change fight selection
+                Load different WCL report
               </button>
               <DruidDetector
                 accessToken={accessToken}
                 reportCode={report.reportCode}
-                fightIds={selectedFightIds}
+                fightIds={nonTrashFightIds}
                 fetchCastsTable={wrappedFetchCastsTable}
                 onDruidsDetected={setDruidCandidates}
                 onEntriesLoaded={handleEntriesLoaded}
@@ -341,48 +302,46 @@ function App() {
                   />
                 ))}
               <Button
-                disabled={!canGetScorecard}
-                onClick={() => setScorecardRequested(true)}
+                disabled={!canGetDashboard}
+                onClick={() => setDashboardRequested(true)}
               >
-                Get scorecard
+                View report dashboard
               </Button>
             </Shell>
           )}
 
           {report &&
             loadedReport &&
-            scorecardRequested &&
+            dashboardRequested &&
             selectedDruid !== null &&
             lifebloomAbilityIds !== null &&
             rejuvenationAbilityIds !== null &&
             regrowthAbilityIds !== null &&
             swiftmendAbilityIds !== null &&
             naturesSwiftnessAbilityIds !== null &&
-            resolvedAbilities !== null &&
-            loadedReport.fights
-              .filter((f) => selectedFightIds.includes(f.id))
-              .map((f) => (
-                <Shell width={800} key={f.id}>
-                  <Scorecard
-                    accessToken={accessToken}
-                    reportCode={report.reportCode}
-                    fight={f}
-                    druidId={selectedDruid.id}
-                    druid={selectedDruid}
-                    lifebloomAbilityIds={lifebloomAbilityIds}
-                    rejuvenationAbilityIds={rejuvenationAbilityIds}
-                    regrowthAbilityIds={regrowthAbilityIds}
-                    swiftmendAbilityIds={swiftmendAbilityIds}
-                    naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
-                    resolvedAbilities={resolvedAbilities}
-                    targetNames={actorNames}
-                    actorClasses={actorClasses}
-                    fetchEvents={wrappedFetchEvents}
-                    onBackToFights={handleChangeFightSelection}
-                    onStartOver={handleStartOver}
-                  />
-                </Shell>
-              ))}
+            resolvedAbilities !== null && (
+              <Shell width={920}>
+                <ReportDashboard
+                  accessToken={accessToken}
+                  reportCode={report.reportCode}
+                  reportTitle={loadedReport.title}
+                  fights={loadedReport.fights}
+                  druidId={selectedDruid.id}
+                  druid={selectedDruid}
+                  lifebloomAbilityIds={lifebloomAbilityIds}
+                  rejuvenationAbilityIds={rejuvenationAbilityIds}
+                  regrowthAbilityIds={regrowthAbilityIds}
+                  swiftmendAbilityIds={swiftmendAbilityIds}
+                  naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
+                  resolvedAbilities={resolvedAbilities}
+                  targetNames={actorNames}
+                  actorClasses={actorClasses}
+                  fetchEvents={wrappedFetchEvents}
+                  initialFightId={report.fightId}
+                  onStartOver={handleStartOver}
+                />
+              </Shell>
+            )}
         </div>
       )}
     </>

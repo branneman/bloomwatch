@@ -1,3 +1,4 @@
+// src/App.test.tsx
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -59,25 +60,10 @@ function setUpHappyPathMocks() {
   });
 }
 
-async function loadReportAndReachPicker(
-  user: ReturnType<typeof userEvent.setup>,
-) {
+async function loadReport(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
   await user.click(screen.getByRole("button", { name: "Load report" }));
   await screen.findByRole("heading", { name: REPORT_TITLE });
-}
-
-async function confirmFightsAndReachDruidStage(
-  user: ReturnType<typeof userEvent.setup>,
-) {
-  await loadReportAndReachPicker(user);
-  await user.click(screen.getByLabelText(/Pull 1/));
-  await user.click(screen.getByRole("button", { name: "Confirm fights" }));
-  // Not "await screen.findByRole('← Change fight selection')": with a sole
-  // detected druid, that screen can auto-advance straight to the Scorecard
-  // fast enough that this checkpoint never becomes observable — the confirm
-  // click above already synchronously flushes the fightsConfirmed state
-  // change, so callers can rely on it without a separate wait here.
 }
 
 describe("App", () => {
@@ -131,57 +117,13 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("renders the fight picker screen after a report loads, and not the report-input screen", async () => {
+  it("detects druids across the whole report immediately once it loads, with no fight-selection step first", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
     render(<App />);
-    await loadReportAndReachPicker(user);
-
-    expect(screen.getByText(/Pull 1/)).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText("Report URL or code"),
-    ).not.toBeInTheDocument();
-    // Druid detection is scoped to the confirmed fight selection (it fetches
-    // real cast data, which gets expensive across a whole report) — it
-    // shouldn't run before the user has picked and confirmed any fights.
-    expect(vi.mocked(fetchCastsTable)).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole("button", { name: "Get scorecard" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("returns to the report-input screen after clicking Load different WCL report on the fight picker", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
-    setUpHappyPathMocks();
-    const user = userEvent.setup();
-
-    render(<App />);
-    await loadReportAndReachPicker(user);
-
-    await user.click(
-      screen.getByRole("button", { name: "Load different WCL report" }),
-    );
-
-    expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
-    expect(screen.queryByText(REPORT_TITLE)).not.toBeInTheDocument();
-  });
-
-  it("only detects druids in the confirmed fight selection, once fights are confirmed", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
-    setUpHappyPathMocks();
-    // Two candidates, not one: a sole candidate auto-advances straight to
-    // the Scorecard screen, unmounting the fight-picker screen this test
-    // asserts against.
-    vi.mocked(fetchCastsTable).mockResolvedValue([
-      aCastTableEntry(),
-      aCastTableEntry({ id: 3, name: "Barrychuckle" }),
-    ]);
-    const user = userEvent.setup();
-
-    render(<App />);
-    await confirmFightsAndReachDruidStage(user);
+    await loadReport(user);
 
     expect(vi.mocked(fetchCastsTable)).toHaveBeenCalledWith(
       "test-token",
@@ -190,15 +132,43 @@ describe("App", () => {
       expect.anything(),
     );
     expect(
-      screen.getByRole("button", { name: "Confirm fights", hidden: true }),
-    ).not.toBeVisible();
+      screen.queryByLabelText("Report URL or code"),
+    ).not.toBeInTheDocument();
   });
 
-  it("returns to the fight picker with the prior selection intact when changing fight selection", async () => {
+  it("excludes trash fights from the fights it detects druids across", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockResolvedValue(
+      aReportFights({
+        title: REPORT_TITLE,
+        fights: [
+          aFight({ id: 1, encounterID: 0, name: "Trash" }),
+          aFight({ id: 2 }),
+        ],
+      }),
+    );
+    vi.mocked(fetchCastsTable).mockResolvedValue([aCastTableEntry()]);
+    vi.mocked(fetchMasterDataAbilities).mockResolvedValue([aReportAbility()]);
+    vi.mocked(fetchEventsPage).mockResolvedValue({
+      events: [],
+      nextPageTimestamp: null,
+    });
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+
+    expect(vi.mocked(fetchCastsTable)).toHaveBeenCalledWith(
+      "test-token",
+      REPORT_CODE,
+      [2],
+      expect.anything(),
+    );
+  });
+
+  it("requires picking a druid before continuing to the dashboard, when more than one is detected", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
-    // Two candidates, not one: a sole candidate auto-advances straight to
-    // the Scorecard screen, which would race this test's own navigation.
     vi.mocked(fetchCastsTable).mockResolvedValue([
       aCastTableEntry(),
       aCastTableEntry({ id: 3, name: "Barrychuckle" }),
@@ -206,16 +176,46 @@ describe("App", () => {
     const user = userEvent.setup();
 
     render(<App />);
-    await confirmFightsAndReachDruidStage(user);
+    await loadReport(user);
+
+    expect(
+      await screen.findByRole("button", { name: "View report dashboard" }),
+    ).toBeDisabled();
+
+    await user.click(screen.getAllByRole("radio")[0]);
+
+    expect(
+      screen.getByRole("button", { name: "View report dashboard" }),
+    ).toBeEnabled();
 
     await user.click(
-      screen.getByRole("button", { name: "← Change fight selection" }),
+      screen.getByRole("button", { name: "View report dashboard" }),
     );
 
     expect(
-      screen.getByRole("button", { name: "Confirm fights" }),
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/Pull 1/)).toBeChecked();
+  });
+
+  it("returns to the report-input screen after clicking Load different WCL report on the druid-pick screen", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    vi.mocked(fetchCastsTable).mockResolvedValue([
+      aCastTableEntry(),
+      aCastTableEntry({ id: 3, name: "Barrychuckle" }),
+    ]);
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+    await screen.findByRole("button", { name: "View report dashboard" });
+
+    await user.click(
+      screen.getByRole("button", { name: "Load different WCL report" }),
+    );
+
+    expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
+    expect(screen.queryByText(REPORT_TITLE)).not.toBeInTheDocument();
   });
 
   it("fetches master data abilities exactly once per report, even when that fetch is still in flight when the report finishes loading", async () => {
@@ -238,14 +238,12 @@ describe("App", () => {
     render(<App />);
     await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
     await user.click(screen.getByRole("button", { name: "Load report" }));
+    await screen.findByRole("heading", { name: REPORT_TITLE });
 
-    // Reaching the fight/druid picker screen proves the loadedReport
-    // transition happened while master data was still unresolved.
-    await screen.findByText(/Pull 1/);
     expect(vi.mocked(fetchMasterDataAbilities)).toHaveBeenCalledTimes(1);
   });
 
-  it("still resolves master data abilities fetched before the report finished loading, not aborted by the later screen transitions", async () => {
+  it("still resolves master data abilities fetched before the report finished loading, not aborted by the later transition to the dashboard", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
@@ -271,10 +269,9 @@ describe("App", () => {
     const user = userEvent.setup();
 
     render(<App />);
-    // Reaches the druid-detection screen — two full screen transitions past
-    // the point AbilityResolver's original mount would have unmounted,
-    // if it were still gated on `!loadedReport`.
-    await confirmFightsAndReachDruidStage(user);
+    await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
+    await user.click(screen.getByRole("button", { name: "Load report" }));
+    await screen.findByRole("heading", { name: REPORT_TITLE });
 
     resolveMasterData!([
       aReportAbility(),
@@ -285,79 +282,60 @@ describe("App", () => {
       }),
     ]);
 
-    // Sole candidate auto-advances straight to the Scorecard once
-    // resolvedAbilities is the last piece canGetScorecard was waiting on —
-    // no "Get scorecard" button to wait on here.
+    // Sole candidate auto-advances straight to the dashboard once
+    // resolvedAbilities is the last piece the gate was waiting on — no
+    // "View report dashboard" click needed.
     expect(
-      await screen.findByRole("button", { name: /GCD economy/ }),
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
     ).toBeInTheDocument();
   });
 
-  it("jumps straight to the Scorecard screen once the sole druid auto-selects, with no Get scorecard click needed", async () => {
+  it("jumps straight to the whole-report dashboard once the sole druid auto-selects, with no button click needed", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
     render(<App />);
-    await confirmFightsAndReachDruidStage(user);
+    await loadReport(user);
 
     // Sole-candidate auto-select (DruidPicker returns null) shouldn't leave a
-    // bare "Druid" heading with nothing under it — see Fix 4.
+    // bare "Druid" heading with nothing under it — see Fix 4 (pre-702).
     expect(
       screen.queryByRole("heading", { name: "Druid" }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "View report dashboard" }),
+    ).not.toBeInTheDocument();
 
     expect(
-      await screen.findByRole("button", { name: /GCD economy/ }),
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Lifebloom discipline/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /Coilfang Frenzy/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Get scorecard" }),
-    ).not.toBeInTheDocument();
   });
 
-  it("returns to the fight picker, with the prior selection intact, after clicking ← All fights on the Scorecard dashboard", async () => {
+  it("drills into a fight's scorecard from the whole-report dashboard, and back to the fight list via ← All fights", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
     render(<App />);
-    await confirmFightsAndReachDruidStage(user);
-    await screen.findByRole("button", { name: /GCD economy/ });
+    await loadReport(user);
+
+    const row = await screen.findByRole("button", {
+      name: /Pull 1 — Coilfang Frenzy/,
+    });
+    await user.click(row);
+
+    expect(
+      await screen.findByRole("button", { name: /GCD economy/ }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "← All fights" }));
 
     expect(
-      screen.getByRole("button", { name: "Confirm fights" }),
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/Pull 1/)).toBeChecked();
     expect(
       screen.queryByRole("button", { name: /GCD economy/ }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("returns to the report-input screen (not Connect) after clicking Load different WCL report", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
-    setUpHappyPathMocks();
-    const user = userEvent.setup();
-
-    render(<App />);
-    await confirmFightsAndReachDruidStage(user);
-    await screen.findByRole("button", { name: /GCD economy/ });
-
-    await user.click(
-      screen.getByRole("button", { name: "Load different WCL report" }),
-    );
-
-    expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
-    expect(screen.queryByText(REPORT_TITLE)).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: "Bloomwatch" }),
     ).not.toBeInTheDocument();
   });
 
@@ -377,8 +355,6 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "Load report" }));
 
     await screen.findByRole("heading", { name: REPORT_TITLE });
-    await user.click(screen.getByLabelText(/Pull 1/));
-    await user.click(screen.getByRole("button", { name: "Confirm fights" }));
     await screen.findByText(/temporarily over capacity/);
 
     await user.type(
