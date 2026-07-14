@@ -20,6 +20,8 @@ export interface FightEpicSummaries {
   prep: EpicSummaryStatus;
 }
 
+export type EpicId = keyof FightEpicSummaries;
+
 type FetchEvents = (
   accessToken: string,
   reportCode: string,
