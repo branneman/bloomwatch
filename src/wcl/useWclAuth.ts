@@ -9,6 +9,7 @@ const CLIENT_ID_STORAGE_KEY = "wcl_client_id";
 const PKCE_VERIFIER_STORAGE_KEY = "wcl_pkce_verifier";
 const PKCE_STATE_STORAGE_KEY = "wcl_pkce_state";
 const ACCESS_TOKEN_STORAGE_KEY = "wcl_access_token";
+const PENDING_HASH_STORAGE_KEY = "wcl_pending_hash";
 
 function redirectUri(): string {
   return window.location.origin + window.location.pathname;
@@ -40,6 +41,7 @@ export function useWclAuth() {
     const { verifier, state, challenge } = await createPkceParams();
     sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, verifier);
     sessionStorage.setItem(PKCE_STATE_STORAGE_KEY, state);
+    sessionStorage.setItem(PENDING_HASH_STORAGE_KEY, window.location.hash);
     window.location.href = buildAuthorizeUrl({
       clientId: effectiveClientId,
       redirectUri: redirectUri(),
@@ -58,7 +60,17 @@ export function useWclAuth() {
       const returnedState = params.get("state");
       const expectedState = sessionStorage.getItem(PKCE_STATE_STORAGE_KEY);
       const verifier = sessionStorage.getItem(PKCE_VERIFIER_STORAGE_KEY);
-      window.history.replaceState({}, "", window.location.pathname);
+      const pendingHash =
+        sessionStorage.getItem(PENDING_HASH_STORAGE_KEY) ?? "";
+      sessionStorage.removeItem(PENDING_HASH_STORAGE_KEY);
+      window.history.replaceState(
+        {},
+        "",
+        window.location.pathname + pendingHash,
+      );
+      if (pendingHash) {
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
 
       if (returnedState !== expectedState || !verifier) {
         throw new OAuthStateMismatchError(

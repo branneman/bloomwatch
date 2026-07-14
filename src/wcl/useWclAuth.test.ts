@@ -1,14 +1,28 @@
-import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWclAuth } from "./useWclAuth";
 import { DEFAULT_CLIENT_ID } from "./defaultClient";
+import { exchangeCodeForToken } from "./client";
+
+vi.mock("./client", async (importOriginal) => ({
+  ...(await importOriginal()),
+  exchangeCodeForToken: vi.fn(),
+}));
 
 const CLIENT_ID_STORAGE_KEY = "wcl_client_id";
 const ACCESS_TOKEN_STORAGE_KEY = "wcl_access_token";
+const PKCE_STATE_STORAGE_KEY = "wcl_pkce_state";
 
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
+});
+
+afterEach(() => {
+  // Some tests below push search/hash onto the shared jsdom location to
+  // simulate the OAuth redirect round-trip — reset it so it doesn't bleed
+  // into later tests in this file.
+  window.history.pushState(null, "", window.location.pathname);
 });
 
 describe("useWclAuth", () => {
@@ -64,6 +78,53 @@ describe("useWclAuth", () => {
     expect(localStorage.getItem(CLIENT_ID_STORAGE_KEY)).toBeNull();
     expect(result.current.clientId).toBe(DEFAULT_CLIENT_ID);
     expect(result.current.usingDefaultClient).toBe(true);
+  });
+
+  it("restores the pre-auth shared-link hash after completing the OAuth redirect round-trip", async () => {
+    const sharedHash = "#/r/4GYHZRdtL3bvhpc8/d/Dassz/f/1";
+    window.history.pushState(null, "", sharedHash);
+
+    const { result } = renderHook(() => useWclAuth());
+
+    // jsdom logs a harmless "Not implemented: navigation" console error here
+    // because buildAuthorizeUrl() points cross-origin at warcraftlogs.com —
+    // expected, not a test failure. connect() stashes the current hash into
+    // sessionStorage before attempting the (blocked) navigation.
+    await act(async () => {
+      await result.current.connect();
+    });
+
+    const state = sessionStorage.getItem(PKCE_STATE_STORAGE_KEY);
+    expect(state).not.toBeNull();
+
+    vi.mocked(exchangeCodeForToken).mockResolvedValue({
+      accessToken: "returned-token",
+      expiresIn: 3600,
+    });
+
+    // Simulate WCL's redirect back: a fresh page load with ?code & state in
+    // the query string and no hash — a relative pushState with only a
+    // search component drops any existing fragment, matching what a real
+    // full-page navigation back from WCL looks like.
+    window.history.pushState(null, "", `?code=abc123&state=${state}`);
+    expect(window.location.hash).toBe("");
+
+    let popstateFired = false;
+    const handlePopstate = () => {
+      popstateFired = true;
+    };
+    window.addEventListener("popstate", handlePopstate);
+
+    const { result: resumed } = renderHook(() => useWclAuth());
+
+    await waitFor(() => {
+      expect(resumed.current.accessToken).toBe("returned-token");
+    });
+
+    window.removeEventListener("popstate", handlePopstate);
+
+    expect(window.location.hash).toBe(sharedHash);
+    expect(popstateFired).toBe(true);
   });
 
   it("reportRateLimited flips rateLimited without touching the access token", () => {

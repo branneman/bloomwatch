@@ -252,6 +252,10 @@ export function ReportDashboard({
         })}
       </div>
 
+      {/* Every FightRow below fetches its own epics' events on mount rather than
+          lazily on drill-in — intentional (story 010): the chip strip above needs
+          every fight's judgement to compute the worst-case per epic, so eager
+          per-fight fetching isn't an oversight to "fix" into lazy loading. */}
       <div className={styles.rows}>
         {rows.map(({ fight, pullNumber }) => (
           <FightRow
