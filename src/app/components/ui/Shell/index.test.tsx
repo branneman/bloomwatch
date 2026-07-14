@@ -24,4 +24,15 @@ describe("Shell", () => {
       width: "800px",
     });
   });
+
+  it("applies width 820 for the onboarding screen", () => {
+    render(
+      <Shell width={820}>
+        <p>Onboarding</p>
+      </Shell>,
+    );
+    expect(screen.getByText("Onboarding").parentElement).toHaveStyle({
+      width: "820px",
+    });
+  });
 });
