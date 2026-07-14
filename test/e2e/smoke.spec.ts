@@ -9,6 +9,7 @@ test("a pre-authenticated visit renders the real fight list and allows picking a
   page,
 }) => {
   await page.addInitScript((token) => {
+    window.localStorage.setItem("bloomwatch_onboarding_seen", "true");
     window.sessionStorage.setItem("wcl_access_token", token as string);
   }, accessToken);
 
@@ -23,11 +24,14 @@ test("a pre-authenticated visit renders the real fight list and allows picking a
   await expect(page.getByText("SSC+TK 2026-07-07")).toBeVisible();
 
   const firstBossFight = page
-    .getByRole("checkbox", {
+    .getByRole("button", {
       name: /^Pull \d+/,
     })
     .first();
   await expect(firstBossFight).toBeVisible();
   await firstBossFight.click();
-  await expect(firstBossFight).toBeChecked();
+
+  await expect(
+    page.getByRole("heading", { level: 2, name: /\(Kill|Wipe/ }),
+  ).toBeVisible();
 });
