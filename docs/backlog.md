@@ -364,9 +364,7 @@ I want an aggregated scorecard across every non-trash boss fight in the loaded r
 - A report spanning multiple raid zones (e.g. both SSC and TK fights logged in one session) aggregates all of them together — there is no per-zone split or picker.
 - Supersedes story 004 (zone-wide selection), removed from this backlog: partial "some but not all fights" selection is no longer a supported mode — it's either exactly one fight (via this dashboard's own list, 701) or the whole report (this story).
 
-### 703 — Shareable report state 🔲 Todo
-
-**Note:** in progress as of 2026-07-15, in a separate worktree/session (`docs/specs/703-shareable-report-state-design.md`, `docs/plans/703-shareable-report-state-plan.md`). Don't assume those files' absence or presence reflects this backlog's state until re-checked — the story isn't done until it's marked so here and those spec/plan files are retired, per this file's own working-conventions rule.
+### 703 — Shareable report state ✅ Done
 
 I want the report/fight/druid selection encoded in the URL, so that I can share a link to a specific scorecard with my healing officer. I also want the browser's own back/forward buttons to work throughout the app, so that navigating away from a screen doesn't feel like a dead end.
 
