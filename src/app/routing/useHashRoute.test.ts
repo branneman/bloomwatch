@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { useEffect } from "react";
 import { useHashRoute } from "./useHashRoute";
 
 describe("useHashRoute", () => {
@@ -18,6 +19,41 @@ describe("useHashRoute", () => {
     expect(result.current.route).toEqual({
       screen: "druidPicker",
       reportCode: "4GYHZRdtL3bvhpc8",
+    });
+  });
+
+  it("wins the race against a same-tick popstate dispatched by an earlier-declared sibling effect (e.g. useWclAuth's OAuth-return flow)", () => {
+    // Reproduces the actual bug from the story-703 re-review, inside a
+    // single renderHook() call: App.tsx calls useWclAuth() before
+    // useHashRoute(), and useWclAuth's completeAuth() restores a shared
+    // link's hash via history.replaceState and dispatches a synthetic
+    // popstate *synchronously* in its own mount effect (before its first
+    // await) — see src/wcl/useWclAuth.ts. React flushes mount effects in
+    // hook-declaration order, so that dispatch fires before useHashRoute's
+    // effect has run and attached its own popstate listener; the event
+    // lands on nobody. This harness mirrors that exact hook order: an
+    // inline effect declared first does the replaceState + dispatch, then
+    // useHashRoute() is called.
+    //
+    // Under the old useHashRoute (which only ever updated route inside its
+    // popstate handler), this assertion fails: route stays parsed from the
+    // stale "#" hash the initial render saw. The fix's unconditional
+    // setRoute(parseHash(window.location.hash)) at the top of the mount
+    // effect closes the gap regardless of firing order, since it re-reads
+    // the *current* hash rather than relying on having been listening at
+    // the moment it changed.
+    const { result } = renderHook(() => {
+      useEffect(() => {
+        window.history.replaceState(null, "", "#/r/CODE/d/Name");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }, []);
+      return useHashRoute();
+    });
+
+    expect(result.current.route).toEqual({
+      screen: "dashboard",
+      reportCode: "CODE",
+      druidName: "Name",
     });
   });
 

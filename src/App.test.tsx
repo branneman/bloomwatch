@@ -7,6 +7,7 @@ import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
+  exchangeCodeForToken,
   WclApiError,
   type ReportAbility,
 } from "./wcl/client";
@@ -23,6 +24,7 @@ vi.mock("./wcl/client", async (importOriginal) => ({
   fetchReportFights: vi.fn(),
   fetchCastsTable: vi.fn(),
   fetchMasterDataAbilities: vi.fn(),
+  exchangeCodeForToken: vi.fn(),
 }));
 
 vi.mock("./wcl/events", async (importOriginal) => ({
@@ -586,5 +588,46 @@ describe("App — shareable URL state", () => {
     expect(window.location.hash).toBe(
       `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,
     );
+  });
+
+  it("resumes on the shared-link screen after completing the OAuth redirect round-trip, not the report-input screen (closes the real gap the 747d355 fix left open)", async () => {
+    // No pre-existing access token: this is the fresh-tab OAuth-return case
+    // (a shared link opened by someone not yet connected), which is exactly
+    // what forces connect()'s full-page-redirect detour through WCL in the
+    // first place.
+    setUpHappyPathMocks();
+    const pendingHash = `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/1/e/lifebloom`;
+    // Mirrors what useWclAuth's connect() stashes into sessionStorage right
+    // before the full-page redirect to WCL (src/wcl/useWclAuth.ts) — a test
+    // can't literally follow that redirect, so it reconstructs the
+    // post-redirect state directly instead.
+    sessionStorage.setItem("wcl_pkce_verifier", "test-verifier");
+    sessionStorage.setItem("wcl_pkce_state", "test-state");
+    sessionStorage.setItem("wcl_pending_hash", pendingHash);
+    vi.mocked(exchangeCodeForToken).mockResolvedValue({
+      accessToken: "returned-token",
+      expiresIn: 3600,
+    });
+    // Mirrors WCL's redirect back: ?code & matching state in the query
+    // string, no hash yet (the hash is only restored once completeAuth()
+    // runs, from wcl_pending_hash) — a relative pushState with only a
+    // search component drops any existing fragment, matching a real
+    // full-page navigation back from WCL.
+    window.history.pushState(null, "", "?code=abc123&state=test-state");
+    expect(window.location.hash).toBe("");
+
+    render(<App />);
+
+    // This is the assertion the prior fix (747d355) claimed to satisfy but
+    // didn't: window.location.hash alone being restored isn't enough if
+    // useHashRoute's React state never re-syncs to it (see the effect-order
+    // race in useHashRoute.ts). Asserting the *rendered* screen, not just
+    // the URL, is what actually catches that gap.
+    expect(
+      await screen.findByRole("heading", { name: "Lifebloom discipline" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Report URL or code"),
+    ).not.toBeInTheDocument();
   });
 });
