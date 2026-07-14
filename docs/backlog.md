@@ -245,6 +245,8 @@ I want each Swiftmend listed with the HoT it consumed, that HoT's remaining dura
 - Also reports Swiftmend usage count vs. availability windows (15 s CD) as informational context.
 - R/O/G on wasteful share: green 0 %, orange ≤ 25 %, red > 25 %.
 
+**Note (flagged by 011, not fixed here):** the same Swiftmend-availability gap as 501's note applies here — for a build that can't talent into Swiftmend at all (e.g. Dreamstate, 26 Restoration points, needs 41), the "usage count vs. availability windows" informational context reads as a large number of missed opportunities that were in fact never available. Not fixed in 011, for the same reason as 501's note; the same future follow-up story should address both.
+
 ### 303 — Downranking discipline ✅ Done
 
 I want a per-rank breakdown of my direct heals (Regrowth, Healing Touch) with cast counts and direct-portion overheal, so that I can verify I'm using cheap ranks for spot healing and max ranks only when needed.
@@ -322,6 +324,8 @@ I want an audit for every friendly death (with emphasis on my maintained tank ta
 - For each death: target, time, my LB3 status on that target, Swiftmend CD state, NS CD state, whether I was idle in the preceding 5 s.
 - R/O/G per death: red if ≥ 2 unspent resources on a maintained target's death; summarized per fight.
 - Clearly labeled caveat: a death is not automatically the druid's fault; this audits _your_ readiness only.
+
+**Note (flagged by 011, not fixed here):** `deathForensics.ts`'s `isReady()` helper (used for both `swiftmendReady` and `nsReady`) treats "no prior cast of this ability at all" as "ready" — correct for a druid who simply hasn't needed the cooldown yet, but indistinguishable from a druid whose build can never talent into it at all (e.g. a Dreamstate build, which tops out at 26 Restoration points and can never reach Swiftmend's 41-point requirement — see `docs/testing.md`'s `bKRZ68XqgwYkxtzm` entry). A Dreamstate druid's `unspentCount` is therefore inflated by a resource they never had access to, which can misjudge a death as red for "2 unspent resources" when only Nature's Swiftness was ever real. Fixing this needs the app to resolve a druid's actual talent points, which it doesn't do anywhere today — out of scope for 011's fixture-only mandate. A follow-up story should add talent-point resolution and gate CD-readiness checks on it.
 
 ---
 
