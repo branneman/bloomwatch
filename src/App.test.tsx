@@ -298,18 +298,22 @@ describe("App", () => {
     render(<App />);
     await loadReport(user);
 
+    expect(
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+    ).toBeInTheDocument();
+
     // Sole-candidate auto-select (DruidPicker returns null) shouldn't leave a
-    // bare "Druid" heading with nothing under it — see Fix 4 (pre-702).
+    // bare "Druid" heading with nothing under it — see Fix 4 (pre-702). Checked
+    // after the dashboard has appeared (not right after loadReport) since the
+    // druid-pick screen briefly exists while detection/ability-resolution are
+    // still in flight — asserting its absence too early is a race, not a
+    // meaningful check.
     expect(
       screen.queryByRole("heading", { name: "Druid" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "View report dashboard" }),
     ).not.toBeInTheDocument();
-
-    expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
-    ).toBeInTheDocument();
   });
 
   it("drills into a fight's scorecard from the whole-report dashboard, and back to the fight list via ← All fights", async () => {
