@@ -113,6 +113,7 @@ export function Scorecard({
     reportCode,
     fight,
     druidId,
+    resolvedAbilities,
     fetchEvents,
   );
   const deathSummary = useDeathForensicsSummary(
@@ -414,6 +415,7 @@ export function Scorecard({
             reportCode={reportCode}
             fight={fight}
             druidId={druidId}
+            resolvedAbilities={resolvedAbilities}
             fetchEvents={fetchEvents}
           />
         </div>

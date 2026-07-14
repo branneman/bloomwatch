@@ -4,7 +4,7 @@ import { ManaEconomyContent } from "./index";
 import { aCastEvent, aFight } from "../../../testUtils/factories";
 
 describe("ManaEconomyContent", () => {
-  it("renders the mana curve card", async () => {
+  it("renders the mana curve and consumable throughput cards", async () => {
     const fight = aFight({
       id: 6,
       kill: true,
@@ -27,6 +27,7 @@ describe("ManaEconomyContent", () => {
         reportCode="4GYHZRdtL3bvhpc8"
         fight={fight}
         druidId={2}
+        resolvedAbilities={new Map()}
         fetchEvents={fetchEvents}
       />,
     );
@@ -34,8 +35,14 @@ describe("ManaEconomyContent", () => {
     expect(
       screen.getByRole("heading", { name: "Mana curve & ending mana" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Consumable throughput" }),
+    ).toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByText("Ending mana: 20%")).toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Mana Potion")).toBeInTheDocument(),
     );
   });
 });

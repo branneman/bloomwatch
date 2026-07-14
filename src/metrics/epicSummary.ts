@@ -12,6 +12,7 @@ import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
 import type { PrepHygieneResult } from "./prepHygiene";
+import type { ConsumableThroughputResult } from "./consumableThroughput";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -86,13 +87,29 @@ export function summarizeSpellDiscipline(
   };
 }
 
-export function summarizeManaEconomy(manaCurve: ManaCurveResult): EpicSummary {
+export function summarizeManaEconomy(
+  manaCurve: ManaCurveResult,
+  consumableThroughput: ConsumableThroughputResult,
+): EpicSummary {
+  const consumablesStat = consumableThroughput.exempt
+    ? "Consumables: not mana-constrained"
+    : consumableThroughput.rows
+        .map(
+          (row) =>
+            `${row.label === "Mana Potion" ? "Potions" : "Runes"}: ${row.used}/${row.expectedFloor}`,
+        )
+        .join(", ");
+
   return {
-    judgement: worstJudgement([manaCurve.judgement]),
+    judgement: worstJudgement([
+      manaCurve.judgement,
+      consumableThroughput.judgement,
+    ]),
     stats: [
       manaCurve.endingPct === null
         ? "Ending mana: no data"
         : `Ending mana: ${Math.round(manaCurve.endingPct)}%`,
+      consumablesStat,
     ],
   };
 }

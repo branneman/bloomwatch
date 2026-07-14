@@ -20,6 +20,7 @@ import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
 import type { PrepHygieneResult } from "./prepHygiene";
+import type { ConsumableThroughputResult } from "./consumableThroughput";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -334,15 +335,21 @@ describe("summarizeSpellDiscipline", () => {
 });
 
 describe("summarizeManaEconomy", () => {
-  it("reports the mana curve's own judgement and ending mana stat", () => {
+  const EXEMPT_CONSUMABLES: ConsumableThroughputResult = {
+    exempt: true,
+    rows: [],
+    judgement: null,
+  };
+
+  it("reports the mana curve's own judgement and ending mana stat when consumables are exempt", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
       judgement: "green",
     };
-    expect(summarizeManaEconomy(manaCurve)).toEqual({
+    expect(summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES)).toEqual({
       judgement: "green",
-      stats: ["Ending mana: 20%"],
+      stats: ["Ending mana: 20%", "Consumables: not mana-constrained"],
     });
   });
 
@@ -352,9 +359,34 @@ describe("summarizeManaEconomy", () => {
       endingPct: null,
       judgement: null,
     };
-    expect(summarizeManaEconomy(manaCurve)).toEqual({
+    expect(summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES)).toEqual({
       judgement: "green",
-      stats: ["Ending mana: no data"],
+      stats: ["Ending mana: no data", "Consumables: not mana-constrained"],
+    });
+  });
+
+  it("formats the potion/rune stat line and takes the worst-of judgement", () => {
+    const manaCurve: ManaCurveResult = {
+      points: [{ timestampMs: 1000, pct: 20 }],
+      endingPct: 20,
+      judgement: "green",
+    };
+    const consumableThroughput: ConsumableThroughputResult = {
+      exempt: false,
+      rows: [
+        {
+          label: "Mana Potion",
+          used: 2,
+          expectedFloor: 2,
+          judgement: "green",
+        },
+        { label: "Rune", used: 0, expectedFloor: 1, judgement: "red" },
+      ],
+      judgement: "red",
+    };
+    expect(summarizeManaEconomy(manaCurve, consumableThroughput)).toEqual({
+      judgement: "red",
+      stats: ["Ending mana: 20%", "Potions: 2/2, Runes: 0/1"],
     });
   });
 });

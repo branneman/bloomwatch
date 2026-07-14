@@ -4,7 +4,7 @@ import { useManaEconomySummary } from "./useManaEconomySummary";
 import { aCastEvent, aFight } from "../../../testUtils/factories";
 
 describe("useManaEconomySummary", () => {
-  it("starts loading, then reports the mana curve's judgement and stat line", async () => {
+  it("starts loading, then reports the worst-of judgement and both stat lines", async () => {
     const fight = aFight({
       id: 6,
       kill: true,
@@ -27,6 +27,7 @@ describe("useManaEconomySummary", () => {
         "4GYHZRdtL3bvhpc8",
         fight,
         2,
+        new Map(),
         fetchEvents,
       ),
     );
@@ -34,10 +35,13 @@ describe("useManaEconomySummary", () => {
     expect(result.current).toEqual({ status: "loading" });
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
+    // Mana at 20% is below the 70% threshold, so consumables are judged: floor =
+    // 120_000/120_000 = 1, 0 potions and 0 runes used -> both rows orange (one below
+    // floor), which is the worst-of against the mana curve's own "green".
     expect(result.current).toEqual({
       status: "ready",
-      judgement: "green",
-      stats: ["Ending mana: 20%"],
+      judgement: "orange",
+      stats: ["Ending mana: 20%", "Potions: 0/1, Runes: 0/1"],
     });
   });
 
@@ -52,6 +56,7 @@ describe("useManaEconomySummary", () => {
         "4GYHZRdtL3bvhpc8",
         fight,
         2,
+        new Map(),
         fetchEvents,
       ),
     );

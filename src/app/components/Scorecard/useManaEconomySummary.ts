@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { computeManaCurve } from "../../../metrics/manaCurve";
+import { computeConsumableThroughput } from "../../../metrics/consumableThroughput";
 import { summarizeManaEconomy } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -13,6 +15,7 @@ export function useManaEconomySummary(
   reportCode: string,
   fight: Fight,
   druidId: number,
+  resolvedAbilities: Map<number, ResolvedAbility>,
   fetchEvents: (
     accessToken: string,
     reportCode: string,
@@ -38,9 +41,18 @@ export function useManaEconomySummary(
           fight.kill === true,
           fight.endTime - fight.startTime,
         );
+        const consumableThroughput = computeConsumableThroughput(
+          events,
+          druidId,
+          resolvedAbilities,
+          fight.endTime - fight.startTime,
+        );
         setState({
           accessToken,
-          summary: { status: "ready", ...summarizeManaEconomy(manaCurve) },
+          summary: {
+            status: "ready",
+            ...summarizeManaEconomy(manaCurve, consumableThroughput),
+          },
         });
       })
       .catch((err: unknown) =>
@@ -63,6 +75,7 @@ export function useManaEconomySummary(
     fight.endTime,
     fight.kill,
     druidId,
+    resolvedAbilities,
     fetchEvents,
   ]);
 
