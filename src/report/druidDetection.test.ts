@@ -95,4 +95,49 @@ describe("detectDruids", () => {
     const result = detectDruids([ambiguousHighCasts, restoLowCasts]);
     expect(result.map((c) => c.name)).toEqual(["Dassz", "Maoqi"]);
   });
+
+  it("includes a Dreamstate-labeled druid with real healing casts, judged as not Restoration-labeled", () => {
+    // Real captured data: report bKRZ68XqgwYkxtzm, fight 3 (The Lurker
+    // Below), Neepzendruid — WCL's own icon for a 35/0/26 Balance/Feral/
+    // Restoration build is "Druid-Dreamstate", not "Druid-Restoration".
+    // Zero Swiftmend casts is deliberate: Swiftmend needs 41 points deep in
+    // Restoration, unreachable at 26. See docs/testing.md's known-reports
+    // table.
+    const neepzendruid = aCastTableEntry({
+      id: 17,
+      name: "Neepzendruid",
+      icon: "Druid-Dreamstate",
+      abilities: [
+        { name: "Lifebloom", total: 784 },
+        { name: "Regrowth", total: 123 },
+        { name: "Rejuvenation", total: 95 },
+      ],
+    });
+    const result = detectDruids([neepzendruid]);
+    expect(result).toEqual([
+      {
+        id: 17,
+        name: "Neepzendruid",
+        healingCastCount: 1002,
+        isRestoSpec: false,
+      },
+    ]);
+  });
+
+  it("sorts a Restoration-labeled candidate before a Dreamstate-labeled one, even with fewer casts", () => {
+    const dreamstateHighCasts = aCastTableEntry({
+      id: 17,
+      name: "Neepzendruid",
+      icon: "Druid-Dreamstate",
+      abilities: [{ name: "Lifebloom", total: 784 }],
+    });
+    const restoLowCasts = aCastTableEntry({
+      id: 2,
+      name: "Dassz",
+      icon: "Druid-Restoration",
+      abilities: [{ name: "Lifebloom", total: 10 }],
+    });
+    const result = detectDruids([dreamstateHighCasts, restoLowCasts]);
+    expect(result.map((c) => c.name)).toEqual(["Dassz", "Neepzendruid"]);
+  });
 });
