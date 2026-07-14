@@ -364,7 +364,7 @@ I want one fight's results as a dashboard of small summary widgets — one per e
 - The overview shows one widget per implemented epic, sized to fit together in a single view (no scrolling) regardless of how many epics are implemented so far.
 - Each widget shows a worst-of R/O/G judgement across that epic's metrics, plus 1–2 key stats — enough to tell good from bad without opening it.
 - Clicking a widget transitions to that epic's detail view: every implemented metric in the epic, each with its judgement and its threshold made visible on demand. A clear way back returns to the overview without reloading or re-fetching.
-- Reachable both directly from 003's fight list (drill-down link) and via 702's whole-report dashboard once that exists.
+- Reachable via the whole-report dashboard's per-boss list (702), which fulfills 003's former drill-down role directly — there is no separate fight-picker screen.
 
 ### 702 — Whole-report dashboard ✅ Done
 
@@ -386,7 +386,7 @@ I want the report/fight/druid selection encoded in the URL, so that I can share 
 
 - Opening a shared URL reproduces the same scorecard (after auth).
 - No metric data is stored anywhere — the URL only encodes selection state.
-- Every screen in the flow (report input, druid picker, whole-report dashboard (702), whole-report per-epic detail, fight picker (003, drill-down), per-fight scorecard (701), per-fight per-epic detail) changes the URL hash as the user navigates through it — not just the final scorecard view — using hash-based routing (no server-side routes to configure, matching the static-hosting/no-backend constraint).
+- Every screen in the flow (report input, druid picker, whole-report dashboard (702, whose per-boss list fulfills 003's former role — there is no separate fight-picker screen to route), whole-report per-epic detail, per-fight scorecard (701), per-fight per-epic detail) changes the URL hash as the user navigates through it — not just the final scorecard view — using hash-based routing (no server-side routes to configure, matching the static-hosting/no-backend constraint).
 - The browser's back/forward buttons move between screens the same way the in-app back-links (e.g. "← All fights", "← All metrics", "← Change fight selection") do, everywhere in the flow — not just at the top level.
 - Opening any hash-encoded URL directly (not just the fully-selected scorecard one) resumes at that exact screen once authenticated, instead of resetting to the report-input screen.
 
@@ -406,7 +406,7 @@ I want the app to work well on mobile, so that I can check a scorecard from my p
 **Acceptance criteria**
 
 - Blocked on a `docs/design_v3` existing, produced via a dedicated Claude Design pass (same pattern as `docs/design_v1`/`docs/design_v2`) — this story does not specify a layout itself.
-- Once design_v3 exists, all flow screens (onboarding, report input, druid picker, whole-report dashboard, fight picker, per-fight scorecard, per-epic detail views) are usable on common mobile viewport widths, matching design_v3.
+- Once design_v3 exists, all flow screens (onboarding, report input, druid picker, whole-report dashboard — whose own per-boss list is the fight picker, there is no separate screen — per-fight scorecard, per-epic detail views) are usable on common mobile viewport widths, matching design_v3.
 
 ### 707 — Judgement language: Good/Fair/Bad labels
 
