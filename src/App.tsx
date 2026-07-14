@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWclAuth } from "./wcl/useWclAuth";
 import {
   fetchReportFights,
@@ -27,9 +27,10 @@ import { Alert } from "./app/components/ui/Alert";
 import { Disclosure } from "./app/components/ui/Disclosure";
 import { OwnClientIdField } from "./app/components/OwnClientIdField";
 import { withRateLimitDetection } from "./wcl/client";
+import { useHashRoute } from "./app/routing/useHashRoute";
+import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import type { DruidCandidate } from "./report/druidDetection";
 import type { ActorClass } from "./metrics/innervateAudit";
-import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import logo from "./assets/logo/lifebloom.jpg";
 import styles from "./App.module.css";
 
@@ -38,12 +39,13 @@ const ONBOARDING_SEEN_KEY = "bloomwatch_onboarding_seen";
 function App() {
   const { connect, accessToken, authError, rateLimited, reportRateLimited } =
     useWclAuth();
-  const [report, setReport] = useState<ParsedReport | null>(null);
+  const { route, navigate } = useHashRoute();
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
   const [druidCandidates, setDruidCandidates] = useState<
     DruidCandidate[] | null
   >(null);
-  const [selectedDruidId, setSelectedDruidId] = useState<number | null>(null);
+  const [pickedDruidId, setPickedDruidId] = useState<number | null>(null);
+  const [pendingFightId, setPendingFightId] = useState<number | null>(null);
   const [actorNames, setActorNames] = useState<Map<number, string>>(new Map());
   const [actorClasses, setActorClasses] = useState<Map<number, ActorClass>>(
     new Map(),
@@ -52,13 +54,12 @@ function App() {
     number,
     ResolvedAbility
   > | null>(null);
-  const [dashboardRequested, setDashboardRequested] = useState(false);
   const [eventFetcher] = useState(() => createEventFetcher());
   const [onboardingDismissed, setOnboardingDismissed] = useState(
     () => localStorage.getItem(ONBOARDING_SEEN_KEY) === "true",
   );
-  const [activeEpicId, setActiveEpicId] = useState<EpicId | null>(null);
-  const [openFightId, setOpenFightId] = useState<number | null>(null);
+
+  const reportCode = route.screen === "input" ? null : route.reportCode;
 
   const wrappedFetchReportFights = useMemo(
     () => withRateLimitDetection(fetchReportFights, reportRateLimited),
@@ -80,24 +81,22 @@ function App() {
   function resetReportState() {
     setLoadedReport(null);
     setDruidCandidates(null);
-    setSelectedDruidId(null);
     setActorNames(new Map());
     setActorClasses(new Map());
     setResolvedAbilities(null);
-    setDashboardRequested(false);
-    setActiveEpicId(null);
-    setOpenFightId(null);
+    setPickedDruidId(null);
   }
 
   function handleReportSubmit(parsed: ParsedReport) {
-    setReport(parsed);
     resetReportState();
-    setOpenFightId(parsed.fightId);
+    setPendingFightId(parsed.fightId);
+    navigate({ screen: "druidPicker", reportCode: parsed.reportCode });
   }
 
   function handleStartOver() {
-    setReport(null);
     resetReportState();
+    setPendingFightId(null);
+    navigate({ screen: "input" });
   }
 
   function dismissOnboarding() {
@@ -162,11 +161,7 @@ function App() {
     [resolvedAbilities],
   );
 
-  const selectedDruid =
-    druidCandidates?.find((d) => d.id === selectedDruidId) ?? null;
-
-  const canGetDashboard =
-    selectedDruid !== null &&
+  const abilitiesReady =
     lifebloomAbilityIds !== null &&
     rejuvenationAbilityIds !== null &&
     regrowthAbilityIds !== null &&
@@ -174,15 +169,129 @@ function App() {
     naturesSwiftnessAbilityIds !== null &&
     resolvedAbilities !== null;
 
-  // A single candidate has no picker to interact with (DruidPicker
-  // auto-selects it silently) — requiring a "View report dashboard" click on
-  // top of that would be a confirmation step with nothing left to confirm.
-  // Updated directly during render (React's "adjusting state" pattern)
-  // rather than in an effect, since it's purely derived from already-
-  // rendered state and naturally settles once dashboardRequested flips true.
-  if (druidCandidates?.length === 1 && canGetDashboard && !dashboardRequested) {
-    setDashboardRequested(true);
+  const pickedDruid =
+    druidCandidates?.find((d) => d.id === pickedDruidId) ?? null;
+
+  const routeDruidName =
+    route.screen === "dashboard" ||
+    route.screen === "fight" ||
+    route.screen === "fightEpic"
+      ? route.druidName
+      : null;
+  const selectedDruid =
+    routeDruidName !== null
+      ? (druidCandidates?.find((d) => d.name === routeDruidName) ?? null)
+      : null;
+
+  const openFightId =
+    route.screen === "fight" || route.screen === "fightEpic"
+      ? route.fightId
+      : null;
+  const activeEpicId = route.screen === "fightEpic" ? route.epicId : null;
+
+  function handleOpenFight(fightId: number) {
+    if (reportCode === null || selectedDruid === null) return;
+    navigate({
+      screen: "fight",
+      reportCode,
+      druidName: selectedDruid.name,
+      fightId,
+    });
   }
+
+  function handleCloseFight() {
+    if (reportCode === null || selectedDruid === null) return;
+    navigate({
+      screen: "dashboard",
+      reportCode,
+      druidName: selectedDruid.name,
+    });
+  }
+
+  function handleSelectEpic(epicId: EpicId | null) {
+    if (reportCode === null || selectedDruid === null) return;
+    if (route.screen !== "fight" && route.screen !== "fightEpic") return;
+    const fightId = route.fightId;
+    if (epicId === null) {
+      navigate({
+        screen: "fight",
+        reportCode,
+        druidName: selectedDruid.name,
+        fightId,
+      });
+    } else {
+      navigate({
+        screen: "fightEpic",
+        reportCode,
+        druidName: selectedDruid.name,
+        fightId,
+        epicId,
+      });
+    }
+  }
+
+  function advanceFromPicker(druidName: string) {
+    if (route.screen !== "druidPicker") return;
+    if (pendingFightId !== null) {
+      navigate({
+        screen: "fight",
+        reportCode: route.reportCode,
+        druidName,
+        fightId: pendingFightId,
+      });
+      setPendingFightId(null);
+    } else {
+      navigate({
+        screen: "dashboard",
+        reportCode: route.reportCode,
+        druidName,
+      });
+    }
+  }
+
+  // Sole candidate has no picker UI to click through (DruidPicker returns
+  // null and self-selects) — advance the moment abilities are also ready, no
+  // button click needed. navigate() has a genuine side effect (pushState),
+  // so — unlike a plain setState "adjusting state" pattern — this belongs in
+  // an effect, not inline in the render body.
+  useEffect(() => {
+    if (druidCandidates === null || druidCandidates.length !== 1) return;
+    if (!abilitiesReady) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- advanceFromPicker's setPendingFightId/navigate are a genuine side effect (pushState) gated behind async conditions (druidCandidates/abilitiesReady resolving), not a same-render "adjusting state" case the rule is meant to catch; see the comment above.
+    advanceFromPicker(druidCandidates[0].name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- advanceFromPicker closes over route/pendingFightId/navigate, all fresh every render; re-running only when druidCandidates or abilitiesReady actually change (not on every render) is the intent.
+  }, [druidCandidates, abilitiesReady]);
+
+  // A route that already names a druid (e.g. a shared link) is confirmed or
+  // silently rejected the moment candidates resolve — no picker shown
+  // either way, per story 703's "silently fall back" decision.
+  useEffect(() => {
+    if (
+      route.screen !== "dashboard" &&
+      route.screen !== "fight" &&
+      route.screen !== "fightEpic"
+    ) {
+      return;
+    }
+    if (druidCandidates === null) return;
+    if (druidCandidates.some((d) => d.name === route.druidName)) return;
+    navigate({ screen: "druidPicker", reportCode: route.reportCode });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable (useCallback with no deps in useHashRoute); route/druidCandidates are the only real inputs.
+  }, [route, druidCandidates]);
+
+  // A fightId the loaded report doesn't actually have (stale/bad link)
+  // falls back to the dashboard once the report's fights are known.
+  useEffect(() => {
+    if (route.screen !== "fight" && route.screen !== "fightEpic") return;
+    if (loadedReport === null) return;
+    if (nonTrashFightIds.includes(route.fightId)) return;
+    navigate({
+      screen: "dashboard",
+      reportCode: route.reportCode,
+      druidName: route.druidName,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable; route/loadedReport/nonTrashFightIds are the only real inputs.
+  }, [route, loadedReport, nonTrashFightIds]);
 
   return (
     <>
@@ -240,39 +349,53 @@ function App() {
           className={rateLimited ? styles.dimmed : undefined}
           inert={rateLimited}
         >
-          {/* Rendered for the whole lifetime of `report` (not just while
-              !loadedReport) rather than only on the first screen: its fetch
-              can still be in flight when loadedReport resolves (masterData
-              is a bigger query than the fights list), and unmounting a
-              component aborts its in-flight fetch (see ConnectPanel/
-              AbilityResolver's AbortSignal cleanup) — mounting it here once,
-              for the whole flow, means that abort only ever fires for a
-              genuine report change/reset, never for a normal screen
-              transition. */}
-          {report && (
+          {/* Rendered for the whole lifetime of a known reportCode (not just
+              while !loadedReport), same reasoning as before 703: its fetch
+              can still be in flight when loadedReport resolves, and
+              unmounting a component aborts its in-flight fetch. */}
+          {reportCode && (
             <AbilityResolver
               accessToken={accessToken}
-              reportCode={report.reportCode}
+              reportCode={reportCode}
               fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
               onResolved={setResolvedAbilities}
             />
           )}
 
-          {!loadedReport && (
+          {/* Also rendered for the whole lifetime of a loaded report, not
+              just while the druid-pick screen is showing — a route that
+              resumes straight to the dashboard/fight/epic screen (a shared
+              link) never shows that screen at all, but still needs this to
+              run so druidCandidates ever resolves. */}
+          {loadedReport && reportCode && (
+            <DruidDetector
+              accessToken={accessToken}
+              reportCode={reportCode}
+              fightIds={nonTrashFightIds}
+              fetchCastsTable={wrappedFetchCastsTable}
+              onDruidsDetected={setDruidCandidates}
+              onEntriesLoaded={handleEntriesLoaded}
+            />
+          )}
+
+          {route.screen === "input" && (
             <Shell>
               <ReportInput onSubmit={handleReportSubmit} />
-              {report && (
-                <ConnectPanel
-                  accessToken={accessToken}
-                  reportCode={report.reportCode}
-                  fetchReportFights={wrappedFetchReportFights}
-                  onReportLoaded={setLoadedReport}
-                />
-              )}
             </Shell>
           )}
 
-          {report && loadedReport && !dashboardRequested && (
+          {reportCode && !loadedReport && (
+            <Shell>
+              <ConnectPanel
+                accessToken={accessToken}
+                reportCode={reportCode}
+                fetchReportFights={wrappedFetchReportFights}
+                onReportLoaded={setLoadedReport}
+              />
+            </Shell>
+          )}
+
+          {loadedReport && route.screen === "druidPicker" && (
             <Shell>
               <h2>{loadedReport.title}</h2>
               <button
@@ -282,54 +405,47 @@ function App() {
               >
                 Load different WCL report
               </button>
-              <DruidDetector
-                accessToken={accessToken}
-                reportCode={report.reportCode}
-                fightIds={nonTrashFightIds}
-                fetchCastsTable={wrappedFetchCastsTable}
-                onDruidsDetected={setDruidCandidates}
-                onEntriesLoaded={handleEntriesLoaded}
-              />
               {druidCandidates !== null &&
                 (druidCandidates.length > 1 ? (
                   <div className={styles.druidSection}>
                     <h3>Druid</h3>
                     <DruidPicker
                       candidates={druidCandidates}
-                      selectedDruidId={selectedDruidId}
-                      onSelect={setSelectedDruidId}
+                      selectedDruidId={pickedDruidId}
+                      onSelect={setPickedDruidId}
                     />
                   </div>
                 ) : (
                   <DruidPicker
                     candidates={druidCandidates}
-                    selectedDruidId={selectedDruidId}
-                    onSelect={setSelectedDruidId}
+                    selectedDruidId={pickedDruidId}
+                    onSelect={setPickedDruidId}
                   />
                 ))}
               <Button
-                disabled={!canGetDashboard}
-                onClick={() => setDashboardRequested(true)}
+                disabled={!(pickedDruid !== null && abilitiesReady)}
+                onClick={() =>
+                  pickedDruid && advanceFromPicker(pickedDruid.name)
+                }
               >
                 View report dashboard
               </Button>
             </Shell>
           )}
 
-          {report &&
-            loadedReport &&
-            dashboardRequested &&
+          {loadedReport &&
+            reportCode &&
             selectedDruid !== null &&
+            resolvedAbilities !== null &&
             lifebloomAbilityIds !== null &&
             rejuvenationAbilityIds !== null &&
             regrowthAbilityIds !== null &&
             swiftmendAbilityIds !== null &&
-            naturesSwiftnessAbilityIds !== null &&
-            resolvedAbilities !== null && (
+            naturesSwiftnessAbilityIds !== null && (
               <Shell width={920}>
                 <ReportDashboard
                   accessToken={accessToken}
-                  reportCode={report.reportCode}
+                  reportCode={reportCode}
                   reportTitle={loadedReport.title}
                   fights={loadedReport.fights}
                   druidId={selectedDruid.id}
@@ -344,10 +460,10 @@ function App() {
                   actorClasses={actorClasses}
                   fetchEvents={wrappedFetchEvents}
                   openFightId={openFightId}
-                  onOpenFight={setOpenFightId}
-                  onCloseFight={() => setOpenFightId(null)}
+                  onOpenFight={handleOpenFight}
+                  onCloseFight={handleCloseFight}
                   activeEpicId={activeEpicId}
-                  onSelectEpic={setActiveEpicId}
+                  onSelectEpic={handleSelectEpic}
                   onStartOver={handleStartOver}
                 />
               </Shell>

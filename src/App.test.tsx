@@ -1,5 +1,5 @@
 // src/App.test.tsx
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -69,6 +69,7 @@ describe("App", () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    window.history.pushState(null, "", "#");
     vi.clearAllMocks();
     localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
   });
@@ -378,6 +379,7 @@ describe("App — Onboarding", () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    window.history.pushState(null, "", "#");
     vi.clearAllMocks();
   });
 
@@ -429,5 +431,160 @@ describe("App — Onboarding", () => {
       screen.getByRole("heading", { name: "What this is" }),
     ).toBeInTheDocument();
     expect(localStorage.getItem(ONBOARDING_SEEN_KEY)).toBe("true");
+  });
+});
+
+describe("App — shareable URL state", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState(null, "", "#");
+    vi.clearAllMocks();
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+  });
+
+  it("updates the URL hash as the user navigates report → druid → dashboard → fight → epic", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+
+    expect(window.location.hash).toBe(
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+    );
+    expect(window.location.hash).toBe(
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/1`,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: /GCD economy/ }),
+    );
+    expect(window.location.hash).toBe(
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/1/e/gcd`,
+    );
+  });
+
+  it("moves back a screen via the browser back button, same as the in-app back-link", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+    await user.click(
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+    );
+    await screen.findByRole("button", { name: /GCD economy/ });
+
+    await user.click(
+      await screen.findByRole("button", { name: /GCD economy/ }),
+    );
+    await screen.findByRole("heading", { name: "GCD utilization" });
+
+    // One back() undoes exactly one navigate() call — the same granularity
+    // as the in-app "← All metrics" link, which only closes the epic detail
+    // and returns to the fight's widget list, not all the way to the
+    // dashboard. Per story 703's acceptance criteria, browser back/forward
+    // must mirror whichever in-app back-link applies "everywhere in the
+    // flow — not just at the top level", and "← All metrics" (not
+    // "← All fights") is what's shown while an epic is open.
+    await act(async () => {
+      window.history.back();
+    });
+
+    expect(
+      await screen.findByRole("button", { name: /GCD economy/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "GCD utilization" }),
+    ).not.toBeInTheDocument();
+    expect(window.location.hash).toBe(
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/1`,
+    );
+
+    // A second back() undoes the fight-open navigate() too, landing on the
+    // dashboard — matching "← All fights" this time.
+    await act(async () => {
+      window.history.back();
+    });
+
+    expect(
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /GCD economy/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("resumes directly on a deep-linked fight+epic screen, skipping the report-input step", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    window.history.pushState(
+      null,
+      "",
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/1/e/lifebloom`,
+    );
+
+    render(<App />);
+
+    expect(
+      screen.queryByLabelText("Report URL or code"),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Lifebloom discipline" }),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the druid picker when the URL names a druid that isn't a detected candidate", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockResolvedValue(
+      aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
+    );
+    vi.mocked(fetchCastsTable).mockResolvedValue([
+      aCastTableEntry(),
+      aCastTableEntry({ id: 3, name: "Barrychuckle" }),
+    ]);
+    vi.mocked(fetchMasterDataAbilities).mockResolvedValue([aReportAbility()]);
+    vi.mocked(fetchEventsPage).mockResolvedValue({
+      events: [],
+      nextPageTimestamp: null,
+    });
+    window.history.pushState(
+      null,
+      "",
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("NotARealDruid")}`,
+    );
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: "View report dashboard" }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe(`#/r/${REPORT_CODE}`);
+  });
+
+  it("falls back to the dashboard when the URL names a fight that isn't in this report", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    window.history.pushState(
+      null,
+      "",
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/999`,
+    );
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe(
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,
+    );
   });
 });
