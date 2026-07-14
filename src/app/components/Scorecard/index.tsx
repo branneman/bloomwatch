@@ -14,12 +14,7 @@ import { SpellDisciplineContent } from "../SpellDisciplineContent";
 import { ManaEconomyContent } from "../ManaEconomyContent";
 import { DeathForensicsContent } from "../DeathForensicsContent";
 import { PrepHygieneContent } from "../PrepHygieneContent";
-import { useGcdEconomySummary } from "./useGcdEconomySummary";
-import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
-import { useSpellDisciplineSummary } from "./useSpellDisciplineSummary";
-import { useManaEconomySummary } from "./useManaEconomySummary";
-import { useDeathForensicsSummary } from "./useDeathForensicsSummary";
-import { usePrepHygieneSummary } from "./usePrepHygieneSummary";
+import { useFightEpicSummaries } from "./useFightEpicSummaries";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -85,56 +80,25 @@ export function Scorecard({
 }: ScorecardProps) {
   const [activeEpic, setActiveEpic] = useState<EpicId | null>(null);
 
-  const gcdSummary = useGcdEconomySummary(
-    accessToken,
-    reportCode,
-    fight,
-    druidId,
-    fetchEvents,
-  );
-  const lifebloomSummary = useLifebloomDisciplineSummary(
+  const {
+    gcd: gcdSummary,
+    lifebloom: lifebloomSummary,
+    spell: spellSummary,
+    mana: manaSummary,
+    death: deathSummary,
+    prep: prepSummary,
+  } = useFightEpicSummaries(
     accessToken,
     reportCode,
     fight,
     druidId,
     lifebloomAbilityIds,
-    fetchEvents,
-  );
-  const spellSummary = useSpellDisciplineSummary(
-    accessToken,
-    reportCode,
-    fight,
-    druidId,
     rejuvenationAbilityIds,
     regrowthAbilityIds,
     swiftmendAbilityIds,
-    resolvedAbilities,
-    fetchEvents,
-  );
-  const manaSummary = useManaEconomySummary(
-    accessToken,
-    reportCode,
-    fight,
-    druidId,
+    naturesSwiftnessAbilityIds,
     resolvedAbilities,
     actorClasses,
-    fetchEvents,
-  );
-  const deathSummary = useDeathForensicsSummary(
-    accessToken,
-    reportCode,
-    fight,
-    druidId,
-    swiftmendAbilityIds,
-    naturesSwiftnessAbilityIds,
-    lifebloomAbilityIds,
-    fetchEvents,
-  );
-  const prepSummary = usePrepHygieneSummary(
-    accessToken,
-    reportCode,
-    fight,
-    druidId,
     fetchEvents,
   );
 
