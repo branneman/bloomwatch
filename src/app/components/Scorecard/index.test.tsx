@@ -13,6 +13,25 @@ const druid: DruidCandidate = {
   isRestoSpec: true,
 };
 
+const baseProps = {
+  accessToken: "test-token",
+  reportCode: "4GYHZRdtL3bvhpc8",
+  druidId: 101,
+  druid,
+  lifebloomAbilityIds: new Set([33763]),
+  rejuvenationAbilityIds: new Set([26982]),
+  regrowthAbilityIds: new Set([26980]),
+  swiftmendAbilityIds: new Set([18562]),
+  naturesSwiftnessAbilityIds: new Set([17116]),
+  resolvedAbilities: new Map(),
+  targetNames: new Map(),
+  actorClasses: new Map(),
+  activeEpic: null,
+  onSelectEpic: vi.fn(),
+  onBackToFights: vi.fn(),
+  onStartOver: vi.fn(),
+};
+
 describe("Scorecard", () => {
   it("renders the fight header, all 6 epic widgets, and the footer", async () => {
     const fight = aFight({
@@ -28,19 +47,8 @@ describe("Scorecard", () => {
 
     render(
       <Scorecard
-        accessToken="test-token"
-        reportCode="4GYHZRdtL3bvhpc8"
+        {...baseProps}
         fight={fight}
-        druidId={101}
-        druid={druid}
-        lifebloomAbilityIds={new Set([33763])}
-        rejuvenationAbilityIds={new Set([26982])}
-        regrowthAbilityIds={new Set([26980])}
-        swiftmendAbilityIds={new Set([18562])}
-        naturesSwiftnessAbilityIds={new Set([17116])}
-        resolvedAbilities={new Map()}
-        targetNames={new Map()}
-        actorClasses={new Map()}
         fetchEvents={fetchEvents}
         onBackToFights={onBackToFights}
         onStartOver={onStartOver}
@@ -76,8 +84,6 @@ describe("Scorecard", () => {
       /can't judge target selection/,
     );
 
-    // "Load different WCL report" reads above "← All fights" — the bigger
-    // reset sits above the smaller one.
     const buttonNames = screen
       .getAllByRole("button")
       .map((button) => button.textContent);
@@ -95,7 +101,7 @@ describe("Scorecard", () => {
     expect(onStartOver).toHaveBeenCalledOnce();
   });
 
-  it("drills into GCD economy detail and back to the overview", async () => {
+  it("calls onSelectEpic('gcd') when the GCD economy widget is clicked; rendering the detail once activeEpic is set is the parent's job", async () => {
     const fight = aFight({
       id: 6,
       name: "Lady Vashj",
@@ -108,25 +114,14 @@ describe("Scorecard", () => {
       aCastEvent({ timestamp: 3000, sourceID: 101, abilityGameID: 33763 }),
     ];
     const fetchEvents = () => Promise.resolve(events);
+    const onSelectEpic = vi.fn();
 
-    render(
+    const { rerender } = render(
       <Scorecard
-        accessToken="test-token"
-        reportCode="4GYHZRdtL3bvhpc8"
+        {...baseProps}
         fight={fight}
-        druidId={101}
-        druid={druid}
-        lifebloomAbilityIds={new Set([33763])}
-        rejuvenationAbilityIds={new Set([26982])}
-        regrowthAbilityIds={new Set([26980])}
-        swiftmendAbilityIds={new Set([18562])}
-        naturesSwiftnessAbilityIds={new Set([17116])}
-        resolvedAbilities={new Map()}
-        targetNames={new Map()}
-        actorClasses={new Map()}
         fetchEvents={fetchEvents}
-        onBackToFights={vi.fn()}
-        onStartOver={vi.fn()}
+        onSelectEpic={onSelectEpic}
       />,
     );
 
@@ -138,6 +133,17 @@ describe("Scorecard", () => {
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /GCD economy/ }));
+    expect(onSelectEpic).toHaveBeenCalledWith("gcd");
+
+    rerender(
+      <Scorecard
+        {...baseProps}
+        fight={fight}
+        fetchEvents={fetchEvents}
+        onSelectEpic={onSelectEpic}
+        activeEpic="gcd"
+      />,
+    );
 
     expect(
       screen.getByRole("heading", { name: "GCD utilization" }),
@@ -151,8 +157,6 @@ describe("Scorecard", () => {
     expect(
       screen.queryByRole("button", { name: /Lifebloom discipline/ }),
     ).not.toBeInTheDocument();
-    // Fight/report navigation only makes sense on the dashboard — the
-    // metric-detail view already has its own way back to the dashboard.
     expect(
       screen.queryByRole("button", { name: "← All fights" }),
     ).not.toBeInTheDocument();
@@ -161,8 +165,6 @@ describe("Scorecard", () => {
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "← All metrics" }));
-    expect(
-      screen.getByRole("button", { name: /Lifebloom discipline/ }),
-    ).toBeInTheDocument();
+    expect(onSelectEpic).toHaveBeenCalledWith(null);
   });
 });

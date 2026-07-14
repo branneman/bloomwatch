@@ -29,6 +29,7 @@ import { OwnClientIdField } from "./app/components/OwnClientIdField";
 import { withRateLimitDetection } from "./wcl/client";
 import type { DruidCandidate } from "./report/druidDetection";
 import type { ActorClass } from "./metrics/innervateAudit";
+import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import logo from "./assets/logo/lifebloom.jpg";
 import styles from "./App.module.css";
 
@@ -56,6 +57,8 @@ function App() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(
     () => localStorage.getItem(ONBOARDING_SEEN_KEY) === "true",
   );
+  const [activeEpicId, setActiveEpicId] = useState<EpicId | null>(null);
+  const [openFightId, setOpenFightId] = useState<number | null>(null);
 
   const wrappedFetchReportFights = useMemo(
     () => withRateLimitDetection(fetchReportFights, reportRateLimited),
@@ -82,11 +85,14 @@ function App() {
     setActorClasses(new Map());
     setResolvedAbilities(null);
     setDashboardRequested(false);
+    setActiveEpicId(null);
+    setOpenFightId(null);
   }
 
   function handleReportSubmit(parsed: ParsedReport) {
     setReport(parsed);
     resetReportState();
+    setOpenFightId(parsed.fightId);
   }
 
   function handleStartOver() {
@@ -337,11 +343,11 @@ function App() {
                   targetNames={actorNames}
                   actorClasses={actorClasses}
                   fetchEvents={wrappedFetchEvents}
-                  openFightId={report.fightId}
-                  onOpenFight={() => {}}
-                  onCloseFight={() => {}}
-                  activeEpicId={null}
-                  onSelectEpic={() => {}}
+                  openFightId={openFightId}
+                  onOpenFight={setOpenFightId}
+                  onCloseFight={() => setOpenFightId(null)}
+                  activeEpicId={activeEpicId}
+                  onSelectEpic={setActiveEpicId}
                   onStartOver={handleStartOver}
                 />
               </Shell>

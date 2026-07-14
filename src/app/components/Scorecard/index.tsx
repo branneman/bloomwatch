@@ -1,5 +1,4 @@
 // src/app/components/Scorecard/index.tsx
-import { useState } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
@@ -14,7 +13,7 @@ import { SpellDisciplineContent } from "../SpellDisciplineContent";
 import { ManaEconomyContent } from "../ManaEconomyContent";
 import { DeathForensicsContent } from "../DeathForensicsContent";
 import { PrepHygieneContent } from "../PrepHygieneContent";
-import { useFightEpicSummaries } from "./useFightEpicSummaries";
+import { useFightEpicSummaries, type EpicId } from "./useFightEpicSummaries";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -43,13 +42,11 @@ export interface ScorecardProps {
     dataType: WclEventDataType,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>;
-  activeEpic?: EpicId | null;
-  onSelectEpic?: (epicId: EpicId | null) => void;
+  activeEpic: EpicId | null;
+  onSelectEpic: (epicId: EpicId | null) => void;
   onBackToFights: () => void;
   onStartOver: () => void;
 }
-
-export type EpicId = "gcd" | "lifebloom" | "spell" | "mana" | "death" | "prep";
 
 const GCD_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/ability_druid_forceofnature.jpg";
@@ -77,18 +74,11 @@ export function Scorecard({
   targetNames,
   actorClasses,
   fetchEvents,
-  activeEpic: propActiveEpic,
-  onSelectEpic: propOnSelectEpic,
+  activeEpic,
+  onSelectEpic,
   onBackToFights,
   onStartOver,
 }: ScorecardProps) {
-  const [internalActiveEpic, setInternalActiveEpic] = useState<EpicId | null>(
-    null,
-  );
-  const activeEpic =
-    propActiveEpic !== undefined ? propActiveEpic : internalActiveEpic;
-  const setActiveEpic = propOnSelectEpic || setInternalActiveEpic;
-
   const {
     gcd: gcdSummary,
     lifebloom: lifebloomSummary,
@@ -164,7 +154,7 @@ export function Scorecard({
             <Widget
               icon={GCD_ECONOMY_ICON}
               label="GCD economy"
-              onOpen={() => setActiveEpic("gcd")}
+              onOpen={() => onSelectEpic("gcd")}
               judgement={
                 gcdSummary.status === "ready" ? gcdSummary.judgement : undefined
               }
@@ -182,7 +172,7 @@ export function Scorecard({
             <Widget
               icon={lifebloomIcon}
               label="Lifebloom discipline"
-              onOpen={() => setActiveEpic("lifebloom")}
+              onOpen={() => onSelectEpic("lifebloom")}
               judgement={
                 lifebloomSummary.status === "ready"
                   ? lifebloomSummary.judgement
@@ -204,7 +194,7 @@ export function Scorecard({
             <Widget
               icon={SPELL_DISCIPLINE_ICON}
               label="Spell discipline"
-              onOpen={() => setActiveEpic("spell")}
+              onOpen={() => onSelectEpic("spell")}
               judgement={
                 spellSummary.status === "ready"
                   ? spellSummary.judgement
@@ -224,7 +214,7 @@ export function Scorecard({
             <Widget
               icon={MANA_ECONOMY_ICON}
               label="Mana economy"
-              onOpen={() => setActiveEpic("mana")}
+              onOpen={() => onSelectEpic("mana")}
               judgement={
                 manaSummary.status === "ready"
                   ? manaSummary.judgement
@@ -244,7 +234,7 @@ export function Scorecard({
             <Widget
               icon={DEATH_FORENSICS_ICON}
               label="Death forensics"
-              onOpen={() => setActiveEpic("death")}
+              onOpen={() => onSelectEpic("death")}
               judgement={
                 deathSummary.status === "ready"
                   ? deathSummary.judgement
@@ -264,7 +254,7 @@ export function Scorecard({
             <Widget
               icon={PREP_HYGIENE_ICON}
               label="Prep hygiene"
-              onOpen={() => setActiveEpic("prep")}
+              onOpen={() => onSelectEpic("prep")}
               judgement={
                 prepSummary.status === "ready"
                   ? prepSummary.judgement
@@ -290,7 +280,7 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
-            onClick={() => setActiveEpic(null)}
+            onClick={() => onSelectEpic(null)}
           >
             ← All metrics
           </button>
@@ -316,7 +306,7 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
-            onClick={() => setActiveEpic(null)}
+            onClick={() => onSelectEpic(null)}
           >
             ← All metrics
           </button>
@@ -344,7 +334,7 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
-            onClick={() => setActiveEpic(null)}
+            onClick={() => onSelectEpic(null)}
           >
             ← All metrics
           </button>
@@ -376,7 +366,7 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
-            onClick={() => setActiveEpic(null)}
+            onClick={() => onSelectEpic(null)}
           >
             ← All metrics
           </button>
@@ -405,7 +395,7 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
-            onClick={() => setActiveEpic(null)}
+            onClick={() => onSelectEpic(null)}
           >
             ← All metrics
           </button>
@@ -435,7 +425,7 @@ export function Scorecard({
           <button
             type="button"
             className={styles.backLink}
-            onClick={() => setActiveEpic(null)}
+            onClick={() => onSelectEpic(null)}
           >
             ← All metrics
           </button>
