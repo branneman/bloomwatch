@@ -62,7 +62,7 @@ Covers: metric-calculation modules (GCD utilization, LB3 uptime, idle-gap detect
 
 ## Tier 3 — Component tests
 
-**Charter:** React components in isolation — fight picker, druid picker, scorecard cards, the threshold editor (802) — rendered in a real DOM (jsdom), exercising primary interactions with fake data injected as props. Behavior-focused assertions (what a user sees and can interact with), not pixel/screenshot tests.
+**Charter:** React components in isolation — fight picker, druid picker, scorecard cards — rendered in a real DOM (jsdom), exercising primary interactions with fake data injected as props. Behavior-focused assertions (what a user sees and can interact with), not pixel/screenshot tests.
 
 **Tooling:** Vitest + React Testing Library, co-located as `*.test.tsx` next to the component (e.g. `src/app/components/FightPicker/index.tsx` + `index.test.tsx`).
 

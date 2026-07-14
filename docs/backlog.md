@@ -2,7 +2,7 @@
 
 _Keep your Lifeblooms rolling._
 
-User stories, grouped by epic. Each story is intended to be independently implementable (one story ≈ one agent session). Thresholds listed are **defaults**, to be made configurable in 802.
+User stories, grouped by epic. Each story is intended to be independently implementable (one story ≈ one agent session). Thresholds listed are **defaults**; 802 is an internal calibration pass by the project's maintainers, not a user-facing settings screen.
 
 Conventions used below:
 
@@ -20,13 +20,19 @@ Epic letters (A, B, C…) are topical groupings, not a strict execution order �
 - **Stories within one epic build on each other** (e.g. 202–205 reuse 201's Lifebloom stack-reconstruction; 402–404 reuse 401's resource-data plumbing) — don't expect to cherry-pick just the first story of several epics and treat the rest as parallel-safe.
 - **501 (per-death audit) depends on 302 and 304's logic** (Swiftmend CD state, Nature's Swiftness CD state), not just 201 — it can't be pulled forward ahead of epic D.
 - **601 (prep hygiene) has no dependency on any other metric epic** beyond 006 — it's free-floating and can be slotted in wherever convenient.
-- **Epic H is split across phases, not one block:** 701 (single-fight scorecard) belongs right after epic C — it's the Phase 1 MVP exit criterion ("paste link → judged scorecard for GCD + Lifebloom"), not a Phase 4 story. 702–704 (zone aggregation, shareable URL, Markdown export) are genuinely Phase 4, after D/E/F/G exist to aggregate/export. 802/803 are deliberately last (Phase 5 polish): 802 exposes thresholds that should be stable by then, 803 compares metrics that need to already all exist.
+- **009 (rate-limit usage banner) builds directly on 008's `rateLimitData` plumbing** — sequence it after 008. It also needs its own Claude Design pass (see `docs/design_v1`/`docs/design_v2` for the established pattern) before implementation.
+- **010 (WCL request performance & loading-state audit) is deliberately late** — it sweeps every WCL call site in the app, so it's most useful once most epics (and their call sites) already exist.
+- **707 (Good/Fair/Bad labels) is deliberately late too, for the same reason as 010** — it's a sweep across every existing R/O/G chip in the app, so it's most useful once most epics (and their chips) already exist rather than repeated per epic.
+- **011 (Dreamstate-spec test coverage) only needs 007** — best done early-ish so later metric stories are exercised against both specs from the start, but nothing blocks on it if it slips later.
+- **705 (onboarding) has no dependency on any metric epic** — it's a static, login-free screen and can be built any time convenient, including before any metric epic exists.
+- **706 (responsive/mobile layout) is blocked on `docs/design_v3` existing** — that design is produced via a separate Claude Design pass outside this repo's normal story flow; 706 can't start before it's downloaded.
+- **Epic H is split across phases, not one block:** 701 (single-fight scorecard) belongs right after epic C — it's the Phase 1 MVP exit criterion ("paste link → judged scorecard for GCD + Lifebloom"), not a Phase 4 story. 702 (now the whole-report dashboard, superseding the old zone-aggregation framing) through 704 (shareable URL, Markdown export) are genuinely Phase 4, after D/E/F/G exist to aggregate/export — but once 702 ships, it becomes the primary screen a user lands on after druid selection, not a bonus view; 003's fight list becomes its drill-down. 802 is deliberately last (Phase 5 polish): it's a maintainer calibration pass that should wait until thresholds are stable. 803 (multi-druid comparison) has been removed from this backlog — TBC raids rarely run two resto druids, so the only comparison that makes sense is raid-vs-raid, which the per-report flow already supports.
 
 **Suggested path from the current state (402 next):**
 
-005 → 006 → 007 → 101 → 102 → 201 → 202 → 203 → 204 → 205 → **701** → 008 → 301 → 302 → 303 → 304 → 401 → 402 → 403 → 404 → 501 → 601 → 702 → 703 → 704 → 802 → 803
+005 → 006 → 007 → 011 → 101 → 102 → 201 → 202 → 203 → 204 → 205 → **701** → 705 → 008 → 009 → 301 → 302 → 303 → 304 → 401 → 402 → 403 → 404 → 501 → 601 → 702 → 703 → 704 → 010 → 707 → 706 → 802
 
-(008 and 601 are free-floating and can move earlier if convenient; everything else follows its dependency/phase order above.)
+(008, 009, 705, and 601 are free-floating and can move earlier if convenient; 706 must wait for `docs/design_v3` to exist first; everything else follows its dependency/phase order above.)
 
 ---
 
@@ -55,21 +61,15 @@ I want to paste a WCL report URL (`fresh.warcraftlogs.com`, with or without `#fi
 
 ### 003 — Fight list & selection ✅ Done
 
-I want to see the report's boss fights (name, pull number, kill/wipe, duration) and select one, so that I can analyze a specific pull.
+I want to see the report's boss fights (name, pull number, kill/wipe, duration) as a list of buttons/links and select exactly one, so that I can drill into a specific pull's scorecard.
 
 **Acceptance criteria**
 
-- Trash fights are excluded by default (toggle to include).
+- Trash fights are excluded entirely — no toggle to include them; boss pulls only (see `docs/roadmap.md`'s out-of-scope list).
 - Kills and wipes are visually distinct; wipes show boss HP% reached.
+- Single-select only: clicking a fight opens its scorecard (701) directly; no checkbox/multi-select UI. Story 004's zone-wide multi-select was removed for this exact reason (see below) — there is no supported "some but not all fights" mode, only exactly-one-fight (here) or the whole report (702).
 
-### 004 — Zone-wide selection ✅ Done
-
-I want to select a whole raid zone within the report (e.g. "SSC — all bosses"), so that I can get one aggregated report for a full raid night.
-
-**Acceptance criteria**
-
-- Zone selector lists only zones present in the report.
-- Selecting a zone selects all its boss fights; individual fights can be deselected.
+**Note:** these criteria were trimmed after initial ship — the trash-fight include-toggle and 004's multi-select zone capability both existed in the shipped code and have not yet been revisited to match. That cleanup is real follow-up work, not covered by this backlog entry alone.
 
 ### 005 — Druid auto-detection & selection ✅ Done
 
@@ -79,6 +79,7 @@ I want the app to detect all resto druids in the report and let me pick one (pre
 
 - Detection uses combatant info (spec/talents) where available, with a fallback heuristic (druid class + healing spell casts).
 - Multiple druids → picker; single druid → auto-selected.
+- Detection never triggers a per-fight event-stream fetch — it reads combatant-info/master-data-level queries only. This step now runs before the user has chosen what to look at (see 702), so it must stay cheap.
 
 ### 006 — Event fetching & caching layer ✅ Done
 
@@ -111,6 +112,37 @@ As a druid pasting a report link for the first time, I want the app to just work
 - On a rate-limit response from a request made with the default Client ID, the app shows a clear, non-technical message explaining the shared client is temporarily over capacity, with a short explanation and a link to register a personal WCL API client (reusing `docs/wcl-auth.md`'s registration steps) plus an input to paste it.
 - Once a user supplies their own Client ID, it's saved (`localStorage`) and used for all of that browser's future requests, bypassing the shared default entirely.
 - No secrets are requested or stored at any point — the fallback still only asks for a Client ID, never a secret (per principle 2 / story 801).
+
+### 009 — Rate-limit usage banner
+
+As any user of the app, I want a small banner near the top of the screen when the shared default WCL API client is running low on its hourly request budget, so that I understand why things feel slow instead of assuming the app is broken.
+
+**Acceptance criteria**
+
+- Banner appears once a request's `rateLimitData` shows the shared default client has consumed ≥ 75 % of its hourly limit; it disappears again once usage drops back below the threshold.
+- Only shown to users still on the shared default Client ID — never shown once a user has supplied their own Client ID per 008.
+- Message is non-technical and links to the same personal-Client-ID registration flow as 008's fallback.
+- Visual design comes from a dedicated Claude Design pass (see `docs/design_v1`/`docs/design_v2` for the established pattern) before implementation.
+
+### 010 — WCL request performance & loading-state audit
+
+As a developer, I want a full audit of every WCL GraphQL request the app makes — checking for redundant refetches, oversized queries, and requests that could be batched or deferred — with a loading indicator added anywhere a request may take user-perceptible time, so that the app feels responsive and doesn't waste the shared rate-limit budget.
+
+**Acceptance criteria**
+
+- Every WCL request call site is reviewed; duplicate or avoidable requests are eliminated, or their necessity is justified in a comment.
+- Every screen that triggers a WCL request shows a loading state (spinner/skeleton) while it's in flight, instead of an unexplained pause.
+- Findings and fixes are captured in one pass — this sweeps whatever call sites exist at the time it's picked up, it isn't repeated per-epic.
+
+### 011 — Dreamstate-spec test coverage
+
+As a developer, I want test fixtures and factory support for a Dreamstate-spec druid (e.g. 35/0/26) in addition to the existing full-Resto-only test data (e.g. 12/0/49), so that spec/talent assumptions elsewhere in the app — starting with 005's auto-detection — are verified against more than one canonical build.
+
+**Acceptance criteria**
+
+- At least one real or synthetic fixture report includes a Dreamstate-spec druid, documented in `docs/testing.md`'s known-test-reports table per its existing convention.
+- 005's druid-detection tests (and any other spec-sensitive tests) run against both the full-Resto and Dreamstate fixtures.
+- Any production code found assuming full-Resto talent points is flagged; fixing it is only in scope for this story if it's a small, contained change — otherwise it's called out as separate follow-up rather than silently expanding this story's scope.
 
 ---
 
@@ -256,12 +288,16 @@ I want counts of mana potions and Dark/Demonic Runes used vs. the expected floor
 
 ### 403 — Innervate audit
 
-I want to see if and when Innervate was cast and on whom, so that I never end a mana-constrained fight with an unused Innervate.
+I want to see if and when Innervate was cast, on whom, and whether that target was a sensible recipient, so that I never end a mana-constrained fight with an unused Innervate — and so that Innervate spent on the wrong kind of target is flagged, not just its absence. In TBC raids Innervate is usually the correct call to hand to another mana-starved caster (a mage or boomkin, say) rather than keep for myself, since druids have strong natural mana regen from Spirit; the judgement should reward that pattern instead of assuming self-cast is the goal.
 
 **Acceptance criteria**
 
-- Reports cast time(s), target, and (self-cast) own mana % at cast.
-- R/O/G: red if never used on a mana-constrained fight ≥ 3 min; green if used; orange if used but very late (last 10 % of the fight).
+- Reports cast time(s), target, target's class/spec (resolved from combatant info), and mana % at cast (the relevant party's — self if self-cast, target's if cast on someone else).
+- R/O/G:
+  - Red if never used on a mana-constrained fight ≥ 3 min (unused Innervate on a fight that needed it).
+  - Red if used on a non-mana-using target (e.g. Warrior, Rogue, Feral Druid) — the mana return is wasted on a target that can't use it.
+  - Green if used on another mana-using ally, typically a DPS caster (e.g. Mage, Boomkin) per common raid assignment — this is the normal, correct pattern, not a fallback.
+  - Self-cast: judged by timing, same as before — green if used well, orange if used but very late (last 10 % of the fight).
 
 ### 404 — HoT-aware overheal table ✅ Done
 
@@ -309,6 +345,16 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
 
 ## Epic H — Reporting & UX
 
+### 705 — Onboarding screen
+
+I want a welcome screen, viewable without logging into WCL, that explains what Bloomwatch is, who it's for, and _why_ HPS/effective-healing/parse-percentile rankings are a bad way to judge a healer (the zero-sum argument from `docs/roadmap.md`'s Vision), with a link to the TBC resto druid rotation game (`https://branneman.github.io/tbc-resto-druid-rotation-game/`), so that a first-time visitor understands the tool's premise before they invest in pasting a report link.
+
+**Acceptance criteria**
+
+- Fully viewable without WCL login — login remains mandatory only once the user tries to load an actual report.
+- Content covers, at minimum: what the tool does, who it's for (primary/secondary/tertiary per roadmap.md), why parse/HPS-based judgement is misleading, and a link to the rotation game.
+- Skippable for returning users (exact mechanism — e.g. shown only on first visit, or a persistent "About" entry point — is an implementation decision, not specified here).
+
 ### 701 — Single-fight scorecard ✅ Done
 
 I want one fight's results as a dashboard of small summary widgets — one per epic (GCD economy, Lifebloom discipline, spell discipline, mana economy, death forensics, prep hygiene) — all visible in one view with no scrolling, so that I get the whole fight's verdict at a glance. I want to click any widget to zoom into that epic's full detail — every metric a number + R/O/G chip + one-line explanation with a "why/threshold" expander — so that I can drill from summary to evidence without losing the overview.
@@ -318,15 +364,19 @@ I want one fight's results as a dashboard of small summary widgets — one per e
 - The overview shows one widget per implemented epic, sized to fit together in a single view (no scrolling) regardless of how many epics are implemented so far.
 - Each widget shows a worst-of R/O/G judgement across that epic's metrics, plus 1–2 key stats — enough to tell good from bad without opening it.
 - Clicking a widget transitions to that epic's detail view: every implemented metric in the epic, each with its judgement and its threshold made visible on demand. A clear way back returns to the overview without reloading or re-fetching.
+- Reachable both directly from 003's fight list (drill-down link) and via 702's whole-report dashboard once that exists.
 
-### 702 — Zone-aggregated report
+### 702 — Whole-report dashboard
 
-I want an aggregated scorecard across all selected fights in a zone (e.g. all SSC bosses), with per-boss drill-down, so that I can review a full raid night in one view.
+I want an aggregated scorecard across every non-trash boss fight in the loaded report — no zone or fight picker in the way — with per-boss drill-down, so that I land on a full raid night's verdict immediately after picking my druid, and only zoom into one specific pull when something needs a closer look.
 
 **Acceptance criteria**
 
+- Aggregates every non-trash fight in the report automatically; no zone-selection or fight-selection step precedes it — it's the screen shown right after druid selection (005), replacing 003's old role as the first post-report screen.
 - Aggregation rules per metric are explicit (uptime → duration-weighted mean; counts → sums; R/O/G → worst-of with per-boss chips visible).
-- Clicking a boss row opens its single-fight scorecard (701).
+- Clicking a boss row opens that fight's single-fight scorecard (701); 003's fight-picker list remains reachable for jumping directly to a specific pull without going through the aggregate first.
+- A report spanning multiple raid zones (e.g. both SSC and TK fights logged in one session) aggregates all of them together — there is no per-zone split or picker.
+- Supersedes story 004 (zone-wide selection), removed from this backlog: partial "some but not all fights" selection is no longer a supported mode — it's either exactly one fight (003/701) or the whole report (this story).
 
 ### 703 — Shareable report state
 
@@ -336,7 +386,7 @@ I want the report/fight/druid selection encoded in the URL, so that I can share 
 
 - Opening a shared URL reproduces the same scorecard (after auth).
 - No metric data is stored anywhere — the URL only encodes selection state.
-- Every screen in the flow (report input, fight picker, druid picker, dashboard, per-epic detail, per-fight scorecard) changes the URL hash as the user navigates through it — not just the final scorecard view — using hash-based routing (no server-side routes to configure, matching the static-hosting/no-backend constraint).
+- Every screen in the flow (report input, druid picker, whole-report dashboard (702), whole-report per-epic detail, fight picker (003, drill-down), per-fight scorecard (701), per-fight per-epic detail) changes the URL hash as the user navigates through it — not just the final scorecard view — using hash-based routing (no server-side routes to configure, matching the static-hosting/no-backend constraint).
 - The browser's back/forward buttons move between screens the same way the in-app back-links (e.g. "← All fights", "← All metrics", "← Change fight selection") do, everywhere in the flow — not just at the top level.
 - Opening any hash-encoded URL directly (not just the fully-selected scorecard one) resumes at that exact screen once authenticated, instead of resetting to the report-input screen.
 
@@ -348,6 +398,25 @@ I want to export the current scorecard as a Markdown file, so that I can paste i
 
 - Export includes numbers, judgements, thresholds used, report link, and generation date.
 - Output renders cleanly in Discord and GitHub.
+
+### 706 — Responsive/mobile layout
+
+I want the app to work well on mobile, so that I can check a scorecard from my phone.
+
+**Acceptance criteria**
+
+- Blocked on a `docs/design_v3` existing, produced via a dedicated Claude Design pass (same pattern as `docs/design_v1`/`docs/design_v2`) — this story does not specify a layout itself.
+- Once design_v3 exists, all flow screens (onboarding, report input, druid picker, whole-report dashboard, fight picker, per-fight scorecard, per-epic detail views) are usable on common mobile viewport widths, matching design_v3.
+
+### 707 — Judgement language: Good/Fair/Bad labels
+
+I want every red/orange/green judgement chip to also carry a plain-language word — Good (green), Fair (orange), Bad (red) — so that the verdict doesn't rely on color alone, which is hard to parse at a glance and inaccessible to colorblind users.
+
+**Acceptance criteria**
+
+- Every R/O/G chip anywhere in the app (overview widgets, per-epic detail rows, exports) shows its Good/Fair/Bad label alongside its color, never color alone.
+- The Markdown export (704) uses the text label too, not just a color name — Markdown can't render color, so the label is the only signal there.
+- Wording is consistent everywhere the same judgement tier appears — no epic invents its own synonyms for "orange."
 
 ### 801 — Build & test tooling ✅ Done
 
@@ -361,20 +430,12 @@ As a developer, I want a Vite + React + TypeScript project scaffold with a full 
 - Test pyramid stood up per `docs/testing.md`: unit + WCL-client-integration (mocked) + component tests run on every push; contract tests (real WCL API, dedicated test Client ID) run on manual trigger only; E2E smoke runs against the live site after every deploy.
 - No secrets are required to build or deploy the product itself (per principle 2); the dedicated test Client ID's access token is a CI-only test credential, documented as such.
 
-### 802 — Configurable thresholds
+### 802 — Threshold calibration pass
 
-I want to view and edit all R/O/G thresholds (persisted in `localStorage`, with a reset-to-defaults), so that I can adapt judgements to my raid's context and to future calibration.
-
-**Acceptance criteria**
-
-- Every threshold used anywhere in the app is listed in one settings view with its default and source rationale.
-- Changes apply immediately to already-rendered scorecards.
-
-### 803 — Multi-druid comparison
-
-I want to compare two or more druids from the same report side-by-side on the same metrics, so that druid-vs-druid evaluation happens on process metrics instead of the healing meter.
+As the project's maintainers, we want to review every R/O/G threshold in the app against a corpus of real, well-regarded druid logs and adjust the ones that are currently unfair, so that judgements are consistent and trustworthy across the whole tool. This is deliberately last: it only makes sense once every metric epic exists, so we can look at the full picture holistically instead of tuning one metric in isolation. This is an internal engineering pass — there is no end-user-facing threshold-editing UI; users do not get to configure their own judgements.
 
 **Acceptance criteria**
 
-- Columns per druid, rows per metric, judgements per cell.
-- Explicit note that different assignments (tank vs. raid) make some comparisons apples-to-oranges.
+- Every threshold used anywhere in the app is listed in one place (a doc or dev-only view) with its current default and source rationale, to review against.
+- Each threshold is checked against real log data spanning a range of skill levels; any threshold that misjudges known-good or known-bad play is adjusted, with the change and its reasoning recorded in `docs/backlog.md`.
+- No `localStorage`-backed settings screen, no user-facing configuration UI — thresholds remain hardcoded defaults, just better-calibrated ones.
