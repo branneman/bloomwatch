@@ -4,6 +4,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { ManaCurveCard } from "../ManaCurveCard";
 import { ConsumableThroughputCard } from "../ConsumableThroughputCard";
+import { OverhealTableCard } from "../OverhealTableCard";
 import styles from "./index.module.css";
 
 export interface ManaEconomyContentProps {
@@ -39,6 +40,14 @@ export function ManaEconomyContent({
         fetchEvents={fetchEvents}
       />
       <ConsumableThroughputCard
+        accessToken={accessToken}
+        reportCode={reportCode}
+        fight={fight}
+        druidId={druidId}
+        resolvedAbilities={resolvedAbilities}
+        fetchEvents={fetchEvents}
+      />
+      <OverhealTableCard
         accessToken={accessToken}
         reportCode={reportCode}
         fight={fight}
