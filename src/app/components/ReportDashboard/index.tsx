@@ -14,6 +14,7 @@ import {
 import {
   useFightEpicSummaries,
   type FightEpicSummaries,
+  type EpicId,
 } from "../Scorecard/useFightEpicSummaries";
 import { Scorecard } from "../Scorecard";
 import { Badge } from "../ui/Badge";
@@ -43,7 +44,11 @@ export interface ReportDashboardProps {
     dataType: WclEventDataType,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>;
-  initialFightId: number | null;
+  openFightId: number | null;
+  onOpenFight: (fightId: number) => void;
+  onCloseFight: () => void;
+  activeEpicId: EpicId | null;
+  onSelectEpic: (epicId: EpicId | null) => void;
   onStartOver: () => void;
 }
 
@@ -167,10 +172,13 @@ export function ReportDashboard({
   targetNames,
   actorClasses,
   fetchEvents,
-  initialFightId,
+  openFightId,
+  onOpenFight,
+  onCloseFight,
+  activeEpicId,
+  onSelectEpic,
   onStartOver,
 }: ReportDashboardProps) {
-  const [openFightId, setOpenFightId] = useState<number | null>(initialFightId);
   const [summariesByFight, setSummariesByFight] = useState<
     Map<number, FightEpicSummaries>
   >(new Map());
@@ -206,7 +214,9 @@ export function ReportDashboard({
         targetNames={targetNames}
         actorClasses={actorClasses}
         fetchEvents={fetchEvents}
-        onBackToFights={() => setOpenFightId(null)}
+        activeEpic={activeEpicId}
+        onSelectEpic={onSelectEpic}
+        onBackToFights={onCloseFight}
         onStartOver={onStartOver}
       />
     );
@@ -242,17 +252,13 @@ export function ReportDashboard({
         })}
       </div>
 
-      {/* Every FightRow below fetches its own epics' events on mount rather than
-          lazily on drill-in — intentional (story 010): the chip strip above needs
-          every fight's judgement to compute the worst-case per epic, so eager
-          per-fight fetching isn't an oversight to "fix" into lazy loading. */}
       <div className={styles.rows}>
         {rows.map(({ fight, pullNumber }) => (
           <FightRow
             key={fight.id}
             fight={fight}
             pullNumber={pullNumber}
-            onOpen={setOpenFightId}
+            onOpen={onOpenFight}
             onSummaries={handleSummaries}
             accessToken={accessToken}
             reportCode={reportCode}

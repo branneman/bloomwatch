@@ -43,11 +43,13 @@ export interface ScorecardProps {
     dataType: WclEventDataType,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>;
+  activeEpic?: EpicId | null;
+  onSelectEpic?: (epicId: EpicId | null) => void;
   onBackToFights: () => void;
   onStartOver: () => void;
 }
 
-type EpicId = "gcd" | "lifebloom" | "spell" | "mana" | "death" | "prep";
+export type EpicId = "gcd" | "lifebloom" | "spell" | "mana" | "death" | "prep";
 
 const GCD_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/ability_druid_forceofnature.jpg";
@@ -75,10 +77,17 @@ export function Scorecard({
   targetNames,
   actorClasses,
   fetchEvents,
+  activeEpic: propActiveEpic,
+  onSelectEpic: propOnSelectEpic,
   onBackToFights,
   onStartOver,
 }: ScorecardProps) {
-  const [activeEpic, setActiveEpic] = useState<EpicId | null>(null);
+  const [internalActiveEpic, setInternalActiveEpic] = useState<EpicId | null>(
+    null,
+  );
+  const activeEpic =
+    propActiveEpic !== undefined ? propActiveEpic : internalActiveEpic;
+  const setActiveEpic = propOnSelectEpic || setInternalActiveEpic;
 
   const {
     gcd: gcdSummary,

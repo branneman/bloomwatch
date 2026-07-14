@@ -337,7 +337,11 @@ function App() {
                   targetNames={actorNames}
                   actorClasses={actorClasses}
                   fetchEvents={wrappedFetchEvents}
-                  initialFightId={report.fightId}
+                  openFightId={report.fightId}
+                  onOpenFight={() => {}}
+                  onCloseFight={() => {}}
+                  activeEpicId={null}
+                  onSelectEpic={() => {}}
                   onStartOver={handleStartOver}
                 />
               </Shell>

@@ -26,7 +26,11 @@ const baseProps = {
   resolvedAbilities: new Map(),
   targetNames: new Map(),
   actorClasses: new Map(),
-  initialFightId: null,
+  openFightId: null as number | null,
+  onOpenFight: vi.fn(),
+  onCloseFight: vi.fn(),
+  activeEpicId: null,
+  onSelectEpic: vi.fn(),
   onStartOver: vi.fn(),
 };
 
@@ -52,21 +56,34 @@ describe("ReportDashboard", () => {
     expect(screen.getAllByText("Calculating…").length).toBeGreaterThan(0);
   });
 
-  it("opens a fight's scorecard on row click, and returns to the fight list via ← All fights", async () => {
+  it("calls onOpenFight on row click; rendering the fight's scorecard once openFightId is set is the parent's job", async () => {
     const fights = [aFight({ id: 1, name: "Lady Vashj", kill: true })];
     const fetchEvents = () => Promise.resolve([]);
+    const onOpenFight = vi.fn();
     const user = userEvent.setup();
 
-    render(
+    const { rerender } = render(
       <ReportDashboard
         {...baseProps}
         fights={fights}
         fetchEvents={fetchEvents}
+        onOpenFight={onOpenFight}
       />,
     );
 
     await user.click(
       screen.getByRole("button", { name: /Pull 1 — Lady Vashj/ }),
+    );
+    expect(onOpenFight).toHaveBeenCalledWith(1);
+
+    rerender(
+      <ReportDashboard
+        {...baseProps}
+        fights={fights}
+        fetchEvents={fetchEvents}
+        onOpenFight={onOpenFight}
+        openFightId={1}
+      />,
     );
 
     expect(
@@ -75,15 +92,26 @@ describe("ReportDashboard", () => {
     expect(
       screen.queryByRole("button", { name: /Pull 1 — Lady Vashj/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("calls onCloseFight when ← All fights is clicked from an open fight", async () => {
+    const fights = [aFight({ id: 1, name: "Lady Vashj", kill: true })];
+    const fetchEvents = () => Promise.resolve([]);
+    const onCloseFight = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ReportDashboard
+        {...baseProps}
+        fights={fights}
+        fetchEvents={fetchEvents}
+        openFightId={1}
+        onCloseFight={onCloseFight}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "← All fights" }));
-
-    expect(
-      screen.getByRole("button", { name: /Pull 1 — Lady Vashj/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /GCD economy/ }),
-    ).not.toBeInTheDocument();
+    expect(onCloseFight).toHaveBeenCalledOnce();
   });
 
   it("shows each fight's own worst-of judgement once its six epics resolve", async () => {
@@ -105,7 +133,7 @@ describe("ReportDashboard", () => {
     );
   });
 
-  it("opens directly on the fight named by initialFightId (a #fight= deep link)", async () => {
+  it("opens directly on the fight named by openFightId", async () => {
     const fights = [
       aFight({ id: 1, name: "Lady Vashj", kill: true }),
       aFight({ id: 2, name: "Leotheras the Blind", kill: true }),
@@ -117,7 +145,7 @@ describe("ReportDashboard", () => {
         {...baseProps}
         fights={fights}
         fetchEvents={fetchEvents}
-        initialFightId={2}
+        openFightId={2}
       />,
     );
 
@@ -125,6 +153,29 @@ describe("ReportDashboard", () => {
       await screen.findByRole("button", { name: /GCD economy/ }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Leotheras the Blind/)).toBeInTheDocument();
+  });
+
+  it("passes activeEpicId/onSelectEpic through to the open fight's Scorecard", async () => {
+    const fights = [aFight({ id: 1, name: "Lady Vashj", kill: true })];
+    const events: never[] = [];
+    const fetchEvents = () => Promise.resolve(events);
+    const onSelectEpic = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ReportDashboard
+        {...baseProps}
+        fights={fights}
+        fetchEvents={fetchEvents}
+        openFightId={1}
+        onSelectEpic={onSelectEpic}
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: /GCD economy/ }),
+    );
+    expect(onSelectEpic).toHaveBeenCalledWith("gcd");
   });
 
   it("shows six aggregated epic chips that resolve once every fight's data is in", async () => {
