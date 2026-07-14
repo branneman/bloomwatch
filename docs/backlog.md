@@ -286,7 +286,7 @@ I want counts of mana potions and Dark/Demonic Runes used vs. the expected floor
 - Expected floor per consumable = ⌊fight duration / 120 s⌋ for fights where mana dropped below 70 % at any point; fights that never did are exempt.
 - R/O/G per consumable: green ≥ floor, orange = floor − 1, red ≤ floor − 2.
 
-### 403 — Innervate audit
+### 403 — Innervate audit ✅ Done
 
 I want to see if and when Innervate was cast, on whom, and whether that target was a sensible recipient, so that I never end a mana-constrained fight with an unused Innervate — and so that Innervate spent on the wrong kind of target is flagged, not just its absence. In TBC raids Innervate is usually the correct call to hand to another mana-starved caster (a mage or boomkin, say) rather than keep for myself, since druids have strong natural mana regen from Spirit; the judgement should reward that pattern instead of assuming self-cast is the goal.
 
