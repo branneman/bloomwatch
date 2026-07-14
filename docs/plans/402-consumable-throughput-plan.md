@@ -110,7 +110,7 @@ describe("computeConsumableThroughput", () => {
       RESOLVED_ABILITIES,
       300_000,
     );
-    expect(result).toEqual({ exempt: false, rows: [], judgement: null });
+    expect(result).toEqual({ exempt: true, rows: [], judgement: null });
   });
 
   it("computes the floor as fight duration / 120s, floored", () => {
@@ -229,13 +229,17 @@ describe("computeConsumableThroughput", () => {
   it("judges normally on what would be a wipe — there is no kill restriction", () => {
     // The function takes no kill/outcome flag at all, unlike computeManaCurve — this
     // test documents that omission is deliberate (docs/backlog.md story 402 has no
-    // kill restriction, unlike 401's).
+    // kill restriction, unlike 401's). Meeting the floor on both consumables still
+    // yields a real green judgement, not an informational/null one.
     const result = computeConsumableThroughput(
       [
         LOW_MANA_SAMPLE,
         aConsumableCastEvent(1000, MANA_POTION_ID),
         aConsumableCastEvent(2000, MANA_POTION_ID),
         aConsumableCastEvent(3000, MANA_POTION_ID),
+        aConsumableCastEvent(4000, DARK_RUNE_ID),
+        aConsumableCastEvent(5000, DEMONIC_RUNE_ID),
+        aConsumableCastEvent(6000, DARK_RUNE_ID),
       ],
       DRUID_ID,
       RESOLVED_ABILITIES,
