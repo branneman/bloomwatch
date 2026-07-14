@@ -22,6 +22,7 @@ export default defineConfig({
       "**/test/e2e/**",
       "**/test/contract/**",
       ".claude/worktrees/**",
+      "**/docs/design_v*/**",
     ],
   },
 });

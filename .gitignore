@@ -28,3 +28,8 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Claude Design pass output (external tool, dropped in for reference during a
+# design handoff, not hand-authored repo source) — see docs/backlog.md's notes
+# on stories 009/706 for the pattern.
+docs/design_v*/

@@ -2,3 +2,4 @@ dist
 coverage
 .superpowers
 .claude
+docs/design_v*/
