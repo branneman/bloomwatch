@@ -33,3 +33,7 @@ playwright/.cache/
 # design handoff, not hand-authored repo source) — see docs/backlog.md's notes
 # on stories 009/706 for the pattern.
 docs/design_v*/
+
+# superpowers:subagent-driven-development's progress ledger — local scratch
+# state for an in-progress plan execution, not project content.
+.superpowers/
