@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import styles from "./index.module.css";
 
 export interface ShellProps {
-<<<<<<< HEAD
   width?: 760 | 800 | 820 | 920;
   children: ReactNode;
 }
