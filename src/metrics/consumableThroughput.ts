@@ -4,12 +4,11 @@ import type { Judgement } from "./judgement";
 import { worstJudgement } from "./judgement";
 import { extractManaSamples } from "./manaSamples";
 
-// Backlog story 402: expected floor = fight duration / 120s (each consumable's own
-// cooldown), for fights where mana dropped below 70% at any point; fights that never
+// docs/backlog.md story 402: expected floor = fight duration / 120s (each consumable's
+// own cooldown), for fights where mana dropped below 70% at any point; fights that never
 // did are exempt. Dark Rune and Demonic Rune share one in-game cooldown (using either
 // puts both on cooldown), so they're counted together as one "Rune" row rather than
-// judged separately — see docs/specs/402-consumable-throughput-design.md's judgement
-// call 1.
+// judged separately.
 const FLOOR_INTERVAL_MS = 120_000;
 const MANA_DROP_THRESHOLD_PCT = 70;
 

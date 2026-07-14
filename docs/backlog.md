@@ -245,7 +245,7 @@ I want my mana-over-time curve with fight-end mana highlighted, so that I can se
 - Curve rendered per fight from resource data; ending mana % shown as a number.
 - R/O/G (kills only): green 5–40 % ending mana, orange 40–70 % or 0–5 %, red > 70 % (hoarding) — with an explicit note that short/easy fights make this metric moot (auto-downgrade to informational for fights < 90 s).
 
-### 402 — Consumable throughput
+### 402 — Consumable throughput ✅ Done
 
 I want counts of mana potions and Dark/Demonic Runes used vs. the expected floor for the fight length (separate 2-minute cooldowns each), so that unused consumable cooldowns become visible.
 
