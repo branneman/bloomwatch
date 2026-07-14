@@ -138,6 +138,8 @@ As a developer, I want a full audit of every WCL GraphQL request the app makes �
 
 As a developer, I want test fixtures and factory support for a Dreamstate-spec druid (e.g. 35/0/26) in addition to the existing full-Resto-only test data (e.g. 12/0/49), so that spec/talent assumptions elsewhere in the app — starting with 005's auto-detection — are verified against more than one canonical build.
 
+**What counts as "Dreamstate" in this repo:** at least 1 point in the Dreamstate talent itself (Balance tree, unlocked once 30 points are already spent in Balance) — not merely a Balance-heavy split. In practice this means Balance ≥ 31, Feral = 0, and the remainder in Restoration (e.g. 35/0/26, this story's fixture report). A build that happens to land near that split without the Dreamstate talent itself isn't Dreamstate by this definition.
+
 **Acceptance criteria**
 
 - At least one real or synthetic fixture report includes a Dreamstate-spec druid, documented in `docs/testing.md`'s known-test-reports table per its existing convention.
