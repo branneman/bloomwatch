@@ -78,7 +78,6 @@ describe("fetchReportFights", () => {
       encounterID: 0,
       kill: null,
       bossPercentage: null,
-      gameZone: { id: 548, name: "Serpentshrine Cavern" },
     });
     expect(result.fights[5]).toEqual({
       id: 6,
@@ -88,11 +87,10 @@ describe("fetchReportFights", () => {
       encounterID: 100624,
       kill: true,
       bossPercentage: 0.01,
-      gameZone: { id: 548, name: "Serpentshrine Cavern" },
     });
   });
 
-  it("requests encounterID, kill, bossPercentage, and gameZone for each fight", async () => {
+  it("requests encounterID, kill, and bossPercentage for each fight", async () => {
     let requestBody: { query: string } | undefined;
     server.use(
       http.post(USER_API_URL, async ({ request }) => {
@@ -106,7 +104,7 @@ describe("fetchReportFights", () => {
     expect(requestBody?.query).toContain("encounterID");
     expect(requestBody?.query).toContain("kill");
     expect(requestBody?.query).toContain("bossPercentage");
-    expect(requestBody?.query).toContain("gameZone");
+    expect(requestBody?.query).not.toContain("gameZone");
   });
 });
 
@@ -164,8 +162,6 @@ describe("fetchMasterDataAbilities", () => {
     expect(result).toContainEqual({
       gameID: 26982,
       name: "Rejuvenation",
-      icon: "spell_nature_rejuvenation.jpg",
-      type: "8",
     });
   });
 
@@ -182,6 +178,7 @@ describe("fetchMasterDataAbilities", () => {
 
     expect(requestBody?.query).toContain("masterData");
     expect(requestBody?.query).toContain("4GYHZRdtL3bvhpc8");
+    expect(requestBody?.query).not.toContain("icon");
   });
 });
 

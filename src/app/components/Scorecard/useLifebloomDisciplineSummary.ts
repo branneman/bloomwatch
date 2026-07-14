@@ -22,6 +22,7 @@ export function useLifebloomDisciplineSummary(
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>,
 ): EpicSummaryStatus {
   const [state, setState] = useState<TaggedState | null>(null);
@@ -34,8 +35,8 @@ export function useLifebloomDisciplineSummary(
     };
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
-      fetchEvents(accessToken, reportCode, fightArg, "Casts"),
-      fetchEvents(accessToken, reportCode, fightArg, "Healing"),
+      fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
+      fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
     ])
       .then(([buffEvents, castEvents, healEvents]) => {
         const lb3 = computeLb3Uptime(

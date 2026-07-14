@@ -51,7 +51,6 @@ function setUpHappyPathMocks() {
     aReportAbility({
       gameID: 33763,
       name: "Lifebloom",
-      icon: "spell_nature_lifebloom.jpg",
     }),
   ]);
   vi.mocked(fetchEventsPage).mockResolvedValue({
@@ -278,7 +277,6 @@ describe("App", () => {
       aReportAbility({
         gameID: 33763,
         name: "Lifebloom",
-        icon: "spell_nature_lifebloom.jpg",
       }),
     ]);
 

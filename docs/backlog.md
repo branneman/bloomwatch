@@ -124,7 +124,7 @@ As any user of the app, I want a small banner near the top of the screen when th
 - Message is non-technical and links to the same personal-Client-ID registration flow as 008's fallback.
 - Visual design comes from a dedicated Claude Design pass (see `docs/design_v1`/`docs/design_v2` for the established pattern) before implementation.
 
-### 010 — WCL request performance & loading-state audit
+### 010 — WCL request performance & loading-state audit ✅ Done
 
 As a developer, I want a full audit of every WCL GraphQL request the app makes — checking for redundant refetches, oversized queries, and requests that could be batched or deferred — with a loading indicator added anywhere a request may take user-perceptible time, so that the app feels responsive and doesn't waste the shared rate-limit budget.
 

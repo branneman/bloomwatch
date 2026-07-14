@@ -38,7 +38,7 @@ export function useSpellDisciplineSummary(
     };
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
-      fetchEvents(accessToken, reportCode, fightArg, "Casts"),
+      fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
       fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
     ])
       .then(([buffEvents, castEvents, healingEvents]) => {

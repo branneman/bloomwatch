@@ -57,8 +57,6 @@ describe("resolveAbilities", () => {
       aReportAbility({
         gameID: 27869,
         name: "Dark Rune",
-        icon: "inv_misc_rune_04.jpg",
-        type: "32",
       }),
     ]);
     expect(result.get(27869)).toEqual({
@@ -72,8 +70,6 @@ describe("resolveAbilities", () => {
       aReportAbility({
         gameID: 28499,
         name: "Restore Mana",
-        icon: "inv_potion_137.jpg",
-        type: "1",
       }),
     ]);
     expect(result.get(28499)).toEqual({
@@ -87,8 +83,6 @@ describe("resolveAbilities", () => {
       aReportAbility({
         gameID: 99999,
         name: "Restore Mana",
-        icon: "some_other_icon.jpg",
-        type: "1",
       }),
     ]);
     expect(result.has(99999)).toBe(false);
@@ -99,8 +93,6 @@ describe("resolveAbilities", () => {
       aReportAbility({
         gameID: 12345,
         name: "Mortal Strike",
-        icon: "ability_warrior_savageblow.jpg",
-        type: "1",
       }),
     ]);
     expect(result.has(12345)).toBe(false);

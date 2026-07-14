@@ -25,6 +25,7 @@ export interface NaturesSwiftnessCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -69,6 +70,7 @@ export function NaturesSwiftnessCard({
       reportCode,
       { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
       "Casts",
+      true,
     )
       .then((events) => {
         const computed = computeNaturesSwiftnessAudit(

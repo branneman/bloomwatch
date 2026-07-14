@@ -23,6 +23,7 @@ export interface RestackTaxCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -52,7 +53,7 @@ export function RestackTaxCard({
     };
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
-      fetchEvents(accessToken, reportCode, fightArg, "Casts"),
+      fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
     ])
       .then(([buffEvents, castEvents]) => {
         const computed = computeRestackTax(

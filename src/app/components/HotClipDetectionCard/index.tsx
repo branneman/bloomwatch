@@ -24,6 +24,7 @@ export interface HotClipDetectionCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -57,7 +58,7 @@ export function HotClipDetectionCard({
     };
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
-      fetchEvents(accessToken, reportCode, fightArg, "Casts"),
+      fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
     ])
       .then(([buffEvents, castEvents]) => {
         const computed = computeHotClipDetection(

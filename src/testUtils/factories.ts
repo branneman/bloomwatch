@@ -15,7 +15,6 @@ export function aFight(overrides: Partial<Fight> = {}): Fight {
     encounterID: 601,
     kill: true,
     bossPercentage: null,
-    gameZone: { id: 548, name: "Serpentshrine Cavern" },
     ...overrides,
   };
 }
@@ -54,8 +53,6 @@ export function aReportAbility(
   return {
     gameID: 26982,
     name: "Rejuvenation",
-    icon: "spell_nature_rejuvenation.jpg",
-    type: "8",
     ...overrides,
   };
 }

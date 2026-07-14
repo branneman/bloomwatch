@@ -23,6 +23,7 @@ export interface AccidentalBloomsCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -52,7 +53,7 @@ export function AccidentalBloomsCard({
     };
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
-      fetchEvents(accessToken, reportCode, fightArg, "Healing"),
+      fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
     ])
       .then(([buffEvents, healEvents]) => {
         const computed = computeAccidentalBlooms(

@@ -22,6 +22,7 @@ export interface GCDUtilizationCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -44,6 +45,7 @@ export function GCDUtilizationCard({
       reportCode,
       { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
       "Casts",
+      true,
     )
       .then((events) => {
         const computed = computeGcdUtilization(

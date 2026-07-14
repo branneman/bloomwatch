@@ -45,6 +45,10 @@ export function createEventFetcher(
     dataType: WclEventDataType,
     includeResources = false,
   ): Promise<WclEvent[]> {
+    // includeResources only ever adds fields, never removes/changes ones a
+    // false-requesting caller relies on (story 010) — so every call site for a
+    // given dataType should pass the same value. A mismatch here silently
+    // splits the cache key and doubles the request for that dataType/fight.
     const key = `${reportCode}:${fight.id}:${dataType}:${includeResources}`;
     const cached = cache.get(key);
     if (cached) return cached;

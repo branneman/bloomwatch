@@ -61,7 +61,7 @@ export function DeathForensicsCard({
     };
     Promise.all([
       fetchEvents(accessToken, reportCode, fightArg, "Deaths"),
-      fetchEvents(accessToken, reportCode, fightArg, "Casts"),
+      fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
     ])
       .then(([deathEvents, castEvents, buffEvents]) => {

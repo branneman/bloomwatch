@@ -62,7 +62,6 @@ export interface Fight {
   encounterID: number;
   kill: boolean | null;
   bossPercentage: number | null;
-  gameZone: { id: number; name: string } | null;
 }
 
 export interface ReportFights {
@@ -86,7 +85,7 @@ export async function fetchReportFights(
   reportData {
     report(code: "${reportCode}") {
       title
-      fights { id name startTime endTime encounterID kill bossPercentage gameZone { id name } }
+      fights { id name startTime endTime encounterID kill bossPercentage }
     }
   }
 }`,
@@ -96,7 +95,29 @@ export async function fetchReportFights(
   const bodyText = await resp.text();
   if (!resp.ok) throw new WclApiError(resp.status, bodyText);
   const parsed = JSON.parse(bodyText);
-  return parsed.data.reportData.report;
+  const report = parsed.data.reportData.report;
+  return {
+    title: report.title,
+    fights: report.fights.map(
+      (fight: {
+        id: number;
+        name: string;
+        startTime: number;
+        endTime: number;
+        encounterID: number;
+        kill: boolean | null;
+        bossPercentage: number | null;
+      }): Fight => ({
+        id: fight.id,
+        name: fight.name,
+        startTime: fight.startTime,
+        endTime: fight.endTime,
+        encounterID: fight.encounterID,
+        kill: fight.kill,
+        bossPercentage: fight.bossPercentage,
+      }),
+    ),
+  };
 }
 
 export interface CastTableAbility {
@@ -168,8 +189,6 @@ export async function fetchCastsTable(
 export interface ReportAbility {
   gameID: number;
   name: string;
-  icon: string;
-  type: string;
 }
 
 export async function fetchMasterDataAbilities(
@@ -187,7 +206,7 @@ export async function fetchMasterDataAbilities(
       query: `query {
   reportData {
     report(code: "${reportCode}") {
-      masterData { abilities { gameID name icon type } }
+      masterData { abilities { gameID name } }
     }
   }
 }`,
@@ -197,5 +216,11 @@ export async function fetchMasterDataAbilities(
   const bodyText = await resp.text();
   if (!resp.ok) throw new WclApiError(resp.status, bodyText);
   const parsed = JSON.parse(bodyText);
-  return parsed.data.reportData.report.masterData.abilities;
+  const abilities = parsed.data.reportData.report.masterData.abilities;
+  return abilities.map(
+    (ability: { gameID: number; name: string }): ReportAbility => ({
+      gameID: ability.gameID,
+      name: ability.name,
+    }),
+  );
 }
