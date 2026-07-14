@@ -13,6 +13,7 @@ import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
 import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
+import type { OverhealTableResult } from "./overhealTable";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -90,6 +91,7 @@ export function summarizeSpellDiscipline(
 export function summarizeManaEconomy(
   manaCurve: ManaCurveResult,
   consumableThroughput: ConsumableThroughputResult,
+  overhealTable: OverhealTableResult,
 ): EpicSummary {
   const consumablesStat = consumableThroughput.exempt
     ? "Consumables: not mana-constrained"
@@ -101,9 +103,13 @@ export function summarizeManaEconomy(
         .join(", ");
 
   return {
+    // overhealTable's judgement joins the worst-of calc (per docs/backlog.md story 404) but
+    // doesn't get its own stat line — story 701 caps a dashboard widget at 1-2 stats, same
+    // precedent as Downranking Discipline joining Spell Discipline's worst-of silently.
     judgement: worstJudgement([
       manaCurve.judgement,
       consumableThroughput.judgement,
+      overhealTable.judgement,
     ]),
     stats: [
       manaCurve.endingPct === null

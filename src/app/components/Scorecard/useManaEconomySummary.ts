@@ -5,6 +5,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { computeManaCurve } from "../../../metrics/manaCurve";
 import { computeConsumableThroughput } from "../../../metrics/consumableThroughput";
+import { computeOverhealTable } from "../../../metrics/overhealTable";
 import { summarizeManaEconomy } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -27,31 +28,42 @@ export function useManaEconomySummary(
   const [state, setState] = useState<TaggedState | null>(null);
 
   useEffect(() => {
-    fetchEvents(
-      accessToken,
-      reportCode,
-      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
-      "Casts",
-      true,
-    )
-      .then((events) => {
+    const fightArg = {
+      id: fight.id,
+      startTime: fight.startTime,
+      endTime: fight.endTime,
+    };
+    Promise.all([
+      fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
+      fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
+    ])
+      .then(([castEvents, healingEvents]) => {
         const manaCurve = computeManaCurve(
-          events,
+          castEvents,
           druidId,
           fight.kill === true,
           fight.endTime - fight.startTime,
         );
         const consumableThroughput = computeConsumableThroughput(
-          events,
+          castEvents,
           druidId,
           resolvedAbilities,
           fight.endTime - fight.startTime,
+        );
+        const overhealTable = computeOverhealTable(
+          healingEvents,
+          druidId,
+          resolvedAbilities,
         );
         setState({
           accessToken,
           summary: {
             status: "ready",
-            ...summarizeManaEconomy(manaCurve, consumableThroughput),
+            ...summarizeManaEconomy(
+              manaCurve,
+              consumableThroughput,
+              overhealTable,
+            ),
           },
         });
       })

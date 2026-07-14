@@ -21,6 +21,7 @@ import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
 import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
+import type { OverhealTableResult } from "./overhealTable";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -340,6 +341,10 @@ describe("summarizeManaEconomy", () => {
     rows: [],
     judgement: null,
   };
+  const OVERHEAL_TABLE_GREEN: OverhealTableResult = {
+    rows: [],
+    judgement: "green",
+  };
 
   it("reports the mana curve's own judgement and ending mana stat when consumables are exempt", () => {
     const manaCurve: ManaCurveResult = {
@@ -347,7 +352,9 @@ describe("summarizeManaEconomy", () => {
       endingPct: 20,
       judgement: "green",
     };
-    expect(summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES)).toEqual({
+    expect(
+      summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES, OVERHEAL_TABLE_GREEN),
+    ).toEqual({
       judgement: "green",
       stats: ["Ending mana: 20%", "Consumables: not mana-constrained"],
     });
@@ -359,7 +366,9 @@ describe("summarizeManaEconomy", () => {
       endingPct: null,
       judgement: null,
     };
-    expect(summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES)).toEqual({
+    expect(
+      summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES, OVERHEAL_TABLE_GREEN),
+    ).toEqual({
       judgement: "green",
       stats: ["Ending mana: no data", "Consumables: not mana-constrained"],
     });
@@ -384,10 +393,47 @@ describe("summarizeManaEconomy", () => {
       ],
       judgement: "red",
     };
-    expect(summarizeManaEconomy(manaCurve, consumableThroughput)).toEqual({
+    expect(
+      summarizeManaEconomy(
+        manaCurve,
+        consumableThroughput,
+        OVERHEAL_TABLE_GREEN,
+      ),
+    ).toEqual({
       judgement: "red",
       stats: ["Ending mana: 20%", "Potions: 2/2, Runes: 0/1"],
     });
+  });
+
+  it("folds the overheal table's judgement into the worst-of without adding a stat line", () => {
+    const manaCurve: ManaCurveResult = {
+      points: [{ timestampMs: 1000, pct: 20 }],
+      endingPct: 20,
+      judgement: "green",
+    };
+    const overhealTable: OverhealTableResult = {
+      rows: [
+        {
+          category: "direct",
+          spell: "Swiftmend",
+          amount: 400,
+          overheal: 600,
+          overhealPct: 60,
+          judgement: "red",
+        },
+      ],
+      judgement: "red",
+    };
+    const result = summarizeManaEconomy(
+      manaCurve,
+      EXEMPT_CONSUMABLES,
+      overhealTable,
+    );
+    expect(result.judgement).toBe("red");
+    expect(result.stats).toEqual([
+      "Ending mana: 20%",
+      "Consumables: not mana-constrained",
+    ]);
   });
 });
 
