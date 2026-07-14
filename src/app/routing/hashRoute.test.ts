@@ -71,6 +71,10 @@ describe("parseHash / serializeRoute", () => {
     "#/r/CODE/d/Name/f/6/e/notanepic",
     "#/r/CODE/d/Name/f/6/e/gcd/extra",
     "garbage",
+    "#/r/%zz",
+    "#/r/CODE/d/%zz",
+    "#/r/CODE/d/Name/f/6/e/%zz",
+    "#/r/100%",
   ])("falls back to the input screen for malformed hash %s", (hash) => {
     expect(parseHash(hash)).toEqual({ screen: "input" });
   });
