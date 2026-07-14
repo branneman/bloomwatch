@@ -10,29 +10,7 @@ Conventions used below:
 - "R/O/G" = red / orange / green judgement.
 - "Opener" = the first ~10 seconds of a pull (ramp-up window, excluded from steady-state metrics).
 - Spell IDs are _not_ hardcoded in stories; they must be resolved from the report's `masterData.abilities` at runtime (ranks matter in TBC — one spell name maps to multiple ability IDs).
-- Completed stories are marked `✅ Done` in the heading.
-
-### Ordering note
-
-Epic letters (A, B, C…) are topical groupings, not a strict execution order — the real sequencing logic is dependency-driven and phase-driven (see `docs/roadmap.md`'s phases). In particular:
-
-- **006 (event fetching/caching) and 007 (ability resolution) are hard prerequisites for every metric epic (B–G)** — every metric reads events through 006 and resolves spell IDs through 007. 005 (druid detection) must precede them functionally since metrics need a selected druid. 008 (default client fallback) has no downstream dependents — it's shared-client resilience, not a data dependency, and can slip later without blocking feature work.
-- **Stories within one epic build on each other** (e.g. 202–205 reuse 201's Lifebloom stack-reconstruction; 402–404 reuse 401's resource-data plumbing) — don't expect to cherry-pick just the first story of several epics and treat the rest as parallel-safe.
-- **501 (per-death audit) depends on 302 and 304's logic** (Swiftmend CD state, Nature's Swiftness CD state), not just 201 — it can't be pulled forward ahead of epic D.
-- **601 (prep hygiene) has no dependency on any other metric epic** beyond 006 — it's free-floating and can be slotted in wherever convenient.
-- **009 (rate-limit usage banner) builds directly on 008's `rateLimitData` plumbing** — sequence it after 008. It also needs its own Claude Design pass (see `docs/design_v1`/`docs/design_v2` for the established pattern) before implementation.
-- **010 (WCL request performance & loading-state audit) is deliberately late** — it sweeps every WCL call site in the app, so it's most useful once most epics (and their call sites) already exist.
-- **707 (Good/Fair/Bad labels) is deliberately late too, for the same reason as 010** — it's a sweep across every existing R/O/G chip in the app, so it's most useful once most epics (and their chips) already exist rather than repeated per epic.
-- **011 (Dreamstate-spec test coverage) only needed 007** — done free-floating, ahead of the GCD/Lifebloom epics, so later metric stories are exercised against both specs from the start.
-- **705 (onboarding) has no dependency on any metric epic** — it's a static, login-free screen and can be built any time convenient, including before any metric epic exists.
-- **706 (responsive/mobile layout) was blocked on `docs/design_v3` existing** — that design pass (a separate Claude Design pass outside this repo's normal story flow) is done and the folder is now in the repo, so 706 is unblocked.
-- **Epic H is split across phases, not one block:** 701 (single-fight scorecard) belongs right after epic C — it's the Phase 1 MVP exit criterion ("paste link → judged scorecard for GCD + Lifebloom"), not a Phase 4 story. 702 (now the whole-report dashboard, superseding the old zone-aggregation framing) through 704 (shareable URL, Markdown export) are genuinely Phase 4, after D/E/F/G exist to aggregate/export — now that 702 has shipped, it's the primary screen a user lands on after druid selection, not a bonus view; its own per-boss list fulfills 003's former role rather than a separate fight-picker screen surviving alongside it. 802 is deliberately last (Phase 5 polish): it's a maintainer calibration pass that should wait until thresholds are stable. 803 (multi-druid comparison) has been removed from this backlog — TBC raids rarely run two resto druids, so the only comparison that makes sense is raid-vs-raid, which the per-report flow already supports.
-
-**Suggested path from the current state (101 next):**
-
-005 → 006 → 007 → 011 → 101 → 102 → 201 → 202 → 203 → 204 → 205 → **701** → 705 → 008 → 009 → 301 → 302 → 303 → 304 → 401 → 402 → 403 → 404 → 501 → 601 → 702 → 703 → 704 → 010 → 707 → 706 → 802
-
-(009 is free-floating and can move earlier if convenient; 706's `docs/design_v3` blocker is now resolved, so it can move up too; everything else follows its dependency/phase order above.)
+- Completed stories are marked `✅ Done` in the heading; stories not yet started are marked `🔲 Todo`.
 
 ---
 
@@ -113,7 +91,7 @@ As a druid pasting a report link for the first time, I want the app to just work
 - Once a user supplies their own Client ID, it's saved (`localStorage`) and used for all of that browser's future requests, bypassing the shared default entirely.
 - No secrets are requested or stored at any point — the fallback still only asks for a Client ID, never a secret (per principle 2 / story 801).
 
-### 009 — Rate-limit usage banner
+### 009 — Rate-limit usage banner 🔲 Todo
 
 As any user of the app, I want a small banner near the top of the screen when the shared default WCL API client is running low on its hourly request budget, so that I understand why things feel slow instead of assuming the app is broken.
 
@@ -351,6 +329,8 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
 
 ## Epic H — Reporting & UX
 
+**803 (multi-druid comparison) has been removed from this backlog** — TBC raids rarely run two resto druids, so the only comparison that makes sense is raid-vs-raid, which the per-report flow (702) already supports.
+
 ### 705 — Onboarding screen ✅ Done
 
 I want a welcome screen, viewable without logging into WCL, that explains what Bloomwatch is, who it's for, and _why_ HPS/effective-healing/parse-percentile rankings are a bad way to judge a healer (the zero-sum argument from `docs/roadmap.md`'s Vision), with a link to the TBC resto druid rotation game (`https://branneman.github.io/tbc-resto-druid-rotation-game/`), so that a first-time visitor understands the tool's premise before they invest in pasting a report link.
@@ -384,7 +364,9 @@ I want an aggregated scorecard across every non-trash boss fight in the loaded r
 - A report spanning multiple raid zones (e.g. both SSC and TK fights logged in one session) aggregates all of them together — there is no per-zone split or picker.
 - Supersedes story 004 (zone-wide selection), removed from this backlog: partial "some but not all fights" selection is no longer a supported mode — it's either exactly one fight (via this dashboard's own list, 701) or the whole report (this story).
 
-### 703 — Shareable report state
+### 703 — Shareable report state 🔲 Todo
+
+**Note:** in progress as of 2026-07-15, in a separate worktree/session (`docs/specs/703-shareable-report-state-design.md`, `docs/plans/703-shareable-report-state-plan.md`). Don't assume those files' absence or presence reflects this backlog's state until re-checked — the story isn't done until it's marked so here and those spec/plan files are retired, per this file's own working-conventions rule.
 
 I want the report/fight/druid selection encoded in the URL, so that I can share a link to a specific scorecard with my healing officer. I also want the browser's own back/forward buttons to work throughout the app, so that navigating away from a screen doesn't feel like a dead end.
 
@@ -396,7 +378,7 @@ I want the report/fight/druid selection encoded in the URL, so that I can share 
 - The browser's back/forward buttons move between screens the same way the in-app back-links (e.g. "← All fights", "← All metrics") do, everywhere in the flow — not just at the top level.
 - Opening any hash-encoded URL directly (not just the fully-selected scorecard one) resumes at that exact screen once authenticated, instead of resetting to the report-input screen.
 
-### 704 — Markdown export
+### 704 — Markdown export 🔲 Todo
 
 I want to export the current scorecard as a Markdown file, so that I can paste it into Discord/notes or archive my progression.
 
@@ -405,14 +387,16 @@ I want to export the current scorecard as a Markdown file, so that I can paste i
 - Export includes numbers, judgements, thresholds used, report link, and generation date.
 - Output renders cleanly in Discord and GitHub.
 
-### 706 — Responsive/mobile layout
+### 706 — Responsive/mobile layout 🔲 Todo
 
 I want the app to work well on mobile, so that I can check a scorecard from my phone.
 
+**Note:** was blocked on `docs/design_v3` existing; that Claude Design pass is done and the folder is now in the repo (gitignored — a design reference, not a committed asset), so this story is unblocked. Implementation itself hasn't started: `src/index.css` has a couple of pre-existing `max-width: 1024px` breakpoints, but no screen has been swept against design_v3's mobile guidance yet.
+
 **Acceptance criteria**
 
-- Blocked on a `docs/design_v3` existing, produced via a dedicated Claude Design pass (same pattern as `docs/design_v1`/`docs/design_v2`) — this story does not specify a layout itself.
-- Once design_v3 exists, all flow screens (onboarding, report input, druid picker, whole-report dashboard — whose own per-boss list is the fight picker, there is no separate screen — per-fight scorecard, per-epic detail views) are usable on common mobile viewport widths, matching design_v3.
+- Layout follows `docs/design_v3` (produced via a dedicated Claude Design pass, same pattern as `docs/design_v1`/`docs/design_v2`) — this story does not specify a layout itself.
+- All flow screens (onboarding, report input, druid picker, whole-report dashboard — whose own per-boss list is the fight picker, there is no separate screen — per-fight scorecard, per-epic detail views) are usable on common mobile viewport widths, matching design_v3.
 
 ### 707 — Judgement language: Good/Fair/Bad labels ✅ Done
 
@@ -436,7 +420,7 @@ As a developer, I want a Vite + React + TypeScript project scaffold with a full 
 - Test pyramid stood up per `docs/testing.md`: unit + WCL-client-integration (mocked) + component tests run on every push; contract tests (real WCL API, dedicated test Client ID) run on manual trigger only; E2E smoke runs against the live site after every deploy.
 - No secrets are required to build or deploy the product itself (per principle 2); the dedicated test Client ID's access token is a CI-only test credential, documented as such.
 
-### 802 — Threshold calibration pass
+### 802 — Threshold calibration pass 🔲 Todo
 
 As the project's maintainers, we want to review every R/O/G threshold in the app against a corpus of real, well-regarded druid logs and adjust the ones that are currently unfair, so that judgements are consistent and trustworthy across the whole tool. This is deliberately last: it only makes sense once every metric epic exists, so we can look at the full picture holistically instead of tuning one metric in isolation. This is an internal engineering pass — there is no end-user-facing threshold-editing UI; users do not get to configure their own judgements.
 
