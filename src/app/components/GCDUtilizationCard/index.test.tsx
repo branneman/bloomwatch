@@ -31,7 +31,7 @@ describe("GCDUtilizationCard", () => {
       screen.getByRole("heading", { name: "GCD utilization" }),
     ).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("30%")).toBeInTheDocument());
-    expect(screen.getByText("Red")).toBeInTheDocument();
+    expect(screen.getByText("Bad")).toBeInTheDocument();
     expect(
       screen.getByText(/Active time this fight: 0:03/),
     ).toBeInTheDocument();

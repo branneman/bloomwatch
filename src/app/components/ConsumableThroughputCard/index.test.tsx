@@ -65,10 +65,10 @@ describe("ConsumableThroughputCard", () => {
       expect(screen.getByText("Mana Potion")).toBeInTheDocument(),
     );
     expect(screen.getByText("Rune")).toBeInTheDocument();
-    // "Red" appears twice: the card's own header chip (fight-level judgement is the
+    // "Bad" appears twice: the card's own header chip (fight-level judgement is the
     // worst-of, which is red because of the 0/3 rune row) plus the rune row's own chip.
-    expect(screen.getAllByText("Green")).toHaveLength(1); // potions row, 3/3
-    expect(screen.getAllByText("Red")).toHaveLength(2); // header chip + rune row, 0/3
+    expect(screen.getAllByText("Good")).toHaveLength(1); // potions row, 3/3
+    expect(screen.getAllByText("Bad")).toHaveLength(2); // header chip + rune row, 0/3
   });
 
   it("shows an informational note instead of a table when mana never drops below 70%", async () => {

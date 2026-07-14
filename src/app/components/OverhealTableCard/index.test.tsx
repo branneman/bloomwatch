@@ -53,7 +53,7 @@ describe("OverhealTableCard", () => {
     expect(screen.getByText("Swiftmend")).toBeInTheDocument();
     expect(screen.getByText("Direct")).toBeInTheDocument();
     expect(screen.getByText("60%")).toBeInTheDocument();
-    expect(screen.queryAllByText("Red").length).toBeGreaterThan(0);
+    expect(screen.queryAllByText("Bad").length).toBeGreaterThan(0);
   });
 
   it("renders a dash instead of a chip for informational HoT-tick rows", async () => {
@@ -107,7 +107,7 @@ describe("OverhealTableCard", () => {
         screen.getByText("No heals to report this fight."),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

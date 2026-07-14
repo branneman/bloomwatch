@@ -19,7 +19,7 @@ describe("DeathCard", () => {
 
     expect(screen.getByText("Offtank")).toBeInTheDocument();
     expect(screen.getByText("3:47")).toBeInTheDocument();
-    expect(screen.getByText("Red")).toBeInTheDocument();
+    expect(screen.getByText("Bad")).toBeInTheDocument();
     expect(screen.getByText("No")).toBeInTheDocument();
     expect(screen.getAllByText("Ready")).toHaveLength(2);
     expect(screen.getByText("Yes")).toBeInTheDocument();

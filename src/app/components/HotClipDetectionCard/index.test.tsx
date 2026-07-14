@@ -100,8 +100,8 @@ describe("HotClipDetectionCard", () => {
 
     // Regrowth: 1 clip of 2 casts = 50% — would be red if it were judged.
     await waitFor(() => expect(screen.getByText("50.0%")).toBeInTheDocument());
-    expect(screen.getByText("Green")).toBeInTheDocument();
-    expect(screen.queryByText("Red")).not.toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
+    expect(screen.queryByText("Bad")).not.toBeInTheDocument();
   });
 
   it("shows a message when there are no HoT clips", async () => {

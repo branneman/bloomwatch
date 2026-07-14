@@ -33,7 +33,7 @@ describe("IdleGapsCard", () => {
     await waitFor(() =>
       expect(screen.getByText("4% dead time")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
     expect(
       screen.getByText(/Total dead time: 0:04 \(1 gap\)/),
     ).toBeInTheDocument();

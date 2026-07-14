@@ -41,7 +41,7 @@ describe("RefreshCadenceCard", () => {
     await waitFor(() =>
       expect(screen.getByText("Median 6.5s")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
     expect(screen.getByText("Early (< 5.5s)")).toBeInTheDocument();
     expect(screen.getByText("Ideal (5.5–7s)")).toBeInTheDocument();
     expect(screen.getByText("Late (> 7s)")).toBeInTheDocument();

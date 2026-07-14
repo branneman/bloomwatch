@@ -60,7 +60,7 @@ describe("DownrankingDisciplineCard", () => {
     expect(screen.getByText("Rank 10 (max)")).toBeInTheDocument();
     expect(screen.getByText("60%")).toBeInTheDocument();
     expect(screen.getByText("Flagged")).toBeInTheDocument();
-    expect(screen.getByText("Orange")).toBeInTheDocument();
+    expect(screen.getByText("Fair")).toBeInTheDocument();
   });
 
   it("shows a message and green judgement when there are no tracked casts", async () => {
@@ -84,7 +84,7 @@ describe("DownrankingDisciplineCard", () => {
         ),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

@@ -69,9 +69,9 @@ describe("DeathForensicsCard", () => {
     );
     expect(screen.getByText("Offtank")).toBeInTheDocument();
     // Both the overall MetricCard verdict and the single flagged death's own
-    // DeathCard chip render "Red" here — assert both are present rather than
+    // DeathCard chip render "Bad" here — assert both are present rather than
     // a single ambiguous match.
-    expect(screen.getAllByText("Red")).toHaveLength(2);
+    expect(screen.getAllByText("Bad")).toHaveLength(2);
     expect(
       screen.getByText(/not automatically the druid's fault/),
     ).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe("DeathForensicsCard", () => {
     expect(
       screen.getByText("No friendly deaths this fight."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("falls back to 'Target #<id>' when the death's target has no known name", async () => {

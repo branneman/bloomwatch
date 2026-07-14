@@ -75,7 +75,7 @@ describe("SwiftmendAuditCard", () => {
     expect(screen.getByText("Rejuvenation")).toBeInTheDocument();
     expect(screen.getByText("80%")).toBeInTheDocument();
     expect(screen.getByText("Wasteful")).toBeInTheDocument();
-    expect(screen.getByText("Red")).toBeInTheDocument();
+    expect(screen.getByText("Bad")).toBeInTheDocument();
   });
 
   it("shows a dash for Target HP% when no Healing sample is available", async () => {
@@ -135,7 +135,7 @@ describe("SwiftmendAuditCard", () => {
         screen.getByText("No Swiftmends cast this fight."),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

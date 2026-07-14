@@ -11,14 +11,14 @@ describe("MetricCard", () => {
         value="87%"
         pct={87}
         judgement="green"
-        threshold="Green >= 85%."
+        threshold="Good >= 85%."
       />,
     );
     expect(
       screen.getByRole("heading", { name: "GCD utilization" }),
     ).toBeInTheDocument();
     expect(screen.getByText("87%")).toBeInTheDocument();
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
     expect(screen.getByRole("progressbar")).toHaveAttribute(
       "aria-valuenow",
       "87",
@@ -37,7 +37,7 @@ describe("MetricCard", () => {
     expect(
       screen.getByText("Informational — no judgement"),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Green")).not.toBeInTheDocument();
+    expect(screen.queryByText("Good")).not.toBeInTheDocument();
   });
 
   it("shows the threshold text only after opening the disclosure", async () => {
@@ -47,14 +47,14 @@ describe("MetricCard", () => {
         title="GCD utilization"
         value="87%"
         judgement="green"
-        threshold="Green >= 85%, orange 70-85%, red < 70%."
+        threshold="Good >= 85%, orange 70-85%, red < 70%."
       />,
     );
-    expect(screen.queryByText(/Green >= 85%/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Good >= 85%/)).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Why this threshold?" }),
     );
-    expect(screen.getByText(/Green >= 85%/)).toBeInTheDocument();
+    expect(screen.getByText(/Good >= 85%/)).toBeInTheDocument();
   });
 
   it("renders children as the card body", () => {

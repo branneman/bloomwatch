@@ -17,7 +17,7 @@ describe("Widget", () => {
     );
 
     const button = screen.getByRole("button", { name: /GCD economy/ });
-    expect(button).toHaveTextContent("Orange");
+    expect(button).toHaveTextContent("Fair");
     expect(button).toHaveTextContent("GCD utilization: 87%");
     expect(button).toHaveTextContent("Idle gaps: 6.2% dead time");
     expect(button).toHaveTextContent("View details →");
@@ -40,7 +40,7 @@ describe("Widget", () => {
 
     const button = screen.getByRole("button", { name: /GCD economy/ });
     expect(button).toHaveTextContent("Calculating…");
-    expect(screen.queryByText(/^(Green|Orange|Red)$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^(Good|Fair|Bad)$/)).not.toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(button);

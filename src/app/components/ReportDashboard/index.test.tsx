@@ -101,7 +101,7 @@ describe("ReportDashboard", () => {
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: /Pull 1 — Lady Vashj/ }),
-      ).toHaveTextContent(/Green|Orange|Red/),
+      ).toHaveTextContent(/Good|Fair|Bad/),
     );
   });
 

@@ -408,7 +408,7 @@ I want the app to work well on mobile, so that I can check a scorecard from my p
 - Blocked on a `docs/design_v3` existing, produced via a dedicated Claude Design pass (same pattern as `docs/design_v1`/`docs/design_v2`) — this story does not specify a layout itself.
 - Once design_v3 exists, all flow screens (onboarding, report input, druid picker, whole-report dashboard — whose own per-boss list is the fight picker, there is no separate screen — per-fight scorecard, per-epic detail views) are usable on common mobile viewport widths, matching design_v3.
 
-### 707 — Judgement language: Good/Fair/Bad labels
+### 707 — Judgement language: Good/Fair/Bad labels ✅ Done
 
 I want every red/orange/green judgement chip to also carry a plain-language word — Good (green), Fair (orange), Bad (red) — so that the verdict doesn't rely on color alone, which is hard to parse at a glance and inaccessible to colorblind users.
 

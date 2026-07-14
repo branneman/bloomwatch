@@ -41,7 +41,7 @@ describe("ConcurrentTargetsCard", () => {
     expect(
       screen.getByText("Informational — no judgement"),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Green")).not.toBeInTheDocument();
+    expect(screen.queryByText("Good")).not.toBeInTheDocument();
     expect(screen.getByText("0 targets — 40%")).toBeInTheDocument();
     expect(screen.getByText("1 target — 60%")).toBeInTheDocument();
   });

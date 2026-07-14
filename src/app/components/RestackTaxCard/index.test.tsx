@@ -56,7 +56,7 @@ describe("RestackTaxCard", () => {
     await waitFor(() =>
       expect(screen.getByText("1 casts · ~220 mana")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
     expect(screen.getByText("1:41 — Offtank")).toBeInTheDocument();
   });
 
@@ -80,7 +80,7 @@ describe("RestackTaxCard", () => {
         screen.getByText("No re-stack tax this fight."),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

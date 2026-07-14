@@ -28,10 +28,10 @@ describe("DataTable", () => {
     render(
       <DataTable
         columns={["Spell", "Verdict"]}
-        rows={[["Rejuvenation", <span key="v">Orange</span>]]}
+        rows={[["Rejuvenation", <span key="v">Fair</span>]]}
       />,
     );
 
-    expect(screen.getByText("Orange")).toBeInTheDocument();
+    expect(screen.getByText("Fair")).toBeInTheDocument();
   });
 });

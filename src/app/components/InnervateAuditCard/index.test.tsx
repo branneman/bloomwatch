@@ -93,7 +93,7 @@ describe("InnervateAuditCard", () => {
         screen.getByText("Cast at 0:10, Aggrolol (Mage)"),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("renders a red chip when cast on a non-mana-using ally", async () => {
@@ -125,7 +125,7 @@ describe("InnervateAuditCard", () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByText("Red")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Bad")).toBeInTheDocument());
   });
 
   it("renders 'self' and the own mana% for a self-cast", async () => {
@@ -179,7 +179,7 @@ describe("InnervateAuditCard", () => {
     await waitFor(() =>
       expect(screen.getByText("Not cast this fight")).toBeInTheDocument(),
     );
-    expect(screen.queryByText("Red")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bad")).not.toBeInTheDocument();
   });
 
   it("lists a 2nd cast as informational without its own chip", async () => {

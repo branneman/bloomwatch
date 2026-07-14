@@ -43,7 +43,7 @@ describe("ManaCurveCard", () => {
     await waitFor(() =>
       expect(screen.getByText("Ending mana: 20%")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("shows an informational note instead of a judgement chip on a wipe", async () => {
@@ -70,7 +70,7 @@ describe("ManaCurveCard", () => {
       expect(screen.getByText("Ending mana: 20%")).toBeInTheDocument(),
     );
     expect(screen.getByText("Informational — not a kill")).toBeInTheDocument();
-    expect(screen.queryByText("Green")).not.toBeInTheDocument();
+    expect(screen.queryByText("Good")).not.toBeInTheDocument();
   });
 
   it("shows a no-data message when the druid has zero mana samples", async () => {

@@ -4,9 +4,9 @@ import { JudgementChip } from "./index";
 
 describe("JudgementChip", () => {
   it.each([
-    ["green", "Green"],
-    ["orange", "Orange"],
-    ["red", "Red"],
+    ["green", "Good"],
+    ["orange", "Fair"],
+    ["red", "Bad"],
   ] as const)("renders the %s judgement as %s", (judgement, label) => {
     render(<JudgementChip judgement={judgement} />);
     expect(screen.getByText(label)).toBeInTheDocument();

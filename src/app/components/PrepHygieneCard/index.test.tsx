@@ -36,10 +36,10 @@ describe("PrepHygieneCard", () => {
     expect(
       screen.getByRole("heading", { name: "Pull-time consumables check" }),
     ).toBeInTheDocument();
-    // Two "Green" chips render once loaded: the card's own overall judgement
+    // Two "Good" chips render once loaded: the card's own overall judgement
     // (MetricCard's header chip) and the flask/elixir row's own chip, which
     // happen to match here since both are green in this fully-prepped case.
-    await waitFor(() => expect(screen.getAllByText("Green")).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByText("Good")).toHaveLength(2));
     expect(
       screen.getByText("Battle + guardian elixir active"),
     ).toBeInTheDocument();
@@ -63,10 +63,10 @@ describe("PrepHygieneCard", () => {
       />,
     );
 
-    // Two "Red" chips render here too, for the same reason as the green
+    // Two "Bad" chips render here too, for the same reason as the green
     // case above: the card's overall judgement and the flask/elixir row's
     // own judgement are both red in this fully-unprepped case.
-    await waitFor(() => expect(screen.getAllByText("Red")).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByText("Bad")).toHaveLength(2));
     expect(screen.getByText("No flask or elixir active")).toBeInTheDocument();
     expect(screen.getAllByText("Missing")).toHaveLength(2);
   });

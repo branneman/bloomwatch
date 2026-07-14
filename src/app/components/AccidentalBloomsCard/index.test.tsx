@@ -41,7 +41,7 @@ describe("AccidentalBloomsCard", () => {
       screen.getByRole("heading", { name: "Accidental blooms" }),
     ).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("1")).toBeInTheDocument());
-    expect(screen.getByText("Orange")).toBeInTheDocument();
+    expect(screen.getByText("Fair")).toBeInTheDocument();
     expect(screen.getByText("2:53 — Offtank")).toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe("AccidentalBloomsCard", () => {
         screen.getByText("No accidental blooms this fight."),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

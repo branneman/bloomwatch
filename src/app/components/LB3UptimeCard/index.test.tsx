@@ -41,7 +41,7 @@ describe("LB3UptimeCard", () => {
     ).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("Fanah")).toBeInTheDocument());
     expect(screen.getByText("100%")).toBeInTheDocument();
-    expect(screen.getByText("Green")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
   it("falls back to a numeric target label when the name is unknown", async () => {
