@@ -1,8 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { InnervateAuditCard } from "./index";
-import type { WclEvent, WclEventDataType } from "../../../wcl/events";
-import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { WclEvent } from "../../../wcl/events";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { ActorClass } from "../../../metrics/innervateAudit";
 import { aCastEvent, aFight } from "../../../testUtils/factories";
@@ -13,12 +12,7 @@ const RESOLVED_ABILITIES = new Map<number, ResolvedAbility>([
 ]);
 
 function makeFetchEvents(castEvents: WclEvent[]) {
-  return (
-    _accessToken: string,
-    _reportCode: string,
-    _fight: EventFetcherFight,
-    _dataType: WclEventDataType,
-  ): Promise<WclEvent[]> => Promise.resolve(castEvents);
+  return (): Promise<WclEvent[]> => Promise.resolve(castEvents);
 }
 
 describe("InnervateAuditCard", () => {
