@@ -4,6 +4,7 @@ import { ManaEconomyContent } from "./index";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
+import type { ActorClass } from "../../../metrics/innervateAudit";
 import { aCastEvent, aFight, aHealEvent } from "../../../testUtils/factories";
 
 const RESOLVED_ABILITIES = new Map<number, ResolvedAbility>([
@@ -46,6 +47,8 @@ describe("ManaEconomyContent", () => {
         fight={fight}
         druidId={2}
         resolvedAbilities={RESOLVED_ABILITIES}
+        actorClasses={new Map<number, ActorClass>()}
+        targetNames={new Map()}
         fetchEvents={fetchEvents}
       />,
     );
@@ -55,6 +58,9 @@ describe("ManaEconomyContent", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Consumable throughput" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Innervate audit" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "HoT-aware overheal table" }),

@@ -22,6 +22,7 @@ import type { DeathForensicsResult } from "./deathForensics";
 import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
 import type { OverhealTableResult } from "./overhealTable";
+import type { InnervateAuditResult } from "./innervateAudit";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -345,6 +346,11 @@ describe("summarizeManaEconomy", () => {
     rows: [],
     judgement: "green",
   };
+  const INNERVATE_NEUTRAL: InnervateAuditResult = {
+    firstCast: null,
+    laterCasts: [],
+    judgement: null,
+  };
 
   it("reports the mana curve's own judgement and ending mana stat when consumables are exempt", () => {
     const manaCurve: ManaCurveResult = {
@@ -353,7 +359,12 @@ describe("summarizeManaEconomy", () => {
       judgement: "green",
     };
     expect(
-      summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES, OVERHEAL_TABLE_GREEN),
+      summarizeManaEconomy(
+        manaCurve,
+        EXEMPT_CONSUMABLES,
+        OVERHEAL_TABLE_GREEN,
+        INNERVATE_NEUTRAL,
+      ),
     ).toEqual({
       judgement: "green",
       stats: ["Ending mana: 20%", "Consumables: not mana-constrained"],
@@ -367,7 +378,12 @@ describe("summarizeManaEconomy", () => {
       judgement: null,
     };
     expect(
-      summarizeManaEconomy(manaCurve, EXEMPT_CONSUMABLES, OVERHEAL_TABLE_GREEN),
+      summarizeManaEconomy(
+        manaCurve,
+        EXEMPT_CONSUMABLES,
+        OVERHEAL_TABLE_GREEN,
+        INNERVATE_NEUTRAL,
+      ),
     ).toEqual({
       judgement: "green",
       stats: ["Ending mana: no data", "Consumables: not mana-constrained"],
@@ -398,6 +414,7 @@ describe("summarizeManaEconomy", () => {
         manaCurve,
         consumableThroughput,
         OVERHEAL_TABLE_GREEN,
+        INNERVATE_NEUTRAL,
       ),
     ).toEqual({
       judgement: "red",
@@ -428,6 +445,31 @@ describe("summarizeManaEconomy", () => {
       manaCurve,
       EXEMPT_CONSUMABLES,
       overhealTable,
+      INNERVATE_NEUTRAL,
+    );
+    expect(result.judgement).toBe("red");
+    expect(result.stats).toEqual([
+      "Ending mana: 20%",
+      "Consumables: not mana-constrained",
+    ]);
+  });
+
+  it("folds the innervate audit's judgement into the worst-of without adding a stat line", () => {
+    const manaCurve: ManaCurveResult = {
+      points: [{ timestampMs: 1000, pct: 20 }],
+      endingPct: 20,
+      judgement: "green",
+    };
+    const innervateAudit: InnervateAuditResult = {
+      firstCast: null,
+      laterCasts: [],
+      judgement: "red",
+    };
+    const result = summarizeManaEconomy(
+      manaCurve,
+      EXEMPT_CONSUMABLES,
+      OVERHEAL_TABLE_GREEN,
+      innervateAudit,
     );
     expect(result.judgement).toBe("red");
     expect(result.stats).toEqual([

@@ -42,6 +42,7 @@ describe("useManaEconomySummary", () => {
         fight,
         2,
         new Map(),
+        new Map(),
         makeFetchEvents(castEvents, []),
       ),
     );
@@ -95,6 +96,7 @@ describe("useManaEconomySummary", () => {
         fight,
         2,
         resolvedAbilities,
+        new Map(),
         makeFetchEvents(castEvents, healingEvents),
       ),
     );
@@ -116,6 +118,7 @@ describe("useManaEconomySummary", () => {
         "4GYHZRdtL3bvhpc8",
         fight,
         2,
+        new Map(),
         new Map(),
         fetchEvents,
       ),

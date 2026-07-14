@@ -4,6 +4,7 @@ import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
+import type { ActorClass } from "../../../metrics/innervateAudit";
 import type { DruidCandidate } from "../../../report/druidDetection";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
@@ -39,6 +40,7 @@ export interface ScorecardProps {
   naturesSwiftnessAbilityIds: Set<number>;
   resolvedAbilities: Map<number, ResolvedAbility>;
   targetNames: Map<number, string>;
+  actorClasses: Map<number, ActorClass>;
   fetchEvents: (
     accessToken: string,
     reportCode: string,
@@ -76,6 +78,7 @@ export function Scorecard({
   naturesSwiftnessAbilityIds,
   resolvedAbilities,
   targetNames,
+  actorClasses,
   fetchEvents,
   onBackToFights,
   onStartOver,
@@ -114,6 +117,7 @@ export function Scorecard({
     fight,
     druidId,
     resolvedAbilities,
+    actorClasses,
     fetchEvents,
   );
   const deathSummary = useDeathForensicsSummary(
@@ -416,6 +420,8 @@ export function Scorecard({
             fight={fight}
             druidId={druidId}
             resolvedAbilities={resolvedAbilities}
+            actorClasses={actorClasses}
+            targetNames={targetNames}
             fetchEvents={fetchEvents}
           />
         </div>

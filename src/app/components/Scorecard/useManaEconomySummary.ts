@@ -6,6 +6,10 @@ import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { computeManaCurve } from "../../../metrics/manaCurve";
 import { computeConsumableThroughput } from "../../../metrics/consumableThroughput";
 import { computeOverhealTable } from "../../../metrics/overhealTable";
+import {
+  computeInnervateAudit,
+  type ActorClass,
+} from "../../../metrics/innervateAudit";
 import { summarizeManaEconomy } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -17,6 +21,7 @@ export function useManaEconomySummary(
   fight: Fight,
   druidId: number,
   resolvedAbilities: Map<number, ResolvedAbility>,
+  actorClasses: Map<number, ActorClass>,
   fetchEvents: (
     accessToken: string,
     reportCode: string,
@@ -55,6 +60,14 @@ export function useManaEconomySummary(
           druidId,
           resolvedAbilities,
         );
+        const innervateAudit = computeInnervateAudit(
+          castEvents,
+          druidId,
+          resolvedAbilities,
+          actorClasses,
+          fight.endTime - fight.startTime,
+          fight.startTime,
+        );
         setState({
           accessToken,
           summary: {
@@ -63,6 +76,7 @@ export function useManaEconomySummary(
               manaCurve,
               consumableThroughput,
               overhealTable,
+              innervateAudit,
             ),
           },
         });
@@ -88,6 +102,7 @@ export function useManaEconomySummary(
     fight.kill,
     druidId,
     resolvedAbilities,
+    actorClasses,
     fetchEvents,
   ]);
 

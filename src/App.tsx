@@ -26,6 +26,7 @@ import { Disclosure } from "./app/components/ui/Disclosure";
 import { OwnClientIdField } from "./app/components/OwnClientIdField";
 import { withRateLimitDetection } from "./wcl/client";
 import type { DruidCandidate } from "./report/druidDetection";
+import type { ActorClass } from "./metrics/innervateAudit";
 import logo from "./assets/logo/lifebloom.jpg";
 import styles from "./App.module.css";
 
@@ -41,6 +42,9 @@ function App() {
   >(null);
   const [selectedDruidId, setSelectedDruidId] = useState<number | null>(null);
   const [actorNames, setActorNames] = useState<Map<number, string>>(new Map());
+  const [actorClasses, setActorClasses] = useState<Map<number, ActorClass>>(
+    new Map(),
+  );
   const [resolvedAbilities, setResolvedAbilities] = useState<Map<
     number,
     ResolvedAbility
@@ -72,6 +76,7 @@ function App() {
     setDruidCandidates(null);
     setSelectedDruidId(null);
     setActorNames(new Map());
+    setActorClasses(new Map());
     setResolvedAbilities(null);
     setScorecardRequested(false);
   }
@@ -95,6 +100,9 @@ function App() {
 
   const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
     setActorNames(new Map(entries.map((e) => [e.id, e.name])));
+    setActorClasses(
+      new Map(entries.map((e) => [e.id, { class: e.type, specIcon: e.icon }])),
+    );
   }, []);
 
   const lifebloomAbilityIds = useMemo(
@@ -340,6 +348,7 @@ function App() {
                     naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
                     resolvedAbilities={resolvedAbilities}
                     targetNames={actorNames}
+                    actorClasses={actorClasses}
                     fetchEvents={wrappedFetchEvents}
                     onBackToFights={handleChangeFightSelection}
                     onStartOver={handleStartOver}
