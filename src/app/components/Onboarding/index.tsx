@@ -19,9 +19,16 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         </button>
       </div>
 
-      <p className={styles.tagline}>
+      <p className={styles.section}>
         Keep your Lifeblooms rolling. Bloomwatch is a process-quality analyzer
         for TBC resto druid healers, built on Warcraft Logs.
+      </p>
+
+      <p className={styles.section}>
+        <strong>Skip the parse.</strong> A WCL ranking percentile can&apos;t
+        tell you whether you played well, only whether you out-healed everyone
+        else on that pull. Bloomwatch gives you a verdict that&apos;s actually
+        about your own play, not a number built to rank you against your raid.
       </p>
 
       <h2>What this is</h2>
@@ -35,27 +42,38 @@ export function Onboarding({ onContinue }: OnboardingProps) {
       <h2>Who it&apos;s for</h2>
       <ul className={styles.audienceList}>
         <li>
-          <strong>Primary</strong> — a raiding resto druid on TBC Anniversary
+          <strong>Primary:</strong> a raiding resto druid on TBC Anniversary
           realms who wants objective, per-fight feedback on their own play.
         </li>
         <li>
-          <strong>Secondary</strong> — healing officers and raid leads
-          evaluating druids without falling into the parse trap.
+          <strong>Secondary:</strong> healing officers and raid leads evaluating
+          druids without falling into the parse trap.
         </li>
         <li>
-          <strong>Tertiary</strong> — the broader Classic community, if this
+          <strong>Tertiary:</strong> the broader Classic community, if this
           metric framework proves out for other HoT-centric specs.
         </li>
       </ul>
 
       <h2>Why not just look at the healing meter?</h2>
       <p className={styles.section}>
-        Healing is zero-sum — every point of overheal on your target is a point
-        your co-healer didn&apos;t need to spend. Effective-healing rankings
-        measure your co-healers&apos; behavior as much as your own. This tool
-        measures process instead of output: your GCD utilization, your Lifebloom
-        refresh cadence, your mana-potion cooldown usage. Nobody can steal those
-        from you, so they&apos;re a fair measure of how you actually played.
+        Healing is zero-sum. Every hitpoint you heal can&apos;t be healed by
+        another healer, so you and your co-healers are effectively competing for
+        the same hitpoints. That competition doesn&apos;t make the raid any
+        healthier, it just decides whose parse number goes up.
+      </p>
+      <p className={styles.section}>
+        Two druids can play a fight identically and land on opposite ends of the
+        meter depending on who got assigned the tank versus raid-wide AoE
+        damage, how many other healers were in the group, or how efficiently
+        everyone else played around them. None of that is something you
+        controlled that pull.
+      </p>
+      <p className={styles.section}>
+        Bloomwatch measures process instead of output: your GCD utilization,
+        your Lifebloom refresh cadence, your mana-potion cooldown usage. Nobody
+        can steal those from you, so they&apos;re a fair measure of how you
+        actually played, pull after pull, regardless of assignment or raid comp.
       </p>
 
       <div className={styles.actions}>
@@ -69,7 +87,7 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         </a>
       </div>
       <p className={styles.caption}>
-        Shown once on your first visit — reachable anytime after that from an
+        Shown once on your first visit. Reachable anytime after that from an
         &quot;About&quot; link in the footer.
       </p>
     </>

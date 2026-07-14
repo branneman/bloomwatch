@@ -23,9 +23,6 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.tagline {
-  margin-bottom: var(--space-6);
-}
 .section {
   margin-bottom: var(--space-5);
 }
