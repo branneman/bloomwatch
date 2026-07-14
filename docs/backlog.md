@@ -263,7 +263,7 @@ I want to see if and when Innervate was cast and on whom, so that I never end a 
 - Reports cast time(s), target, and (self-cast) own mana % at cast.
 - R/O/G: red if never used on a mana-constrained fight ≥ 3 min; green if used; orange if used but very late (last 10 % of the fight).
 
-### 404 — HoT-aware overheal table
+### 404 — HoT-aware overheal table ✅ Done
 
 I want per-spell overheal percentages judged against spell-appropriate thresholds, so that I'm not punished for the high overheal that is inherent to HoTs but am flagged for wasteful direct heals.
 
