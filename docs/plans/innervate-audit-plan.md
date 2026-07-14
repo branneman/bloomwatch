@@ -13,7 +13,7 @@
 - Spell/ability IDs are never hardcoded — resolve via `resolvedAbilities` (a `Map<number, ResolvedAbility>` built at runtime from the report's `masterData.abilities`), never a literal gameID in metrics logic.
 - No server-side code, no new secrets, no new WCL query type — everything here reuses data already fetched client-side.
 - Every R/O/G threshold must trace to `docs/backlog.md` story 403 (already written); the mana-use class/spec table is a fixed TBC game-mechanics fact, not a tunable threshold, so it's documented with an inline code comment instead (same precedent as `prepHygiene.ts`'s elixir/flask name lists) — no separate rationale doc needed.
-- Static analysis (`npm run typecheck && npm run lint && npm run format:check`) runs full-project via a pre-commit hook — never bypass it (`--no-verify` is forbidden).
+- Static analysis (`npm run typecheck && npm run lint && npm run format:check`) runs full-project via a pre-commit hook — never bypass it (`--no-verify` is forbidden). Because this hook runs `tsc -b` across the _whole_ project on every commit, a signature/prop change with only one call site cannot be split into separate commits across separate tasks — the call site update must land in the same commit as the signature change, or the hook blocks the commit outright. (This plan originally staged the `ManaEconomyContent`/`epicSummary`/`useManaEconomySummary`/`Scorecard`/`App.tsx` prop-threading chain across three separate tasks/commits; that was found to be incompatible with the hook during execution and folded into one atomic task — see Task 3 below.)
 - Tests are co-located: `*.test.ts` next to unit-tested modules (Tier 1), `*.test.tsx` next to components (Tier 3). New shared test data goes in `src/testUtils/factories.ts` only if an existing factory doesn't already cover the shape — this plan doesn't need any new factories.
 - Commits follow Conventional Commits (`feat(mana): ...`, `docs: ...`).
 - Work happens directly on `main`, committing after each task — no worktree/branch isolation for this plan (explicit user instruction).
@@ -31,7 +31,7 @@
 **Interfaces:**
 
 - Consumes: `WclEvent` (`src/wcl/events.ts`), `ResolvedAbility` (`src/abilities/resolveAbilities.ts`), `Judgement` (`src/metrics/judgement.ts`), `extractManaSamples`/`ManaSample` (`src/metrics/manaSamples.ts`).
-- Produces (used by Tasks 2 and 4):
+- Produces (used by Task 2 and Task 3):
   - `export interface ActorClass { class: string; specIcon: string }`
   - `export function isManaUsingActor(actorClass: ActorClass | undefined): boolean`
   - `export interface InnervateCast { timestampMs: number; isSelfCast: boolean; targetId: number; targetClass: ActorClass | undefined; manaPct: number | null }`
@@ -1019,20 +1019,29 @@ git commit -m "feat(mana): add InnervateAuditCard"
 
 ---
 
-### Task 3: Wire `InnervateAuditCard` into `ManaEconomyContent`
+### Task 3: Wire Innervate audit into `ManaEconomyContent`, the epic summary, and the App/Scorecard data-plumbing chain
 
 **Files:**
 
 - Modify: `src/app/components/ManaEconomyContent/index.tsx`
 - Modify: `src/app/components/ManaEconomyContent/index.test.tsx`
+- Modify: `src/metrics/epicSummary.ts`
+- Modify: `src/metrics/epicSummary.test.ts`
+- Modify: `src/app/components/Scorecard/useManaEconomySummary.ts`
+- Modify: `src/app/components/Scorecard/useManaEconomySummary.test.ts`
+- Modify: `src/app/components/Scorecard/index.tsx`
+- Modify: `src/app/components/Scorecard/index.test.tsx`
+- Modify: `src/App.tsx`
 
 **Interfaces:**
 
+- Consumes (from Task 1): `computeInnervateAudit`, `ActorClass`, `InnervateAuditResult`.
 - Consumes (from Task 2): `InnervateAuditCard`, `InnervateAuditCardProps`.
-- Consumes (from Task 1): `ActorClass` type.
-- Produces (used by Task 5): `ManaEconomyContentProps` gains two required fields: `actorClasses: Map<number, ActorClass>` and `targetNames: Map<number, string>`.
+- Produces: `ManaEconomyContentProps` gains `actorClasses: Map<number, ActorClass>` and `targetNames: Map<number, string>`. `summarizeManaEconomy` gains a 4th required param `innervateAudit: InnervateAuditResult`. `useManaEconomySummary` gains a new required param `actorClasses: Map<number, ActorClass>` (inserted after `resolvedAbilities`, before `fetchEvents`). `ScorecardProps` gains `actorClasses: Map<number, ActorClass>`. `App.tsx` builds and owns `actorClasses` state.
 
-- [ ] **Step 1: Update the component test to expect the new props and card**
+**Why this is one task, not three:** all of these files are directly coupled through prop/argument threading — `Scorecard/index.tsx` is the single call site for both `ManaEconomyContent` and `useManaEconomySummary`, and `App.tsx` is the single source of the `actorClasses` data both of them need. Because the pre-commit hook runs `tsc -b` across the whole project on every commit, none of these signature changes can be committed until every one of their call sites is updated in the same commit — there is exactly one commit at the end of this task, not one per file group. Work through the steps below in order — each is still independently useful for tracking progress via its own focused test — but do not run `git commit` until Step 21; earlier steps will leave the project-wide typecheck in a broken state, and that is expected.
+
+- [ ] **Step 1: Update the `ManaEconomyContent` test to expect the new props and card**
 
 In `src/app/components/ManaEconomyContent/index.test.tsx`, add the import and two new props to the existing `render(<ManaEconomyContent ... />)` call, and assert the new heading:
 
@@ -1075,7 +1084,7 @@ expect(
 Run: `npx vitest run src/app/components/ManaEconomyContent/index.test.tsx`
 Expected: FAIL — TypeScript error (missing `actorClasses`/`targetNames` props) or missing "Innervate audit" heading.
 
-- [ ] **Step 3: Update the implementation**
+- [ ] **Step 3: Update `ManaEconomyContent/index.tsx`**
 
 Replace the contents of `src/app/components/ManaEconomyContent/index.tsx`:
 
@@ -1161,37 +1170,9 @@ export function ManaEconomyContent({
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/app/components/ManaEconomyContent/index.test.tsx`
-Expected: PASS.
+Expected: PASS. (Project-wide `npm run typecheck` will still show an error at `Scorecard/index.tsx`'s call to `ManaEconomyContent` at this point — expected, keep going, do not commit yet.)
 
-- [ ] **Step 5: Typecheck and lint**
-
-Run: `npm run typecheck && npm run lint`
-Expected: errors at every call site that still constructs `ManaEconomyContent` without the two new props (Task 5 fixes the remaining one, in `Scorecard/index.tsx`) — confirm the only remaining error is there, then proceed; it's resolved in Task 5.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add src/app/components/ManaEconomyContent
-git commit -m "feat(mana): mount InnervateAuditCard in ManaEconomyContent"
-```
-
----
-
-### Task 4: Fold Innervate audit into the mana-economy epic summary
-
-**Files:**
-
-- Modify: `src/metrics/epicSummary.ts`
-- Modify: `src/metrics/epicSummary.test.ts`
-- Modify: `src/app/components/Scorecard/useManaEconomySummary.ts`
-- Modify: `src/app/components/Scorecard/useManaEconomySummary.test.ts`
-
-**Interfaces:**
-
-- Consumes (from Task 1): `computeInnervateAudit`, `ActorClass`, `InnervateAuditResult`.
-- Produces (used by Task 5): `summarizeManaEconomy` gains a 4th required param `innervateAudit: InnervateAuditResult`; `useManaEconomySummary` gains a new required param `actorClasses: Map<number, ActorClass>` (inserted after `resolvedAbilities`, before `fetchEvents`).
-
-- [ ] **Step 1: Update `epicSummary.ts`'s test to cover the new param**
+- [ ] **Step 5: Update `epicSummary.ts`'s test to cover the new param**
 
 In `src/metrics/epicSummary.test.ts`, add the import:
 
@@ -1327,12 +1308,12 @@ it("folds the innervate audit's judgement into the worst-of without adding a sta
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 6: Run the test to verify it fails**
 
 Run: `npx vitest run src/metrics/epicSummary.test.ts`
-Expected: FAIL — TypeScript arity error on `summarizeManaEconomy` calls (missing 4th argument) once Step 3 hasn't happened yet; if TS doesn't block the test runner, the new test fails with a wrong judgement instead. Either way, confirms the current signature doesn't yet account for Innervate.
+Expected: FAIL — TypeScript arity error on `summarizeManaEconomy` calls (missing 4th argument) once Step 7 hasn't happened yet; if TS doesn't block the test runner, the new test fails with a wrong judgement instead. Either way, confirms the current signature doesn't yet account for Innervate.
 
-- [ ] **Step 3: Update `epicSummary.ts`**
+- [ ] **Step 7: Update `epicSummary.ts`**
 
 In `src/metrics/epicSummary.ts`, add the import near the other `metrics/*Result` type imports:
 
@@ -1380,12 +1361,12 @@ export function summarizeManaEconomy(
 }
 ```
 
-- [ ] **Step 4: Run `epicSummary.test.ts` to verify it passes**
+- [ ] **Step 8: Run `epicSummary.test.ts` to verify it passes**
 
 Run: `npx vitest run src/metrics/epicSummary.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Update `useManaEconomySummary.test.ts`**
+- [ ] **Step 9: Update `useManaEconomySummary.test.ts`**
 
 In `src/app/components/Scorecard/useManaEconomySummary.test.ts`, insert `new Map(),` as a new `actorClasses` argument in each of the three `renderHook(() => useManaEconomySummary(...))` calls, immediately after the existing 5th argument and before the `fetchEvents`-producing argument.
 
@@ -1482,12 +1463,12 @@ const { result } = renderHook(() =>
 );
 ```
 
-- [ ] **Step 6: Run the test to verify it fails**
+- [ ] **Step 10: Run the test to verify it fails**
 
 Run: `npx vitest run src/app/components/Scorecard/useManaEconomySummary.test.ts`
 Expected: FAIL — TypeScript arity error (`useManaEconomySummary` doesn't accept this many arguments yet).
 
-- [ ] **Step 7: Update `useManaEconomySummary.ts`**
+- [ ] **Step 11: Update `useManaEconomySummary.ts`**
 
 Replace `src/app/components/Scorecard/useManaEconomySummary.ts`'s contents:
 
@@ -1607,52 +1588,21 @@ export function useManaEconomySummary(
 }
 ```
 
-- [ ] **Step 8: Run the test to verify it passes**
+- [ ] **Step 12: Run the test to verify it passes**
 
 Run: `npx vitest run src/app/components/Scorecard/useManaEconomySummary.test.ts`
-Expected: PASS.
+Expected: PASS. (Project-wide typecheck still has an error at `Scorecard/index.tsx`'s call to `useManaEconomySummary(...)` at this point — expected, keep going, do not commit yet.)
 
-- [ ] **Step 9: Typecheck and lint**
-
-Run: `npm run typecheck && npm run lint`
-Expected: the only remaining error is `Scorecard/index.tsx`'s call to `useManaEconomySummary(...)` now being short one argument — resolved in Task 5.
-
-- [ ] **Step 10: Commit**
-
-```bash
-git add src/metrics/epicSummary.ts src/metrics/epicSummary.test.ts \
-  src/app/components/Scorecard/useManaEconomySummary.ts \
-  src/app/components/Scorecard/useManaEconomySummary.test.ts
-git commit -m "feat(mana): fold Innervate audit into the mana economy epic summary"
-```
-
----
-
-### Task 5: Thread actor class/spec data from `App.tsx` through `Scorecard`
-
-**Files:**
-
-- Modify: `src/App.tsx`
-- Modify: `src/app/components/Scorecard/index.tsx`
-- Modify: `src/app/components/Scorecard/index.test.tsx`
-
-**Interfaces:**
-
-- Consumes (from Task 1): `ActorClass` type.
-- Produces: `App.tsx` builds and owns `actorClasses: Map<number, ActorClass>` state; `Scorecard`'s props gain `actorClasses: Map<number, ActorClass>`.
-
-This task has no new pure logic of its own — it's prop plumbing — so its "test" is the existing test suite passing end-to-end plus a manual dev-server check.
-
-- [ ] **Step 1: Update `Scorecard/index.test.tsx` to pass the new prop**
+- [ ] **Step 13: Update `Scorecard/index.test.tsx` to pass the new `actorClasses` prop**
 
 In `src/app/components/Scorecard/index.test.tsx`, add `actorClasses={new Map()}` immediately after each existing `targetNames={new Map()}` line (there are two `render(...)` call sites, at what are currently lines 42 and 124).
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 14: Run the test to verify it fails**
 
 Run: `npx vitest run src/app/components/Scorecard/index.test.tsx`
 Expected: FAIL — TypeScript error, `Scorecard` doesn't accept `actorClasses` yet.
 
-- [ ] **Step 3: Update `Scorecard/index.tsx`**
+- [ ] **Step 15: Update `Scorecard/index.tsx`**
 
 Add the import near the other type imports:
 
@@ -1697,12 +1647,12 @@ Update the `<ManaEconomyContent ... />` JSX block to add both new props (it curr
 />
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [ ] **Step 16: Run the test to verify it passes**
 
 Run: `npx vitest run src/app/components/Scorecard/index.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 5: Update `App.tsx`**
+- [ ] **Step 17: Update `App.tsx`**
 
 Add the import near the other type imports:
 
@@ -1737,31 +1687,32 @@ const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
 
 Add `actorClasses={actorClasses}` to the `<Scorecard ... />` JSX block, immediately after the existing `targetNames={actorNames}` line.
 
-- [ ] **Step 6: Run the full test suite**
+- [ ] **Step 18: Run the full test suite**
 
 Run: `npm test`
 Expected: PASS, no regressions in `App.test.tsx` or elsewhere.
 
-- [ ] **Step 7: Typecheck, lint, and format check**
+- [ ] **Step 19: Typecheck, lint, and format check — the whole chain should now be clean**
 
 Run: `npm run typecheck && npm run lint && npm run format:check`
-Expected: no errors. If Prettier flags formatting, run `npm run format` and re-check.
+Expected: no errors anywhere in the project. This is the first point in this task where the full project is expected to be clean — if there's still an error, find and fix the remaining stale call site before continuing. If Prettier flags formatting, run `npm run format` and re-check.
 
-- [ ] **Step 8: Manual verification**
+- [ ] **Step 20: Manual verification**
 
 Run: `npm run dev`, open the app, load a real report (e.g. `4GYHZRdtL3bvhpc8` from `docs/testing.md`'s known-reports table), select the druid, open the Mana economy epic detail, and confirm the "Innervate audit" card renders without errors (whatever its actual judgement is for that report/fight).
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 21: Commit**
 
 ```bash
-git add src/App.tsx src/app/components/Scorecard/index.tsx \
-  src/app/components/Scorecard/index.test.tsx
-git commit -m "feat(mana): thread actor class/spec data through to the Innervate audit"
+git add src/app/components/ManaEconomyContent src/metrics/epicSummary.ts src/metrics/epicSummary.test.ts \
+  src/app/components/Scorecard/useManaEconomySummary.ts src/app/components/Scorecard/useManaEconomySummary.test.ts \
+  src/app/components/Scorecard/index.tsx src/app/components/Scorecard/index.test.tsx src/App.tsx
+git commit -m "feat(mana): wire Innervate audit into mana economy widget"
 ```
 
 ---
 
-### Task 6: Retire story 403's paperwork
+### Task 4: Retire story 403's paperwork
 
 **Files:**
 
