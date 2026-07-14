@@ -32,6 +32,11 @@ vi.mock("./wcl/events", async (importOriginal) => ({
 // Matches useWclAuth's ACCESS_TOKEN_STORAGE_KEY (src/wcl/useWclAuth.ts) —
 // simulating an already-authenticated session the same way test/e2e/smoke.spec.ts does.
 const ACCESS_TOKEN_STORAGE_KEY = "wcl_access_token";
+// Matches App.tsx's ONBOARDING_SEEN_KEY. Every test below defaults to
+// "already seen" (set in beforeEach) since this file's existing tests
+// exercise the report-loading flow, not onboarding itself — the dedicated
+// "Onboarding" describe block below clears this key explicitly instead.
+const ONBOARDING_SEEN_KEY = "bloomwatch_onboarding_seen";
 const REPORT_CODE = "4GYHZRdtL3bvhpc8";
 const REPORT_TITLE = "SSC+TK 2026-07-07";
 
@@ -80,6 +85,7 @@ describe("App", () => {
     localStorage.clear();
     sessionStorage.clear();
     vi.clearAllMocks();
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
   });
 
   it("renders the Connect screen when there is no access token, with no Client ID required upfront", () => {
@@ -387,5 +393,63 @@ describe("App", () => {
     expect(
       screen.getByRole("heading", { name: REPORT_TITLE }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("App — Onboarding", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it("shows onboarding before Connect on a first visit (no seen flag)", () => {
+    render(<App />);
+
+    expect(
+      screen.getByRole("heading", { name: "What this is" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: "Connect to Warcraft Logs (WCL)",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("dismisses onboarding and reveals Connect when Continue is clicked, persisting the seen flag", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(
+      screen.getByRole("button", { name: "Connect to Warcraft Logs (WCL)" }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem(ONBOARDING_SEEN_KEY)).toBe("true");
+  });
+
+  it("dismisses onboarding via Skip intro the same way", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Skip intro →" }));
+
+    expect(
+      screen.getByRole("button", { name: "Connect to Warcraft Logs (WCL)" }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem(ONBOARDING_SEEN_KEY)).toBe("true");
+  });
+
+  it("reopens onboarding from the About link without clearing the seen flag", async () => {
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "About" }));
+
+    expect(
+      screen.getByRole("heading", { name: "What this is" }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem(ONBOARDING_SEEN_KEY)).toBe("true");
   });
 });

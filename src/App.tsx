@@ -13,6 +13,7 @@ import {
   type ResolvedAbility,
 } from "./abilities/resolveAbilities";
 import { ConnectPanel } from "./app/components/ConnectPanel";
+import { Onboarding } from "./app/components/Onboarding";
 import { ReportInput, type ParsedReport } from "./app/components/ReportInput";
 import { FightPicker } from "./app/components/FightPicker";
 import { DruidDetector } from "./app/components/DruidDetector";
@@ -29,6 +30,8 @@ import type { DruidCandidate } from "./report/druidDetection";
 import type { ActorClass } from "./metrics/innervateAudit";
 import logo from "./assets/logo/lifebloom.jpg";
 import styles from "./App.module.css";
+
+const ONBOARDING_SEEN_KEY = "bloomwatch_onboarding_seen";
 
 function App() {
   const { connect, accessToken, authError, rateLimited, reportRateLimited } =
@@ -51,6 +54,9 @@ function App() {
   > | null>(null);
   const [scorecardRequested, setScorecardRequested] = useState(false);
   const [eventFetcher] = useState(() => createEventFetcher());
+  const [onboardingDismissed, setOnboardingDismissed] = useState(
+    () => localStorage.getItem(ONBOARDING_SEEN_KEY) === "true",
+  );
 
   const wrappedFetchReportFights = useMemo(
     () => withRateLimitDetection(fetchReportFights, reportRateLimited),
@@ -89,6 +95,15 @@ function App() {
   function handleStartOver() {
     setReport(null);
     resetReportState();
+  }
+
+  function dismissOnboarding() {
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+    setOnboardingDismissed(true);
+  }
+
+  function reopenOnboarding() {
+    setOnboardingDismissed(false);
   }
 
   function handleChangeFightSelection() {
@@ -166,7 +181,13 @@ function App() {
 
   return (
     <>
-      {!accessToken && (
+      {!onboardingDismissed && (
+        <Shell width={820}>
+          <Onboarding onContinue={dismissOnboarding} />
+        </Shell>
+      )}
+
+      {onboardingDismissed && !accessToken && (
         <Shell>
           <div className={styles.connectHeader}>
             <img src={logo} width={40} height={40} alt="" />
@@ -186,12 +207,19 @@ function App() {
           {authError && <Alert tone="warning">{authError}</Alert>}
           <p className={styles.connectFooter}>
             No account, no server, no secret — every request to Warcraft Logs is
-            made directly from your browser.
+            made directly from your browser.{" "}
+            <button
+              type="button"
+              className={styles.aboutLink}
+              onClick={reopenOnboarding}
+            >
+              About
+            </button>
           </p>
         </Shell>
       )}
 
-      {accessToken && rateLimited && (
+      {onboardingDismissed && accessToken && rateLimited && (
         <Shell>
           <Alert tone="warning">
             The shared connection is temporarily over capacity — too many people
@@ -202,7 +230,7 @@ function App() {
         </Shell>
       )}
 
-      {accessToken && (
+      {onboardingDismissed && accessToken && (
         <div
           className={rateLimited ? styles.dimmed : undefined}
           inert={rateLimited}
