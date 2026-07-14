@@ -69,7 +69,7 @@ I want to see the report's boss fights (name, pull number, kill/wipe, duration) 
 - Kills and wipes are visually distinct; wipes show boss HP% reached.
 - Single-select only: clicking a fight opens its scorecard (701) directly; no checkbox/multi-select UI. Story 004's zone-wide multi-select was removed for this exact reason (see below) — there is no supported "some but not all fights" mode, only exactly-one-fight (here) or the whole report (702).
 
-**Note:** these criteria were trimmed after initial ship — the trash-fight include-toggle and 004's multi-select zone capability both existed in the shipped code and have not yet been revisited to match. That cleanup is real follow-up work, not covered by this backlog entry alone.
+**Note:** these criteria were trimmed after initial ship, when the trash-fight include-toggle and 004's multi-select zone capability still existed in the shipped `FightPicker` code and hadn't yet been revisited to match. That cleanup is now done: `FightPicker` has been deleted entirely, and these acceptance criteria are satisfied by 702's whole-report dashboard's own per-boss list instead of a standalone fight-picker screen.
 
 ### 005 — Druid auto-detection & selection ✅ Done
 
@@ -366,7 +366,7 @@ I want one fight's results as a dashboard of small summary widgets — one per e
 - Clicking a widget transitions to that epic's detail view: every implemented metric in the epic, each with its judgement and its threshold made visible on demand. A clear way back returns to the overview without reloading or re-fetching.
 - Reachable both directly from 003's fight list (drill-down link) and via 702's whole-report dashboard once that exists.
 
-### 702 — Whole-report dashboard
+### 702 — Whole-report dashboard ✅ Done
 
 I want an aggregated scorecard across every non-trash boss fight in the loaded report — no zone or fight picker in the way — with per-boss drill-down, so that I land on a full raid night's verdict immediately after picking my druid, and only zoom into one specific pull when something needs a closer look.
 
