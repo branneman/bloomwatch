@@ -345,7 +345,7 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
 
 ## Epic H — Reporting & UX
 
-### 705 — Onboarding screen
+### 705 — Onboarding screen ✅ Done
 
 I want a welcome screen, viewable without logging into WCL, that explains what Bloomwatch is, who it's for, and _why_ HPS/effective-healing/parse-percentile rankings are a bad way to judge a healer (the zero-sum argument from `docs/roadmap.md`'s Vision), with a link to the TBC resto druid rotation game (`https://branneman.github.io/tbc-resto-druid-rotation-game/`), so that a first-time visitor understands the tool's premise before they invest in pasting a report link.
 
