@@ -7,7 +7,11 @@ import { globalIgnores } from "eslint/config";
 import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
-  globalIgnores(["dist"]),
+  // .claude/worktrees/* are separate git worktrees (independent checkouts on
+  // their own branches, per superpowers:using-git-worktrees) — the root
+  // repo's full-project lint shouldn't sweep in-progress work from another
+  // branch, since each worktree lints itself independently.
+  globalIgnores(["dist", ".claude/worktrees/**"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
