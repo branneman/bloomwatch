@@ -1,5 +1,5 @@
 // src/App.test.tsx
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -453,8 +453,16 @@ describe("App — shareable URL state", () => {
     render(<App />);
     await loadReport(user);
 
-    expect(window.location.hash).toBe(
-      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,
+    // The sole-candidate auto-advance (druid detection + ability
+    // resolution, then a useEffect-driven navigate()) is async and not yet
+    // guaranteed to have settled the instant the report title appears —
+    // wait for the hash to reach its post-auto-advance value rather than
+    // asserting synchronously, matching how the dashboard UI itself is
+    // awaited below.
+    await waitFor(() =>
+      expect(window.location.hash).toBe(
+        `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,
+      ),
     );
 
     await user.click(
