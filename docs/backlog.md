@@ -23,16 +23,16 @@ Epic letters (A, B, C…) are topical groupings, not a strict execution order �
 - **009 (rate-limit usage banner) builds directly on 008's `rateLimitData` plumbing** — sequence it after 008. It also needs its own Claude Design pass (see `docs/design_v1`/`docs/design_v2` for the established pattern) before implementation.
 - **010 (WCL request performance & loading-state audit) is deliberately late** — it sweeps every WCL call site in the app, so it's most useful once most epics (and their call sites) already exist.
 - **707 (Good/Fair/Bad labels) is deliberately late too, for the same reason as 010** — it's a sweep across every existing R/O/G chip in the app, so it's most useful once most epics (and their chips) already exist rather than repeated per epic.
-- **011 (Dreamstate-spec test coverage) only needs 007** — best done early-ish so later metric stories are exercised against both specs from the start, but nothing blocks on it if it slips later.
+- **011 (Dreamstate-spec test coverage) only needed 007** — done free-floating, ahead of the GCD/Lifebloom epics, so later metric stories are exercised against both specs from the start.
 - **705 (onboarding) has no dependency on any metric epic** — it's a static, login-free screen and can be built any time convenient, including before any metric epic exists.
 - **706 (responsive/mobile layout) was blocked on `docs/design_v3` existing** — that design pass (a separate Claude Design pass outside this repo's normal story flow) is done and the folder is now in the repo, so 706 is unblocked.
 - **Epic H is split across phases, not one block:** 701 (single-fight scorecard) belongs right after epic C — it's the Phase 1 MVP exit criterion ("paste link → judged scorecard for GCD + Lifebloom"), not a Phase 4 story. 702 (now the whole-report dashboard, superseding the old zone-aggregation framing) through 704 (shareable URL, Markdown export) are genuinely Phase 4, after D/E/F/G exist to aggregate/export — now that 702 has shipped, it's the primary screen a user lands on after druid selection, not a bonus view; its own per-boss list fulfills 003's former role rather than a separate fight-picker screen surviving alongside it. 802 is deliberately last (Phase 5 polish): it's a maintainer calibration pass that should wait until thresholds are stable. 803 (multi-druid comparison) has been removed from this backlog — TBC raids rarely run two resto druids, so the only comparison that makes sense is raid-vs-raid, which the per-report flow already supports.
 
-**Suggested path from the current state (011 next):**
+**Suggested path from the current state (101 next):**
 
 005 → 006 → 007 → 011 → 101 → 102 → 201 → 202 → 203 → 204 → 205 → **701** → 705 → 008 → 009 → 301 → 302 → 303 → 304 → 401 → 402 → 403 → 404 → 501 → 601 → 702 → 703 → 704 → 010 → 707 → 706 → 802
 
-(009 and 011 are free-floating and can move earlier if convenient; 706's `docs/design_v3` blocker is now resolved, so it can move up too; everything else follows its dependency/phase order above.)
+(009 is free-floating and can move earlier if convenient; 706's `docs/design_v3` blocker is now resolved, so it can move up too; everything else follows its dependency/phase order above.)
 
 ---
 
@@ -134,7 +134,7 @@ As a developer, I want a full audit of every WCL GraphQL request the app makes �
 - Every screen that triggers a WCL request shows a loading state (spinner/skeleton) while it's in flight, instead of an unexplained pause.
 - Findings and fixes are captured in one pass — this sweeps whatever call sites exist at the time it's picked up, it isn't repeated per-epic.
 
-### 011 — Dreamstate-spec test coverage
+### 011 — Dreamstate-spec test coverage ✅ Done
 
 As a developer, I want test fixtures and factory support for a Dreamstate-spec druid (e.g. 35/0/26) in addition to the existing full-Resto-only test data (e.g. 12/0/49), so that spec/talent assumptions elsewhere in the app — starting with 005's auto-detection — are verified against more than one canonical build.
 
