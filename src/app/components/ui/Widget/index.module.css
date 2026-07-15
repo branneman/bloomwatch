@@ -29,12 +29,14 @@ button.widget:hover {
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
 
 .label {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: var(--text-small-size);
   font-weight: 600;
   color: var(--text-h);
