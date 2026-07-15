@@ -1,4 +1,4 @@
-import { USER_API_URL, WclApiError } from "./client";
+import { WclApiError, postGraphQL } from "./client";
 
 export type WclEventDataType =
   "Casts" | "Buffs" | "Healing" | "Resources" | "Deaths" | "CombatantInfo";
@@ -36,14 +36,11 @@ export async function fetchEventsPage(
   endTime: number,
   includeResources = false,
 ): Promise<WclEventsPage> {
-  const resp = await fetch(USER_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      query: `query {
+  let data;
+  try {
+    data = await postGraphQL(
+      accessToken,
+      `query {
   reportData {
     report(code: "${reportCode}") {
       events(fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}) {
@@ -53,13 +50,14 @@ export async function fetchEventsPage(
     }
   }
 }`,
-    }),
-  });
-  const bodyText = await resp.text();
-  if (resp.status === 429) throw new WclRateLimitError(resp.status, bodyText);
-  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
-  const parsed = JSON.parse(bodyText);
-  const events = parsed.data.reportData.report.events;
+    );
+  } catch (err) {
+    if (err instanceof WclApiError && err.status === 429) {
+      throw new WclRateLimitError(err.status, err.body);
+    }
+    throw err;
+  }
+  const events = data.reportData.report.events;
   return {
     events: events.data,
     nextPageTimestamp: events.nextPageTimestamp,

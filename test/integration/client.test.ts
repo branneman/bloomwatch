@@ -15,6 +15,7 @@ import {
   fetchCastsTable,
   fetchMasterDataAbilities,
   WclApiError,
+  WclGraphQLError,
   withRateLimitDetection,
   TOKEN_URL,
   USER_API_URL,
@@ -106,6 +107,36 @@ describe("fetchReportFights", () => {
     expect(requestBody?.query).toContain("bossPercentage");
     expect(requestBody?.query).not.toContain("gameZone");
   });
+
+  // The GraphQL-errors retry is shared plumbing (postGraphQL), not specific
+  // to fetchMasterDataAbilities — confirm it also covers this call site.
+  it("retries once and succeeds when WCL returns a GraphQL errors response", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(USER_API_URL, () => {
+        callCount++;
+        if (callCount === 1) {
+          return HttpResponse.json({
+            data: { reportData: { report: null } },
+            errors: [{ message: "report not yet available" }],
+          });
+        }
+        return HttpResponse.json(reportFightsFixture);
+      }),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
+      await vi.advanceTimersByTimeAsync(2000);
+      const result = await promise;
+
+      expect(callCount).toBe(2);
+      expect(result.title).toBe("SSC+TK 2026-07-07");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("fetchCastsTable", () => {
@@ -179,6 +210,79 @@ describe("fetchMasterDataAbilities", () => {
     expect(requestBody?.query).toContain("masterData");
     expect(requestBody?.query).toContain("4GYHZRdtL3bvhpc8");
     expect(requestBody?.query).not.toContain("icon");
+  });
+
+  // Regression coverage for the "can't access property map, ...abilities is
+  // null" bug: WCL can return HTTP 200 with a nullable field resolved to
+  // null alongside a populated `errors` array (GraphQL spec allows partial
+  // responses), typically on the first query against a report before its
+  // analysis cache is warm. Reported live on 2pAdzNmPkQwLYMJ4 — the app
+  // required a manual refresh to recover.
+  it("retries once and succeeds when WCL returns a GraphQL errors response before the field is warm", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(USER_API_URL, () => {
+        callCount++;
+        if (callCount === 1) {
+          return HttpResponse.json({
+            data: {
+              reportData: { report: { masterData: { abilities: null } } },
+            },
+            errors: [{ message: "This report's data is not yet available." }],
+          });
+        }
+        return HttpResponse.json(masterDataAbilitiesFixture);
+      }),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchMasterDataAbilities(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+      );
+      await vi.advanceTimersByTimeAsync(2000);
+      const result = await promise;
+
+      expect(callCount).toBe(2);
+      expect(result).toHaveLength(930);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("throws a readable WclGraphQLError (not a crash on the null field) if the retry also fails", async () => {
+    server.use(
+      http.post(USER_API_URL, () =>
+        HttpResponse.json({
+          data: {
+            reportData: { report: { masterData: { abilities: null } } },
+          },
+          errors: [{ message: "This report's data is not yet available." }],
+        }),
+      ),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchMasterDataAbilities(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+      );
+      // Attach rejection handlers before advancing timers, so the promise
+      // never settles without a listener already in place (avoids a false
+      // "unhandled rejection" in the gap between settling and assertion).
+      const throwsGraphQLError =
+        expect(promise).rejects.toThrow(WclGraphQLError);
+      const throwsMessage = expect(promise).rejects.toThrow(
+        "This report's data is not yet available.",
+      );
+      await vi.advanceTimersByTimeAsync(2000);
+      await throwsGraphQLError;
+      await throwsMessage;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

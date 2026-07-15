@@ -12,6 +12,67 @@ export class WclApiError extends Error {
   }
 }
 
+// A GraphQL response can be HTTP 200 with a nullable field resolved to
+// `null` alongside a populated `errors` array — `data` and `errors` aren't
+// mutually exclusive per the GraphQL spec. WCL exhibits this on the first
+// query against a given report (e.g. `masterData.abilities` coming back
+// null), before its server-side analysis cache is warm.
+export class WclGraphQLError extends WclApiError {
+  constructor(
+    status: number,
+    body: string,
+    errors: Array<{ message?: string }>,
+  ) {
+    super(status, body);
+    this.message = `Warcraft Logs returned an error: ${errors
+      .map((e) => e.message ?? "unknown error")
+      .join("; ")}`;
+  }
+}
+
+const GRAPHQL_RETRY_DELAY_MS = 1000;
+
+async function postGraphQLOnce(
+  accessToken: string,
+  query: string,
+  signal?: AbortSignal,
+) {
+  const resp = await fetch(USER_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ query }),
+    signal,
+  });
+  const bodyText = await resp.text();
+  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
+  const parsed = JSON.parse(bodyText);
+  if (Array.isArray(parsed.errors) && parsed.errors.length > 0) {
+    throw new WclGraphQLError(resp.status, bodyText, parsed.errors);
+  }
+  return parsed.data;
+}
+
+// One retry mirrors what a manual page refresh already does when WCL
+// returns a transient GraphQL error (see WclGraphQLError above) — without
+// making the user do it by hand. Not applied to plain HTTP failures (4xx/5xx
+// via WclApiError), only to this specific "200 OK but partial" shape.
+export async function postGraphQL(
+  accessToken: string,
+  query: string,
+  signal?: AbortSignal,
+) {
+  try {
+    return await postGraphQLOnce(accessToken, query, signal);
+  } catch (err) {
+    if (!(err instanceof WclGraphQLError)) throw err;
+    await new Promise((resolve) => setTimeout(resolve, GRAPHQL_RETRY_DELAY_MS));
+    return postGraphQLOnce(accessToken, query, signal);
+  }
+}
+
 export function withRateLimitDetection<Args extends unknown[], R>(
   fn: (...args: Args) => Promise<R>,
   onRateLimited: () => void,
@@ -74,14 +135,9 @@ export async function fetchReportFights(
   reportCode: string,
   signal?: AbortSignal,
 ): Promise<ReportFights> {
-  const resp = await fetch(USER_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      query: `query {
+  const data = await postGraphQL(
+    accessToken,
+    `query {
   reportData {
     report(code: "${reportCode}") {
       title
@@ -89,13 +145,9 @@ export async function fetchReportFights(
     }
   }
 }`,
-    }),
     signal,
-  });
-  const bodyText = await resp.text();
-  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
-  const parsed = JSON.parse(bodyText);
-  const report = parsed.data.reportData.report;
+  );
+  const report = data.reportData.report;
   return {
     title: report.title,
     fights: report.fights.map(
@@ -139,27 +191,18 @@ export async function fetchCastsTable(
   fightIds: number[],
   signal?: AbortSignal,
 ): Promise<CastTableEntry[]> {
-  const resp = await fetch(USER_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      query: `query {
+  const data = await postGraphQL(
+    accessToken,
+    `query {
   reportData {
     report(code: "${reportCode}") {
       table(fightIDs: [${fightIds.join(", ")}], dataType: Casts)
     }
   }
 }`,
-    }),
     signal,
-  });
-  const bodyText = await resp.text();
-  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
-  const parsed = JSON.parse(bodyText);
-  const entries = parsed.data.reportData.report.table.data.entries;
+  );
+  const entries = data.reportData.report.table.data.entries;
   return entries.map(
     (entry: {
       id: number;
@@ -196,27 +239,18 @@ export async function fetchMasterDataAbilities(
   reportCode: string,
   signal?: AbortSignal,
 ): Promise<ReportAbility[]> {
-  const resp = await fetch(USER_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      query: `query {
+  const data = await postGraphQL(
+    accessToken,
+    `query {
   reportData {
     report(code: "${reportCode}") {
       masterData { abilities { gameID name } }
     }
   }
 }`,
-    }),
     signal,
-  });
-  const bodyText = await resp.text();
-  if (!resp.ok) throw new WclApiError(resp.status, bodyText);
-  const parsed = JSON.parse(bodyText);
-  const abilities = parsed.data.reportData.report.masterData.abilities;
+  );
+  const abilities = data.reportData.report.masterData.abilities;
   return abilities.map(
     (ability: { gameID: number; name: string }): ReportAbility => ({
       gameID: ability.gameID,
