@@ -5,8 +5,7 @@ _The permanent reference for how Bloomwatch reflows across screen sizes — impl
 This is the layout spec story 706 implements. It does **not** invent a new visual
 language — it takes the existing Bloomwatch UI (one bordered reading column, purple
 accent, judgement R/O/G, system font, flat borders-over-shadows) and defines how it
-reflows from a 360px phone up to a 1920px desktop. The CSS patterns below are the permanent
-reference for how the app reflows across screen sizes.
+reflows from a 360px phone up to a 1920px desktop.
 
 ---
 
@@ -195,18 +194,18 @@ drops below it), `flex: 1 1 auto` from `sm` (everything inline).
 
 ```css
 :root {
-  --bw-gutter: 16px;
-  --bw-max: 1126px;
+  --gutter: 16px;
+  --content-max: 1126px;
 }
 
 .app {
-  max-width: var(--bw-max);
+  max-width: var(--content-max);
   margin-inline: auto;
   border-inline: 1px solid var(--border); /* the app's signature bordered column */
   min-height: 100vh;
 }
 .main {
-  padding: 20px var(--bw-gutter) 56px;
+  padding: 20px var(--gutter) 56px;
 } /* base gutters */
 @media (min-width: 768px) {
   .main {
