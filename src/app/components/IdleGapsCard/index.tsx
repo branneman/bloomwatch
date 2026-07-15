@@ -49,23 +49,30 @@ export function IdleGapsCard({
       true,
     )
       .then((events) => {
-        const computed = computeIdleGaps(
-          events,
-          druidId,
-          fight.startTime,
-          fight.endTime,
-        );
-        setResult({ accessToken, result: computed });
+        try {
+          const computed = computeIdleGaps(
+            events,
+            druidId,
+            fight.startTime,
+            fight.endTime,
+          );
+          setResult({ accessToken, result: computed });
+        } catch (err) {
+          setResult({
+            accessToken,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to calculate idle gaps.",
+          });
+        }
       })
-      .catch((err: unknown) =>
-        setResult({
-          accessToken,
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to calculate idle gaps.",
-        }),
-      );
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // Anything else is already escalated to the full-screen recovery
+        // overlay by the wrapped fetchEvents (see wcl/client.ts's
+        // withErrorReporting) — nothing to render locally.
+      });
   }, [
     accessToken,
     reportCode,
