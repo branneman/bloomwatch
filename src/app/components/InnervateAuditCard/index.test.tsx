@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { InnervateAuditCard } from "./index";
+import * as innervateAuditModule from "../../../metrics/innervateAudit";
 import type { WclEvent } from "../../../wcl/events";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { ActorClass } from "../../../metrics/innervateAudit";
@@ -16,6 +17,10 @@ function makeFetchEvents(castEvents: WclEvent[]) {
 }
 
 describe("InnervateAuditCard", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("shows the loading state before the fetch resolves", () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 300_000 });
     render(
@@ -36,8 +41,14 @@ describe("InnervateAuditCard", () => {
     expect(screen.getByText("Calculating…")).toBeInTheDocument();
   });
 
-  it("shows an error message when the fetch fails", async () => {
+  it("does not show a local error message when the fetch fails (escalates to the app-level recovery overlay instead)", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 300_000 });
+    let rejectFetch: (err: Error) => void = () => {};
+    const fetchEvents = () =>
+      new Promise<never>((_resolve, reject) => {
+        rejectFetch = reject;
+      });
+
     render(
       <InnervateAuditCard
         accessToken="test-token"
@@ -47,15 +58,43 @@ describe("InnervateAuditCard", () => {
         resolvedAbilities={RESOLVED_ABILITIES}
         actorClasses={new Map()}
         targetNames={new Map()}
-        fetchEvents={() =>
-          Promise.reject(new Error("WCL API responded 500: server error"))
-        }
+        fetchEvents={fetchEvents}
       />,
     );
+
+    await act(async () => {
+      rejectFetch(new Error("WCL API responded 500: server error"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Calculating…")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows a local error message when computing the metric throws (isolated from the rest of the scorecard)", async () => {
+    vi.spyOn(innervateAuditModule, "computeInnervateAudit").mockImplementation(
+      () => {
+        throw new Error("boom");
+      },
+    );
+    const fight = aFight({ id: 6, startTime: 0, endTime: 300_000 });
+    const fetchEvents = () => Promise.resolve([]);
+
+    render(
+      <InnervateAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        resolvedAbilities={RESOLVED_ABILITIES}
+        actorClasses={new Map()}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "WCL API responded 500: server error",
-      ),
+      expect(screen.getByRole("alert")).toHaveTextContent("boom"),
     );
   });
 
