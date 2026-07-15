@@ -1,0 +1,26 @@
+.panel {
+  border: 1px solid var(--judgement-red);
+  background: var(--judgement-red-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.details {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-family: var(--mono);
+  font-size: var(--text-small-size);
+  margin: 0;
+}
+
+.issueLink {
+  font-size: var(--text-small-size);
+  color: var(--text);
+  margin: 0;
+}
