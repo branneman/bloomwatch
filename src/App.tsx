@@ -16,6 +16,8 @@ import {
 import { buildFightRows } from "./report/fightRows";
 import { ConnectPanel } from "./app/components/ConnectPanel";
 import { Onboarding } from "./app/components/Onboarding";
+import { ErrorOverlay } from "./app/components/ErrorOverlay";
+import { recoverFromError } from "./app/errorRecovery";
 import { ReportInput, type ParsedReport } from "./app/components/ReportInput";
 import { DruidDetector } from "./app/components/DruidDetector";
 import { DruidPicker } from "./app/components/DruidPicker";
@@ -30,7 +32,7 @@ import {
   RateLimitBanner,
   RATE_LIMIT_BANNER_THRESHOLD_PCT,
 } from "./app/components/ui/RateLimitBanner";
-import { withRateLimitDetection } from "./wcl/client";
+import { withRateLimitDetection, withErrorReporting } from "./wcl/client";
 import { useRateLimitUsage } from "./wcl/useRateLimitUsage";
 import { useHashRoute } from "./app/routing/useHashRoute";
 import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
@@ -42,13 +44,15 @@ import styles from "./App.module.css";
 const ONBOARDING_SEEN_KEY = "bloomwatch_onboarding_seen";
 
 function App() {
+  const [globalError, setGlobalError] = useState<unknown>(null);
+  const reportError = useCallback((err: unknown) => setGlobalError(err), []);
   const {
     connect,
     accessToken,
     rateLimited,
     reportRateLimited,
     usingDefaultClient,
-  } = useWclAuth();
+  } = useWclAuth(reportError);
   const usagePct = useRateLimitUsage();
   const { route, navigate } = useHashRoute();
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
@@ -73,20 +77,36 @@ function App() {
   const reportCode = route.screen === "input" ? null : route.reportCode;
 
   const wrappedFetchReportFights = useMemo(
-    () => withRateLimitDetection(fetchReportFights, reportRateLimited),
-    [reportRateLimited],
+    () =>
+      withErrorReporting(
+        withRateLimitDetection(fetchReportFights, reportRateLimited),
+        reportError,
+      ),
+    [reportRateLimited, reportError],
   );
   const wrappedFetchCastsTable = useMemo(
-    () => withRateLimitDetection(fetchCastsTable, reportRateLimited),
-    [reportRateLimited],
+    () =>
+      withErrorReporting(
+        withRateLimitDetection(fetchCastsTable, reportRateLimited),
+        reportError,
+      ),
+    [reportRateLimited, reportError],
   );
   const wrappedFetchMasterDataAbilities = useMemo(
-    () => withRateLimitDetection(fetchMasterDataAbilities, reportRateLimited),
-    [reportRateLimited],
+    () =>
+      withErrorReporting(
+        withRateLimitDetection(fetchMasterDataAbilities, reportRateLimited),
+        reportError,
+      ),
+    [reportRateLimited, reportError],
   );
   const wrappedFetchEvents = useMemo(
-    () => withRateLimitDetection(eventFetcher.fetchEvents, reportRateLimited),
-    [eventFetcher, reportRateLimited],
+    () =>
+      withErrorReporting(
+        withRateLimitDetection(eventFetcher.fetchEvents, reportRateLimited),
+        reportError,
+      ),
+    [eventFetcher, reportRateLimited, reportError],
   );
 
   function resetReportState() {
@@ -303,6 +323,14 @@ function App() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable; route/loadedReport/nonTrashFightIds are the only real inputs.
   }, [route, loadedReport, nonTrashFightIds]);
+
+  if (globalError !== null) {
+    return (
+      <Shell>
+        <ErrorOverlay error={globalError} onStartOver={recoverFromError} />
+      </Shell>
+    );
+  }
 
   return (
     <>

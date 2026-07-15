@@ -377,6 +377,35 @@ describe("App", () => {
       screen.getByRole("heading", { name: REPORT_TITLE }),
     ).toBeInTheDocument();
   });
+
+  it("shows the recovery overlay (with the error visible in View details) when the report fails to load for a reason other than a rate limit", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockRejectedValue(
+      new Error("WCL API responded 500: server error"),
+    );
+    const user = userEvent.setup();
+
+    render(<App />);
+    await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
+    await user.click(screen.getByRole("button", { name: "Load report" }));
+
+    expect(
+      await screen.findByText("Sorry, something went wrong."),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "View details" }));
+    expect(screen.getByText(/WCL API responded 500/)).toBeInTheDocument();
+  });
+
+  it("shows the recovery overlay when the OAuth redirect's state doesn't match (e.g. a stale or replayed URL)", async () => {
+    window.history.pushState(null, "", "?code=abc123&state=stale-state");
+
+    render(<App />);
+
+    expect(
+      await screen.findByText("Sorry, something went wrong."),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("App — Onboarding", () => {
