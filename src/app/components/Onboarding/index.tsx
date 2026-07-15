@@ -79,6 +79,7 @@ export function Onboarding({ onContinue }: OnboardingProps) {
       <div className={styles.actions}>
         <Button onClick={onContinue}>Continue</Button>
         <a
+          className={styles.gameLink}
           href="https://branneman.github.io/tbc-resto-druid-rotation-game/"
           target="_blank"
           rel="noreferrer"

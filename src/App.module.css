@@ -33,11 +33,14 @@
   opacity: 0.4;
 }
 .backLink {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  box-sizing: border-box;
   background: none;
   border: none;
   padding: 0;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-2);
   color: var(--accent);
   font: inherit;
   font-size: var(--text-small-size);

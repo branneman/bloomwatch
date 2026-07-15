@@ -13,6 +13,10 @@
   border-radius: 4px;
 }
 .skipLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  box-sizing: border-box;
   background: none;
   border: none;
   padding: 0;
@@ -22,6 +26,11 @@
   font-size: var(--text-small-size);
   white-space: nowrap;
   cursor: pointer;
+}
+.gameLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
 .section {
   margin-bottom: var(--space-5);
