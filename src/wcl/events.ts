@@ -41,6 +41,7 @@ export async function fetchEventsPage(
     data = await postGraphQL(
       accessToken,
       `query {
+  rateLimitData { limitPerHour pointsSpentThisHour }
   reportData {
     report(code: "${reportCode}") {
       events(fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}) {

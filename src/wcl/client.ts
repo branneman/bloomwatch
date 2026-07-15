@@ -1,3 +1,5 @@
+import { publishRateLimitUsage } from "./rateLimitUsage";
+
 export const TOKEN_URL = "https://www.warcraftlogs.com/oauth/token";
 export const USER_API_URL = "https://www.warcraftlogs.com/api/v2/user";
 
@@ -51,6 +53,9 @@ async function postGraphQLOnce(
   const parsed = JSON.parse(bodyText);
   if (Array.isArray(parsed.errors) && parsed.errors.length > 0) {
     throw new WclGraphQLError(resp.status, bodyText, parsed.errors);
+  }
+  if (parsed.data?.rateLimitData) {
+    publishRateLimitUsage(parsed.data.rateLimitData);
   }
   return parsed.data;
 }
@@ -138,6 +143,7 @@ export async function fetchReportFights(
   const data = await postGraphQL(
     accessToken,
     `query {
+  rateLimitData { limitPerHour pointsSpentThisHour }
   reportData {
     report(code: "${reportCode}") {
       title
@@ -194,6 +200,7 @@ export async function fetchCastsTable(
   const data = await postGraphQL(
     accessToken,
     `query {
+  rateLimitData { limitPerHour pointsSpentThisHour }
   reportData {
     report(code: "${reportCode}") {
       table(fightIDs: [${fightIds.join(", ")}], dataType: Casts)
@@ -242,6 +249,7 @@ export async function fetchMasterDataAbilities(
   const data = await postGraphQL(
     accessToken,
     `query {
+  rateLimitData { limitPerHour pointsSpentThisHour }
   reportData {
     report(code: "${reportCode}") {
       masterData { abilities { gameID name } }

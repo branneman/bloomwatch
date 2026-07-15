@@ -24,6 +24,8 @@ import tokenResponseFixture from "./fixtures/token-response.json";
 import reportFightsFixture from "./fixtures/report-fights.json";
 import castsTableFixture from "./fixtures/casts-table.json";
 import masterDataAbilitiesFixture from "./fixtures/masterdata-abilities.json";
+import { subscribeRateLimitUsage } from "../../src/wcl/rateLimitUsage";
+import { aRateLimitUsage } from "../../src/testUtils/factories";
 
 const server = setupServer();
 
@@ -316,5 +318,50 @@ describe("withRateLimitDetection", () => {
 
     await expect(wrapped(2, 3)).resolves.toBe(5);
     expect(onRateLimited).not.toHaveBeenCalled();
+  });
+});
+
+describe("rateLimitData propagation", () => {
+  it("publishes rateLimitData through subscribeRateLimitUsage when a response includes it", async () => {
+    const usage = aRateLimitUsage({
+      limitPerHour: 3600,
+      pointsSpentThisHour: 2880,
+    });
+    server.use(
+      http.post(USER_API_URL, () =>
+        HttpResponse.json({
+          ...reportFightsFixture,
+          data: {
+            ...reportFightsFixture.data,
+            rateLimitData: usage,
+          },
+        }),
+      ),
+    );
+    const listener = vi.fn();
+    const unsubscribe = subscribeRateLimitUsage(listener);
+
+    try {
+      await fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
+      expect(listener).toHaveBeenCalledWith(usage);
+    } finally {
+      unsubscribe();
+    }
+  });
+
+  it("requests rateLimitData alongside every existing query", async () => {
+    let requestBody: { query: string } | undefined;
+    server.use(
+      http.post(USER_API_URL, async ({ request }) => {
+        requestBody = (await request.json()) as { query: string };
+        return HttpResponse.json(reportFightsFixture);
+      }),
+    );
+
+    await fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
+
+    expect(requestBody?.query).toContain(
+      "rateLimitData { limitPerHour pointsSpentThisHour }",
+    );
   });
 });
