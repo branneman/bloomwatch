@@ -219,7 +219,7 @@ drops below it), `flex: 1 1 auto` from `sm` (everything inline).
 }
 ```
 
-Gutters grow with the viewport; the column width does not exceed `--bw-max`. Flat borders,
+Gutters grow with the viewport; the column width does not exceed `--content-max`. Flat borders,
 no shadow — unchanged from the desktop app.
 
 ---
