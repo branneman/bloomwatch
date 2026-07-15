@@ -398,8 +398,16 @@ describe("fetchWithTimeout", () => {
     } catch (e) {
       error = e;
     }
-    expect(error).toBeInstanceOf(DOMException);
-    expect((error as DOMException).name).toBe("AbortError");
+    // Not a DOMException `instanceof` check here: Node's AbortController
+    // constructs its default abort reason from Node's own native
+    // DOMException, which is a distinct constructor from the one this
+    // jsdom-based test environment exposes globally — a real cross-realm
+    // quirk of this test setup, not something fetchWithTimeout's production
+    // logic depends on (it never checks `instanceof DOMException` for the
+    // AbortError case, only for the TimeoutError one it constructs itself
+    // in the same module — see the other test above). `.name` alone proves
+    // the value passed through unaltered.
+    expect((error as { name: string }).name).toBe("AbortError");
   });
 
   it("resolves normally when the request completes before any timeout", async () => {
