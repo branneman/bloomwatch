@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SwiftmendAuditCard } from "./index";
+import * as swiftmendAuditModule from "../../../metrics/swiftmendAudit";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import {
@@ -29,6 +30,10 @@ function makeFetchEvents(
 }
 
 describe("SwiftmendAuditCard", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("shows the wasteful count/judgement and a per-cast table once loaded", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
     const buffEvents = [
@@ -159,10 +164,45 @@ describe("SwiftmendAuditCard", () => {
     expect(screen.getByText("Calculating…")).toBeInTheDocument();
   });
 
-  it("shows an error message when the fetch fails", async () => {
+  it("does not show a local error message when the fetch fails (escalates to the app-level recovery overlay instead)", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    let rejectFetch: (err: Error) => void = () => {};
     const fetchEvents = () =>
-      Promise.reject(new Error("WCL API responded 500: server error"));
+      new Promise<never>((_resolve, reject) => {
+        rejectFetch = reject;
+      });
+
+    render(
+      <SwiftmendAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await act(async () => {
+      rejectFetch(new Error("WCL API responded 500: server error"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Calculating…")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows a local error message when computing the metric throws (isolated from the rest of the scorecard)", async () => {
+    vi.spyOn(swiftmendAuditModule, "computeSwiftmendAudit").mockImplementation(
+      () => {
+        throw new Error("boom");
+      },
+    );
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = () => Promise.resolve([]);
 
     render(
       <SwiftmendAuditCard
@@ -179,9 +219,7 @@ describe("SwiftmendAuditCard", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "WCL API responded 500: server error",
-      ),
+      expect(screen.getByRole("alert")).toHaveTextContent("boom"),
     );
   });
 
