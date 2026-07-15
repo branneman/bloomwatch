@@ -65,28 +65,35 @@ export function DeathForensicsCard({
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
     ])
       .then(([deathEvents, castEvents, buffEvents]) => {
-        const computed = computeDeathForensics(
-          deathEvents,
-          castEvents,
-          buffEvents,
-          druidId,
-          swiftmendAbilityIds,
-          naturesSwiftnessAbilityIds,
-          lifebloomAbilityIds,
-          fight.startTime,
-          fight.endTime,
-        );
-        setResult({ accessToken, result: computed });
+        try {
+          const computed = computeDeathForensics(
+            deathEvents,
+            castEvents,
+            buffEvents,
+            druidId,
+            swiftmendAbilityIds,
+            naturesSwiftnessAbilityIds,
+            lifebloomAbilityIds,
+            fight.startTime,
+            fight.endTime,
+          );
+          setResult({ accessToken, result: computed });
+        } catch (err) {
+          setResult({
+            accessToken,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to calculate the per-death resource audit.",
+          });
+        }
       })
-      .catch((err: unknown) =>
-        setResult({
-          accessToken,
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to calculate the per-death resource audit.",
-        }),
-      );
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // Anything else is already escalated to the full-screen recovery
+        // overlay by the wrapped fetchEvents (see wcl/client.ts's
+        // withErrorReporting) — nothing to render locally.
+      });
   }, [
     accessToken,
     reportCode,
