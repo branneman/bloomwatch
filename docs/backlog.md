@@ -406,7 +406,7 @@ I want every red/orange/green judgement chip to also carry a plain-language word
 - The Markdown export (704) uses the text label too, not just a color name — Markdown can't render color, so the label is the only signal there.
 - Wording is consistent everywhere the same judgement tier appears — no epic invents its own synonyms for "orange."
 
-### 708 — Global error handling & recovery overlay 🔲 Todo
+### 708 — Global error handling & recovery overlay ✅ Done
 
 I want any error — an uncaught bug, a failed WCL request, or a GraphQL request that hangs — to show a clear, non-technical "something went wrong" screen instead of a blank page or a silently broken widget, so that a transient glitch doesn't look like the app is dead.
 
