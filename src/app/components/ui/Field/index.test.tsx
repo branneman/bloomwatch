@@ -14,4 +14,15 @@ describe("Field", () => {
       "Paste your Client ID",
     );
   });
+
+  it("merges an extra className onto the root label", () => {
+    render(
+      <Field label="Report URL or code" className="extra-class">
+        <input />
+      </Field>,
+    );
+    expect(screen.getByText("Report URL or code").closest("label")).toHaveClass(
+      "extra-class",
+    );
+  });
 });

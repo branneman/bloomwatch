@@ -4,6 +4,7 @@ import { Field } from "../ui/Field";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { Alert } from "../ui/Alert";
+import styles from "./index.module.css";
 
 export interface ParsedReport {
   reportCode: string;
@@ -31,14 +32,18 @@ export function ReportInput({ onSubmit }: ReportInputProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Field label="Report URL or code">
-        <Input
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder="https://fresh.warcraftlogs.com/reports/..."
-        />
-      </Field>
-      <Button type="submit">Load report</Button>
+      <div className={styles.form}>
+        <Field label="Report URL or code" className={styles.field}>
+          <Input
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            placeholder="https://fresh.warcraftlogs.com/reports/..."
+          />
+        </Field>
+        <Button type="submit" className={styles.submit}>
+          Load report
+        </Button>
+      </div>
       {error && <Alert tone="warning">{error}</Alert>}
     </form>
   );
