@@ -12,11 +12,13 @@ import {
   type ReportAbility,
 } from "./wcl/client";
 import { fetchEventsPage } from "./wcl/events";
+import { publishRateLimitUsage } from "./wcl/rateLimitUsage";
 import {
   aReportFights,
   aFight,
   aCastTableEntry,
   aReportAbility,
+  aRateLimitUsage,
 } from "./testUtils/factories";
 
 vi.mock("./wcl/client", async (importOriginal) => ({
@@ -636,6 +638,98 @@ describe("App — shareable URL state", () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByLabelText("Report URL or code"),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("App — Rate-limit usage banner", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState(null, "", "#");
+    vi.clearAllMocks();
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+  });
+
+  it("shows the banner once usage crosses 75% on the shared default client, and hides it again below that", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+
+    expect(
+      screen.queryByText(/Shared connection is running low/),
+    ).not.toBeInTheDocument();
+
+    act(() => {
+      publishRateLimitUsage(
+        aRateLimitUsage({ limitPerHour: 3600, pointsSpentThisHour: 2880 }),
+      );
+    });
+
+    expect(
+      await screen.findByText(/Shared connection is running low/),
+    ).toBeInTheDocument();
+
+    act(() => {
+      publishRateLimitUsage(
+        aRateLimitUsage({ limitPerHour: 3600, pointsSpentThisHour: 900 }),
+      );
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/Shared connection is running low/),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("never shows the banner once a custom Client ID has been set, regardless of usage", async () => {
+    localStorage.setItem("wcl_client_id", "my-own-client-id");
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+
+    act(() => {
+      publishRateLimitUsage(
+        aRateLimitUsage({ limitPerHour: 3600, pointsSpentThisHour: 3500 }),
+      );
+    });
+
+    expect(
+      screen.queryByText(/Shared connection is running low/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not show the banner while the 008 rate-limited fallback is already showing", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    vi.mocked(fetchReportFights).mockResolvedValue(
+      aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
+    );
+    vi.mocked(fetchCastsTable).mockRejectedValue(
+      new WclApiError(429, "rate limited"),
+    );
+    vi.mocked(fetchMasterDataAbilities).mockResolvedValue([aReportAbility()]);
+    const user = userEvent.setup();
+
+    render(<App />);
+    await user.type(screen.getByLabelText("Report URL or code"), REPORT_CODE);
+    await user.click(screen.getByRole("button", { name: "Load report" }));
+    await screen.findByText(/temporarily over capacity/);
+
+    act(() => {
+      publishRateLimitUsage(
+        aRateLimitUsage({ limitPerHour: 3600, pointsSpentThisHour: 2880 }),
+      );
+    });
+
+    expect(
+      screen.queryByText(/Shared connection is running low/),
     ).not.toBeInTheDocument();
   });
 });

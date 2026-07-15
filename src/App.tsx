@@ -26,7 +26,12 @@ import { Button } from "./app/components/ui/Button";
 import { Alert } from "./app/components/ui/Alert";
 import { Disclosure } from "./app/components/ui/Disclosure";
 import { OwnClientIdField } from "./app/components/OwnClientIdField";
+import {
+  RateLimitBanner,
+  RATE_LIMIT_BANNER_THRESHOLD_PCT,
+} from "./app/components/ui/RateLimitBanner";
 import { withRateLimitDetection } from "./wcl/client";
+import { useRateLimitUsage } from "./wcl/useRateLimitUsage";
 import { useHashRoute } from "./app/routing/useHashRoute";
 import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import type { DruidCandidate } from "./report/druidDetection";
@@ -37,8 +42,15 @@ import styles from "./App.module.css";
 const ONBOARDING_SEEN_KEY = "bloomwatch_onboarding_seen";
 
 function App() {
-  const { connect, accessToken, authError, rateLimited, reportRateLimited } =
-    useWclAuth();
+  const {
+    connect,
+    accessToken,
+    authError,
+    rateLimited,
+    reportRateLimited,
+    usingDefaultClient,
+  } = useWclAuth();
+  const usagePct = useRateLimitUsage();
   const { route, navigate } = useHashRoute();
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
   const [druidCandidates, setDruidCandidates] = useState<
@@ -343,6 +355,20 @@ function App() {
           <OwnClientIdField onConnect={connect} />
         </Shell>
       )}
+
+      {/* Hidden while 008's blocking fallback (rateLimited) is already
+          showing — that screen has its own OwnClientIdField and a more
+          urgent message, so showing both at once would be redundant. */}
+      {onboardingDismissed &&
+        accessToken &&
+        !rateLimited &&
+        usingDefaultClient &&
+        usagePct !== null &&
+        usagePct >= RATE_LIMIT_BANNER_THRESHOLD_PCT && (
+          <Shell>
+            <RateLimitBanner usagePct={usagePct} onConnect={connect} />
+          </Shell>
+        )}
 
       {onboardingDismissed && accessToken && (
         <div
