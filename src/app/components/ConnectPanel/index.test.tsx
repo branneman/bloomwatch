@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ConnectPanel } from "./index";
 import { aReportFights } from "../../../testUtils/factories";
@@ -46,9 +46,12 @@ describe("ConnectPanel", () => {
     await waitFor(() => expect(onReportLoaded).toHaveBeenCalledWith(report));
   });
 
-  it("shows an error message when the fetch fails", async () => {
+  it("does not show a local error message when the fetch fails (escalates to the app-level recovery overlay instead)", async () => {
+    let rejectFetch: (err: Error) => void = () => {};
     const fetchReportFights = () =>
-      Promise.reject(new Error("WCL API responded 500: server error"));
+      new Promise<never>((_resolve, reject) => {
+        rejectFetch = reject;
+      });
     render(
       <ConnectPanel
         accessToken="test-token"
@@ -57,11 +60,14 @@ describe("ConnectPanel", () => {
         onReportLoaded={vi.fn()}
       />,
     );
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "WCL API responded 500: server error",
-      ),
-    );
+
+    await act(async () => {
+      rejectFetch(new Error("WCL API responded 500: server error"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Loading report…")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("aborts the in-flight fetch when unmounted", () => {

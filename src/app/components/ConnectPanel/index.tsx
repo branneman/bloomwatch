@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import type { ReportFights } from "../../../wcl/client";
-import { Alert } from "../ui/Alert";
 
 export interface ConnectPanelProps {
   accessToken: string | null;
@@ -13,9 +12,7 @@ export interface ConnectPanelProps {
   onReportLoaded: (report: ReportFights) => void;
 }
 
-type FetchResult =
-  | { accessToken: string; report: ReportFights }
-  | { accessToken: string; error: string };
+type FetchResult = { accessToken: string; report: ReportFights };
 
 export function ConnectPanel({
   accessToken,
@@ -35,10 +32,9 @@ export function ConnectPanel({
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        setResult({
-          accessToken,
-          error: err instanceof Error ? err.message : "Failed to fetch report.",
-        });
+        // Anything else is already escalated to the full-screen recovery
+        // overlay by the wrapped fetchReportFights (see wcl/client.ts's
+        // withErrorReporting) — nothing to render locally.
       });
     return () => controller.abort();
   }, [accessToken, reportCode, fetchReportFights, onReportLoaded]);
@@ -47,7 +43,6 @@ export function ConnectPanel({
 
   const isCurrent = result !== null && result.accessToken === accessToken;
   if (!isCurrent) return <p>Loading report…</p>;
-  if ("error" in result) return <Alert tone="warning">{result.error}</Alert>;
 
   return (
     <div>
