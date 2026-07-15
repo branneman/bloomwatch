@@ -17,6 +17,9 @@ import {
   WclApiError,
   WclGraphQLError,
   withRateLimitDetection,
+  WclTimeoutError,
+  fetchWithTimeout,
+  withErrorReporting,
   TOKEN_URL,
   USER_API_URL,
 } from "../../src/wcl/client";
@@ -363,5 +366,89 @@ describe("rateLimitData propagation", () => {
     expect(requestBody?.query).toContain(
       "rateLimitData { limitPerHour pointsSpentThisHour }",
     );
+  });
+});
+
+describe("fetchWithTimeout", () => {
+  it("classifies an internal request timeout as WclTimeoutError", async () => {
+    // Simulates the internal 30s timeout firing by pre-aborting the caller
+    // signal with the same DOMException shape AbortSignal.timeout() produces
+    // — this exercises the exact classification branch without waiting 30
+    // real seconds. AbortSignal.any() reports the reason of whichever input
+    // signal is already aborted, so this is equivalent from fetch()'s POV.
+    const controller = new AbortController();
+    controller.abort(new DOMException("Timed out", "TimeoutError"));
+
+    await expect(
+      fetchWithTimeout(USER_API_URL, { method: "POST" }, controller.signal),
+    ).rejects.toThrow(WclTimeoutError);
+  });
+
+  it("passes through a caller-initiated AbortError unchanged", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    let error: unknown;
+    try {
+      await fetchWithTimeout(
+        USER_API_URL,
+        { method: "POST" },
+        controller.signal,
+      );
+    } catch (e) {
+      error = e;
+    }
+    expect(error).toBeInstanceOf(DOMException);
+    expect((error as DOMException).name).toBe("AbortError");
+  });
+
+  it("resolves normally when the request completes before any timeout", async () => {
+    server.use(http.post(USER_API_URL, () => HttpResponse.json({ ok: true })));
+    const resp = await fetchWithTimeout(USER_API_URL, { method: "POST" });
+    expect(resp.ok).toBe(true);
+  });
+});
+
+describe("withErrorReporting", () => {
+  it("does not call reportError for a 429 WclApiError, and rethrows it", async () => {
+    const reportError = vi.fn();
+    const wrapped = withErrorReporting(async () => {
+      throw new WclApiError(429, "rate limited");
+    }, reportError);
+
+    await expect(wrapped()).rejects.toThrow(WclApiError);
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("does not call reportError for an AbortError, and rethrows it", async () => {
+    const reportError = vi.fn();
+    const wrapped = withErrorReporting(async () => {
+      throw new DOMException("aborted", "AbortError");
+    }, reportError);
+
+    await expect(wrapped()).rejects.toThrow(DOMException);
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("calls reportError with the error for anything else, and rethrows it", async () => {
+    const reportError = vi.fn();
+    const error = new Error("boom");
+    const wrapped = withErrorReporting(async () => {
+      throw error;
+    }, reportError);
+
+    await expect(wrapped()).rejects.toThrow("boom");
+    expect(reportError).toHaveBeenCalledExactlyOnceWith(error);
+  });
+
+  it("passes through arguments and the return value on success", async () => {
+    const reportError = vi.fn();
+    const wrapped = withErrorReporting(
+      async (a: number, b: number) => a + b,
+      reportError,
+    );
+
+    await expect(wrapped(2, 3)).resolves.toBe(5);
+    expect(reportError).not.toHaveBeenCalled();
   });
 });

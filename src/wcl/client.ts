@@ -32,6 +32,35 @@ export class WclGraphQLError extends WclApiError {
   }
 }
 
+export class WclTimeoutError extends Error {
+  constructor() {
+    super(
+      "Warcraft Logs didn't respond within 30 seconds. This is usually a temporary network or WCL API issue — try again in a moment.",
+    );
+  }
+}
+
+const REQUEST_TIMEOUT_MS = 30_000;
+
+export async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  callerSignal?: AbortSignal,
+): Promise<Response> {
+  const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const signal = callerSignal
+    ? AbortSignal.any([callerSignal, timeoutSignal])
+    : timeoutSignal;
+  try {
+    return await fetch(url, { ...init, signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new WclTimeoutError();
+    }
+    throw err;
+  }
+}
+
 const GRAPHQL_RETRY_DELAY_MS = 1000;
 
 async function postGraphQLOnce(
@@ -39,15 +68,18 @@ async function postGraphQLOnce(
   query: string,
   signal?: AbortSignal,
 ) {
-  const resp = await fetch(USER_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+  const resp = await fetchWithTimeout(
+    USER_API_URL,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ query }),
     },
-    body: JSON.stringify({ query }),
     signal,
-  });
+  );
   const bodyText = await resp.text();
   if (!resp.ok) throw new WclApiError(resp.status, bodyText);
   const parsed = JSON.parse(bodyText);
@@ -78,6 +110,22 @@ export async function postGraphQL(
   }
 }
 
+export function withErrorReporting<Args extends unknown[], R>(
+  fn: (...args: Args) => Promise<R>,
+  reportError: (error: unknown) => void,
+): (...args: Args) => Promise<R> {
+  return async (...args: Args) => {
+    try {
+      return await fn(...args);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      if (err instanceof WclApiError && err.status === 429) throw err;
+      reportError(err);
+      throw err;
+    }
+  };
+}
+
 export function withRateLimitDetection<Args extends unknown[], R>(
   fn: (...args: Args) => Promise<R>,
   onRateLimited: () => void,
@@ -103,7 +151,7 @@ export async function exchangeCodeForToken(params: {
   verifier: string;
   redirectUri: string;
 }): Promise<TokenResult> {
-  const resp = await fetch(TOKEN_URL, {
+  const resp = await fetchWithTimeout(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
