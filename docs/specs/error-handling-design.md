@@ -87,12 +87,14 @@ its children.
   `WclTimeoutError`; a `DOMException` named `"AbortError"` (the caller's own
   cancellation, e.g. component unmount) is re-thrown unchanged; anything else
   is re-thrown unchanged.
-- The 4 existing raw `fetch()` call sites (`fetchReportFights`,
-  `fetchCastsTable`, `fetchMasterDataAbilities`, `fetchEventsPage`) switch to
-  this helper. No public function signature changes — `fetchEventsPage` gains
-  a timeout with no caller-cancellation signal to combine with (it doesn't
-  accept one today, per story 010's caching design — in-flight event fetches
-  are shared across callers and outlive any one component).
+- All 5 existing raw `fetch()` call sites (`exchangeCodeForToken`,
+  `fetchReportFights`, `fetchCastsTable`, `fetchMasterDataAbilities`,
+  `fetchEventsPage`) switch to this helper. No public function signature
+  changes — `fetchEventsPage` gains a timeout with no caller-cancellation
+  signal to combine with (it doesn't accept one today, per story 010's
+  caching design — in-flight event fetches are shared across callers and
+  outlive any one component); `exchangeCodeForToken` likewise has no signal
+  parameter today.
 - The timeout duration (30s) is a single named constant, not threaded through
   every function signature.
 
