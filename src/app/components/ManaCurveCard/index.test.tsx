@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ManaCurveCard } from "./index";
+import * as manaCurveModule from "../../../metrics/manaCurve";
 import { aCastEvent, aFight } from "../../../testUtils/factories";
 
 function aManaCastEvent(
@@ -17,6 +18,10 @@ function aManaCastEvent(
 }
 
 describe("ManaCurveCard", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders the ending mana percentage and judgement chip for a qualifying kill", async () => {
     const fight = aFight({
       id: 6,
@@ -121,10 +126,39 @@ describe("ManaCurveCard", () => {
     expect(screen.getByText("Calculating…")).toBeInTheDocument();
   });
 
-  it("shows an error message when the fetch fails", async () => {
+  it("does not show a local error message when the fetch fails (escalates to the app-level recovery overlay instead)", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 120_000 });
+    let rejectFetch: (err: Error) => void = () => {};
     const fetchEvents = () =>
-      Promise.reject(new Error("WCL API responded 500: server error"));
+      new Promise<never>((_resolve, reject) => {
+        rejectFetch = reject;
+      });
+
+    render(
+      <ManaCurveCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await act(async () => {
+      rejectFetch(new Error("WCL API responded 500: server error"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Calculating…")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows a local error message when computing the metric throws (isolated from the rest of the scorecard)", async () => {
+    vi.spyOn(manaCurveModule, "computeManaCurve").mockImplementation(() => {
+      throw new Error("boom");
+    });
+    const fight = aFight({ id: 6, startTime: 0, endTime: 120_000 });
+    const fetchEvents = () => Promise.resolve([]);
 
     render(
       <ManaCurveCard
@@ -137,9 +171,7 @@ describe("ManaCurveCard", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "WCL API responded 500: server error",
-      ),
+      expect(screen.getByRole("alert")).toHaveTextContent("boom"),
     );
   });
 });
