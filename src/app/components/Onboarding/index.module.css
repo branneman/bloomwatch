@@ -33,6 +33,7 @@
   min-height: 44px;
 }
 .section {
+  max-width: 65ch;
   margin-bottom: var(--space-5);
 }
 .audienceList {

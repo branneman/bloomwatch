@@ -8,6 +8,7 @@
   border-radius: 4px;
 }
 .tagline {
+  max-width: 65ch;
   margin-bottom: var(--space-6);
 }
 .connectFooter {
