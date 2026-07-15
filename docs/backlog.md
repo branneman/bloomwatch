@@ -91,7 +91,7 @@ As a druid pasting a report link for the first time, I want the app to just work
 - Once a user supplies their own Client ID, it's saved (`localStorage`) and used for all of that browser's future requests, bypassing the shared default entirely.
 - No secrets are requested or stored at any point — the fallback still only asks for a Client ID, never a secret (per principle 2 / story 801).
 
-### 009 — Rate-limit usage banner 🔲 Todo
+### 009 — Rate-limit usage banner ✅ Done
 
 As any user of the app, I want a small banner near the top of the screen when the shared default WCL API client is running low on its hourly request budget, so that I understand why things feel slow instead of assuming the app is broken.
 
