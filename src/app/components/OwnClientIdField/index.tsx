@@ -32,7 +32,11 @@ export function OwnClientIdField({ onConnect }: OwnClientIdFieldProps) {
         at warcraftlogs.com — check &quot;Public Client&quot;, and use this
         page&apos;s URL as the redirect.
       </p>
-      <Button onClick={() => onConnect(value)} disabled={value.trim() === ""}>
+      <Button
+        className={styles.submit}
+        onClick={() => onConnect(value)}
+        disabled={value.trim() === ""}
+      >
         Connect with this Client ID
       </Button>
     </div>
