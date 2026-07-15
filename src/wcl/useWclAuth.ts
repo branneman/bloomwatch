@@ -15,7 +15,7 @@ function redirectUri(): string {
   return window.location.origin + window.location.pathname;
 }
 
-export function useWclAuth() {
+export function useWclAuth(reportError: (error: unknown) => void = () => {}) {
   const [customClientId, setCustomClientIdState] = useState(() =>
     localStorage.getItem(CLIENT_ID_STORAGE_KEY),
   );
@@ -24,7 +24,6 @@ export function useWclAuth() {
   const [accessToken, setAccessToken] = useState(() =>
     sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY),
   );
-  const [authError, setAuthError] = useState<string | null>(null);
   const [rateLimited, setRateLimited] = useState(false);
 
   function setClientId(value: string) {
@@ -89,10 +88,10 @@ export function useWclAuth() {
     }
 
     completeAuth().catch((err: unknown) => {
-      setAuthError(
+      reportError(
         err instanceof WclApiError || err instanceof OAuthStateMismatchError
-          ? err.message
-          : "Failed to exchange code for token.",
+          ? err
+          : new Error("Failed to exchange code for token."),
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,7 +103,6 @@ export function useWclAuth() {
     setClientId,
     connect,
     accessToken,
-    authError,
     rateLimited,
     reportRateLimited,
   };

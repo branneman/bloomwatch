@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useWclAuth } from "./useWclAuth";
 import { DEFAULT_CLIENT_ID } from "./defaultClient";
-import { exchangeCodeForToken } from "./client";
+import { exchangeCodeForToken, WclApiError } from "./client";
 
 vi.mock("./client", async (importOriginal) => ({
   ...(await importOriginal()),
@@ -12,6 +12,7 @@ vi.mock("./client", async (importOriginal) => ({
 const CLIENT_ID_STORAGE_KEY = "wcl_client_id";
 const ACCESS_TOKEN_STORAGE_KEY = "wcl_access_token";
 const PKCE_STATE_STORAGE_KEY = "wcl_pkce_state";
+const PKCE_VERIFIER_STORAGE_KEY = "wcl_pkce_verifier";
 
 beforeEach(() => {
   localStorage.clear();
@@ -44,7 +45,8 @@ describe("useWclAuth", () => {
   });
 
   it("connect() no longer requires a Client ID to already be set", async () => {
-    const { result } = renderHook(() => useWclAuth());
+    const reportError = vi.fn();
+    const { result } = renderHook(() => useWclAuth(reportError));
 
     // jsdom logs a harmless "Not implemented: navigation" console error here
     // because buildAuthorizeUrl() points cross-origin at warcraftlogs.com —
@@ -53,7 +55,7 @@ describe("useWclAuth", () => {
       await result.current.connect();
     });
 
-    expect(result.current.authError).toBeNull();
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it("connect(override) persists the override Client ID before navigating", async () => {
@@ -135,5 +137,31 @@ describe("useWclAuth", () => {
 
     expect(result.current.rateLimited).toBe(true);
     expect(result.current.accessToken).toBe("existing-token");
+  });
+
+  it("calls reportError and leaves accessToken unset when the OAuth redirect's state doesn't match", async () => {
+    window.history.pushState(null, "", "?code=abc123&state=stale-state");
+    const reportError = vi.fn();
+
+    const { result } = renderHook(() => useWclAuth(reportError));
+
+    await waitFor(() => expect(reportError).toHaveBeenCalledOnce());
+    expect(result.current.accessToken).toBeNull();
+    expect(reportError.mock.calls[0][0]).toBeInstanceOf(Error);
+  });
+
+  it("calls reportError when exchangeCodeForToken itself rejects", async () => {
+    window.history.pushState(null, "", "?code=abc123&state=expected-state");
+    sessionStorage.setItem(PKCE_STATE_STORAGE_KEY, "expected-state");
+    sessionStorage.setItem(PKCE_VERIFIER_STORAGE_KEY, "test-verifier");
+    vi.mocked(exchangeCodeForToken).mockRejectedValue(
+      new WclApiError(400, "invalid_grant"),
+    );
+    const reportError = vi.fn();
+
+    const { result } = renderHook(() => useWclAuth(reportError));
+
+    await waitFor(() => expect(reportError).toHaveBeenCalledOnce());
+    expect(result.current.accessToken).toBeNull();
   });
 });

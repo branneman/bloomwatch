@@ -45,7 +45,6 @@ function App() {
   const {
     connect,
     accessToken,
-    authError,
     rateLimited,
     reportRateLimited,
     usingDefaultClient,
@@ -330,7 +329,6 @@ function App() {
           <Disclosure summary="Optional: Use your own WCL API Client ID instead">
             <OwnClientIdField onConnect={connect} />
           </Disclosure>
-          {authError && <Alert tone="warning">{authError}</Alert>}
           <p className={styles.connectFooter}>
             No account, no server, no secret — every request to Warcraft Logs is
             made directly from your browser.{" "}
