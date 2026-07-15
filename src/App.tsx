@@ -335,7 +335,7 @@ function App() {
   return (
     <>
       {!onboardingDismissed && (
-        <Shell width={820}>
+        <Shell>
           <Onboarding onContinue={dismissOnboarding} />
         </Shell>
       )}
@@ -494,7 +494,7 @@ function App() {
             regrowthAbilityIds !== null &&
             swiftmendAbilityIds !== null &&
             naturesSwiftnessAbilityIds !== null && (
-              <Shell width={920}>
+              <Shell>
                 <ReportDashboard
                   accessToken={accessToken}
                   reportCode={reportCode}

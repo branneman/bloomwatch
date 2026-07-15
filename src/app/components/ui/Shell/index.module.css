@@ -1,10 +1,24 @@
 .shell {
+  width: 100%;
+  max-width: var(--content-max);
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg);
-  padding: var(--space-6) var(--space-7) var(--space-7);
-  box-sizing: border-box;
-  max-width: 100%;
-  margin: var(--space-6) auto;
+  margin: var(--space-4) auto;
   text-align: left;
+  padding: 20px var(--gutter) 32px;
+}
+
+@media (min-width: 768px) {
+  .shell {
+    margin: var(--space-6) auto;
+    padding: 28px 32px 48px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .shell {
+    padding: 40px 32px 56px;
+  }
 }

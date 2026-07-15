@@ -14,25 +14,9 @@ describe("Shell", () => {
     ).toBeInTheDocument();
   });
 
-  it("applies the requested width as an inline style", () => {
-    render(
-      <Shell width={800}>
-        <p>Scorecard</p>
-      </Shell>,
-    );
-    expect(screen.getByText("Scorecard").parentElement).toHaveStyle({
-      width: "800px",
-    });
-  });
-
-  it("applies width 820 for the onboarding screen", () => {
-    render(
-      <Shell width={820}>
-        <p>Onboarding</p>
-      </Shell>,
-    );
-    expect(screen.getByText("Onboarding").parentElement).toHaveStyle({
-      width: "820px",
-    });
+  it("does not accept a width prop (fluid, capped by CSS only)", () => {
+    // @ts-expect-error width was removed from ShellProps in story 706
+    const props: import("./index").ShellProps = { width: 800, children: null };
+    expect(props).toBeDefined();
   });
 });
