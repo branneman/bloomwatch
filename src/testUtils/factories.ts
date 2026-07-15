@@ -5,6 +5,7 @@ import type {
   ReportAbility,
 } from "../wcl/client";
 import type { WclEvent } from "../wcl/events";
+import type { RateLimitUsage } from "../wcl/rateLimitUsage";
 
 export function aFight(overrides: Partial<Fight> = {}): Fight {
   return {
@@ -53,6 +54,16 @@ export function aReportAbility(
   return {
     gameID: 26982,
     name: "Rejuvenation",
+    ...overrides,
+  };
+}
+
+export function aRateLimitUsage(
+  overrides: Partial<RateLimitUsage> = {},
+): RateLimitUsage {
+  return {
+    limitPerHour: 3600,
+    pointsSpentThisHour: 1000,
     ...overrides,
   };
 }
