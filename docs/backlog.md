@@ -406,6 +406,18 @@ I want every red/orange/green judgement chip to also carry a plain-language word
 - The Markdown export (704) uses the text label too, not just a color name — Markdown can't render color, so the label is the only signal there.
 - Wording is consistent everywhere the same judgement tier appears — no epic invents its own synonyms for "orange."
 
+### 708 — Global error handling & recovery overlay 🔲 Todo
+
+I want any error — an uncaught bug, a failed WCL request, or a GraphQL request that hangs — to show a clear, non-technical "something went wrong" screen instead of a blank page or a silently broken widget, so that a transient glitch doesn't look like the app is dead.
+
+**Acceptance criteria**
+
+- A top-level React error boundary catches any uncaught rendering error anywhere in the component tree and replaces the screen with the recovery overlay below, instead of an unhandled exception blanking the page.
+- Every WCL GraphQL request (`src/wcl/client.ts`, `src/wcl/events.ts`) gets a 30-second timeout (`AbortSignal.timeout(30_000)` or equivalent); a request that times out is surfaced as a distinct, clearly-labeled error rather than hanging indefinitely or reading as a generic failure.
+- The overlay replaces every existing inline error Alert in the app (e.g. `ConnectPanel`'s fetch-failure message) — one error-handling path, going forward. The one exception is the rate-limit banner (008/009): a 429 keeps its own dedicated banner and recovery flow (register a personal Client ID), since that's a distinct, actionable, non-fatal condition, not a generic error.
+- The overlay shows: an apology ("Sorry, something went wrong"), a collapsed-by-default "View details" disclosure with the error's message, stack trace (when available), and a timestamp, a "Start over" button that navigates to `#/` and reloads the app, and a prompt to open an issue at `https://github.com/branneman/bloomwatch/issues` (with the same details) if a retry doesn't fix it.
+- No error-reporting/telemetry service is introduced (principles 2/4 — no backend, FOSS) — "View details" is for the user to copy into a manually-filed GitHub issue; nothing is sent anywhere automatically.
+
 ### 801 — Build & test tooling ✅ Done
 
 As a developer, I want a Vite + React + TypeScript project scaffold with a full test pyramid and automated CI/CD to GitHub Pages, so that the app has a maintainable foundation and every later story can be built and verified with confidence.
