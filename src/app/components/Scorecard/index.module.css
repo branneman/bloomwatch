@@ -34,11 +34,14 @@
   animation: fadeInUp 0.18s ease-out;
 }
 .backLink {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  box-sizing: border-box;
   background: none;
   border: none;
   padding: 0;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-2);
   color: var(--accent);
   font: inherit;
   font-size: var(--text-small-size);
@@ -46,13 +49,15 @@
 }
 .epicHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 .epicTitle {
   margin: 0;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .footer {
   margin-top: var(--space-6);
