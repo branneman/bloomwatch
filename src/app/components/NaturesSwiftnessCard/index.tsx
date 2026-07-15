@@ -73,24 +73,31 @@ export function NaturesSwiftnessCard({
       true,
     )
       .then((events) => {
-        const computed = computeNaturesSwiftnessAudit(
-          events,
-          druidId,
-          naturesSwiftnessAbilityIds,
-          resolvedAbilities,
-          fight.endTime - fight.startTime,
-        );
-        setResult({ accessToken, result: computed });
+        try {
+          const computed = computeNaturesSwiftnessAudit(
+            events,
+            druidId,
+            naturesSwiftnessAbilityIds,
+            resolvedAbilities,
+            fight.endTime - fight.startTime,
+          );
+          setResult({ accessToken, result: computed });
+        } catch (err) {
+          setResult({
+            accessToken,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to calculate the Nature's Swiftness audit.",
+          });
+        }
       })
-      .catch((err: unknown) =>
-        setResult({
-          accessToken,
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to calculate the Nature's Swiftness audit.",
-        }),
-      );
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // Anything else is already escalated to the full-screen recovery
+        // overlay by the wrapped fetchEvents (see wcl/client.ts's
+        // withErrorReporting) — nothing to render locally.
+      });
   }, [
     accessToken,
     reportCode,
