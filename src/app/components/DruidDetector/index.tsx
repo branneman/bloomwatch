@@ -19,9 +19,11 @@ export interface DruidDetectorProps {
   onEntriesLoaded?: (entries: CastTableEntry[]) => void;
 }
 
-type FetchResult =
-  | { accessToken: string; fightIdsKey: string; candidates: DruidCandidate[] }
-  | { accessToken: string; fightIdsKey: string; error: string };
+type FetchResult = {
+  accessToken: string;
+  fightIdsKey: string;
+  candidates: DruidCandidate[];
+};
 
 export function DruidDetector({
   accessToken,
@@ -52,12 +54,9 @@ export function DruidDetector({
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        setResult({
-          accessToken,
-          fightIdsKey,
-          error:
-            err instanceof Error ? err.message : "Failed to detect druids.",
-        });
+        // Anything else is already escalated to the full-screen recovery
+        // overlay by the wrapped fetchCastsTable (see wcl/client.ts's
+        // withErrorReporting) — nothing to render locally.
       });
     return () => controller.abort();
   }, [
@@ -74,7 +73,6 @@ export function DruidDetector({
     result.accessToken === accessToken &&
     result.fightIdsKey === fightIdsKey;
   if (!isCurrent) return <p>Detecting druids…</p>;
-  if ("error" in result) return <p role="alert">{result.error}</p>;
 
   return null;
 }
