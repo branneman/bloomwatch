@@ -5,7 +5,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: var(--text-small-size);
+  font-size: 16px; /* iOS Safari auto-zooms on focus below 16px — docs/responsive-design.md §5 */
   color: var(--text-h);
   background: var(--bg);
 }
