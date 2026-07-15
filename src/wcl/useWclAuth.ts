@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { buildAuthorizeUrl, createPkceParams } from "./pkce";
-import { exchangeCodeForToken, WclApiError } from "./client";
+import { exchangeCodeForToken, WclApiError, WclTimeoutError } from "./client";
 import { DEFAULT_CLIENT_ID } from "./defaultClient";
 
 class OAuthStateMismatchError extends Error {}
@@ -89,7 +89,9 @@ export function useWclAuth(reportError: (error: unknown) => void = () => {}) {
 
     completeAuth().catch((err: unknown) => {
       reportError(
-        err instanceof WclApiError || err instanceof OAuthStateMismatchError
+        err instanceof WclApiError ||
+          err instanceof OAuthStateMismatchError ||
+          err instanceof WclTimeoutError
           ? err
           : new Error("Failed to exchange code for token."),
       );

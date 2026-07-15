@@ -17,6 +17,9 @@ export class ErrorBoundary extends Component<
 > {
   state: ErrorBoundaryState = { error: null };
 
+  // No componentDidCatch here deliberately — this app has no backend and no
+  // telemetry service to report to (principles 2/4); getDerivedStateFromError
+  // is all that's needed to show the recovery overlay.
   static getDerivedStateFromError(error: unknown): ErrorBoundaryState {
     return { error };
   }

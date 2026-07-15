@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Disclosure } from "../ui/Disclosure";
 import { Button } from "../ui/Button";
 import styles from "./index.module.css";
@@ -16,7 +17,11 @@ function errorStack(error: unknown): string | undefined {
 }
 
 export function ErrorOverlay({ error, onStartOver }: ErrorOverlayProps) {
-  const timestamp = new Date().toISOString();
+  // Frozen at first render rather than recomputed every render — App keeps
+  // running its other hooks before this overlay's early-return, so an
+  // unrelated state update elsewhere would otherwise silently shift the
+  // "when did this happen" timestamp a user copies into a GitHub issue.
+  const [timestamp] = useState(() => new Date().toISOString());
   const stack = errorStack(error);
 
   return (
