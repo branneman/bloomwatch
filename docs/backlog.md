@@ -385,11 +385,9 @@ I want to export the current scorecard as a Markdown file, so that I can paste i
 - Export includes numbers, judgements, thresholds used, report link, and generation date.
 - Output renders cleanly in Discord and GitHub.
 
-### 706 — Responsive/mobile layout 🔲 Todo
+### 706 — Responsive/mobile layout ✅ Done
 
 I want the app to work well on mobile, so that I can check a scorecard from my phone.
-
-**Note:** was blocked on `docs/design_v3` existing; that Claude Design pass is done and the folder is now in the repo (gitignored — a design reference, not a committed asset), so this story is unblocked. Implementation itself hasn't started: `src/index.css` has a couple of pre-existing `max-width: 1024px` breakpoints, but no screen has been swept against design_v3's mobile guidance yet.
 
 **Acceptance criteria**
 
