@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AbilityResolver } from "./index";
 import { aReportAbility } from "../../../testUtils/factories";
@@ -36,9 +36,12 @@ describe("AbilityResolver", () => {
     expect(screen.getByText("Resolving abilities…")).toBeInTheDocument();
   });
 
-  it("shows an error message when the fetch fails", async () => {
+  it("does not show a local error message when the fetch fails (escalates to the app-level recovery overlay instead)", async () => {
+    let rejectFetch: (err: Error) => void = () => {};
     const fetchMasterDataAbilities = () =>
-      Promise.reject(new Error("WCL API responded 500: server error"));
+      new Promise<never>((_resolve, reject) => {
+        rejectFetch = reject;
+      });
     render(
       <AbilityResolver
         accessToken="test-token"
@@ -47,11 +50,14 @@ describe("AbilityResolver", () => {
         onResolved={vi.fn()}
       />,
     );
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "WCL API responded 500: server error",
-      ),
-    );
+
+    await act(async () => {
+      rejectFetch(new Error("WCL API responded 500: server error"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("Resolving abilities…")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("aborts the in-flight fetch when unmounted", () => {

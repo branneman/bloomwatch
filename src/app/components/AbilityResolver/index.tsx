@@ -16,9 +16,10 @@ export interface AbilityResolverProps {
   onResolved: (resolved: Map<number, ResolvedAbility>) => void;
 }
 
-type FetchResult =
-  | { accessToken: string; resolved: Map<number, ResolvedAbility> }
-  | { accessToken: string; error: string };
+type FetchResult = {
+  accessToken: string;
+  resolved: Map<number, ResolvedAbility>;
+};
 
 export function AbilityResolver({
   accessToken,
@@ -38,18 +39,15 @@ export function AbilityResolver({
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        setResult({
-          accessToken,
-          error:
-            err instanceof Error ? err.message : "Failed to resolve abilities.",
-        });
+        // Anything else is already escalated to the full-screen recovery
+        // overlay by the wrapped fetchMasterDataAbilities (see
+        // wcl/client.ts's withErrorReporting) — nothing to render locally.
       });
     return () => controller.abort();
   }, [accessToken, reportCode, fetchMasterDataAbilities, onResolved]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;
   if (!isCurrent) return <p>Resolving abilities…</p>;
-  if ("error" in result) return <p role="alert">{result.error}</p>;
 
   return null;
 }
