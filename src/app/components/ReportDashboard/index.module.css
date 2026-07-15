@@ -5,15 +5,27 @@
 }
 
 .chipStrip {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-3);
   margin-bottom: var(--space-6);
+}
+@media (min-width: 600px) {
+  .chipStrip {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+@media (min-width: 1024px) {
+  .chipStrip {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .chip {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -39,9 +51,11 @@
 
 .row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  min-height: 44px;
   padding: var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -61,8 +75,13 @@
 }
 
 .rowLabel {
-  flex: 1;
+  flex: 1 1 100%;
   color: var(--text-h);
+}
+@media (min-width: 600px) {
+  .rowLabel {
+    flex: 1 1 auto;
+  }
 }
 
 .duration {
