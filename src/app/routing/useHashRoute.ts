@@ -42,5 +42,12 @@ export function useHashRoute(): {
     setRoute(next);
   }, []);
 
+  // Every screen change — including epic-to-epic drill-down within a fight,
+  // and browser back/forward — should read from the top, not carry over
+  // whatever scroll position the previous screen was left at.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [route]);
+
   return { route, navigate };
 }

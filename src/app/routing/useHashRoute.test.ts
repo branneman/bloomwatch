@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEffect } from "react";
 import { useHashRoute } from "./useHashRoute";
 
@@ -114,5 +114,29 @@ describe("useHashRoute", () => {
       screen: "druidPicker",
       reportCode: "4GYHZRdtL3bvhpc8",
     });
+  });
+
+  it("scrolls to the top on every route change, not just the initial mount", () => {
+    const scrollToSpy = vi.spyOn(window, "scrollTo");
+    const { result } = renderHook(() => useHashRoute());
+    scrollToSpy.mockClear(); // only interested in scrolls caused by navigation, not mount
+
+    act(() => {
+      result.current.navigate({
+        screen: "druidPicker",
+        reportCode: "4GYHZRdtL3bvhpc8",
+      });
+    });
+    expect(scrollToSpy).toHaveBeenCalledWith(0, 0);
+
+    scrollToSpy.mockClear();
+    act(() => {
+      result.current.navigate({
+        screen: "dashboard",
+        reportCode: "4GYHZRdtL3bvhpc8",
+        druidName: "Dassz",
+      });
+    });
+    expect(scrollToSpy).toHaveBeenCalledWith(0, 0);
   });
 });
