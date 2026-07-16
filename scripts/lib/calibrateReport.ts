@@ -40,6 +40,7 @@ import {
   summarizePrepHygiene,
 } from "../../src/metrics/epicSummary";
 import type { EpicSummary } from "../../src/metrics/epicSummary";
+import { rollupDruid } from "./rollup";
 import type {
   EpicResult,
   FightResult,
@@ -49,6 +50,8 @@ import type {
   ManaEconomyMetrics,
   DeathForensicsMetrics,
   PrepHygieneMetrics,
+  CalibrationOutput,
+  DruidResult,
 } from "./types";
 
 export interface ReportContext {
@@ -394,5 +397,35 @@ export async function computeFightResult(
         { casts: [], castCount: 0, availableWindows: 0 },
       ),
     },
+  };
+}
+
+export async function calibrateReport(
+  accessToken: string,
+  reportCode: string,
+): Promise<CalibrationOutput> {
+  const ctx = await buildReportContext(accessToken, reportCode);
+
+  const druids: DruidResult[] = [];
+  for (const candidate of ctx.candidates) {
+    const fights = [];
+    for (const { fight, pullNumber } of ctx.nonTrashFights) {
+      fights.push(await computeFightResult(ctx, candidate, fight, pullNumber));
+    }
+    druids.push({
+      druidId: candidate.id,
+      druidName: candidate.name,
+      isRestoSpec: candidate.isRestoSpec,
+      healingCastCount: candidate.healingCastCount,
+      fights,
+      rollup: rollupDruid(fights),
+    });
+  }
+
+  return {
+    reportCode: ctx.reportCode,
+    reportTitle: ctx.reportTitle,
+    generatedAt: new Date().toISOString(),
+    druids,
   };
 }

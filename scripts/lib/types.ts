@@ -77,3 +77,86 @@ export interface DruidFights {
   healingCastCount: number;
   fights: FightResult[];
 }
+
+export interface EpicRollupBase {
+  judgement: Judgement | null;
+  fightsReady: number;
+  fightsErrored: number;
+}
+export interface GcdEconomyRollup extends EpicRollupBase {
+  gcdUtilizationPct: number | null;
+  idleGapsDeadTimePct: number | null;
+}
+export interface LifebloomTargetRollup {
+  targetId: number;
+  lb3UptimePctPooled: number | null;
+  totalWindowMs: number;
+}
+export interface RefreshCadenceBucketRollup {
+  label: "early" | "ideal" | "late";
+  count: number;
+  pct: number;
+}
+export interface LifebloomDisciplineRollup extends EpicRollupBase {
+  lb3UptimeByTarget: LifebloomTargetRollup[];
+  refreshCadenceMedianMsPooled: number | null;
+  refreshCadenceBuckets: RefreshCadenceBucketRollup[];
+  accidentalBloomsTotal: number;
+  restackTaxCastsTotal: number;
+  restackTaxEstimatedManaTotal: number;
+}
+export interface SpellDisciplineRollup extends EpicRollupBase {
+  rejuvenationClipPctPooled: number | null;
+  regrowthClipPctPooled: number | null;
+  swiftmendWastefulPctPooled: number | null;
+  downrankingFlaggedTotal: number;
+}
+export interface OverhealRollupRow {
+  category: string;
+  spell: string;
+  amount: number;
+  overheal: number;
+  overhealPct: number;
+}
+export interface ManaEconomyRollup extends EpicRollupBase {
+  manaCurveEndingPctAvg: number | null;
+  potionsUsedTotal: number;
+  potionsFloorTotal: number;
+  runesUsedTotal: number;
+  runesFloorTotal: number;
+  overhealPooled: OverhealRollupRow[];
+}
+export interface DeathForensicsRollup extends EpicRollupBase {
+  deathsTotal: number;
+  flaggedTotal: number;
+}
+export interface PrepHygieneRollup extends EpicRollupBase {
+  totalFights: number;
+  fightsWithFlaskOrElixir: number;
+  fightsWithFood: number;
+  fightsWithOil: number;
+}
+export interface InformationalRollup {
+  concurrentLb3AvgPooled: number | null;
+  concurrentLb3PeakMax: number;
+  naturesSwiftnessCastsTotal: number;
+  naturesSwiftnessAvailableWindowsTotal: number;
+}
+export interface DruidRollup {
+  gcdEconomy: GcdEconomyRollup;
+  lifebloomDiscipline: LifebloomDisciplineRollup;
+  spellDiscipline: SpellDisciplineRollup;
+  manaEconomy: ManaEconomyRollup;
+  deathForensics: DeathForensicsRollup;
+  prepHygiene: PrepHygieneRollup;
+  informational: InformationalRollup;
+}
+export interface DruidResult extends DruidFights {
+  rollup: DruidRollup;
+}
+export interface CalibrationOutput {
+  reportCode: string;
+  reportTitle: string;
+  generatedAt: string;
+  druids: DruidResult[];
+}
