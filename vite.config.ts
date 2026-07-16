@@ -1,9 +1,27 @@
+import { execSync } from "node:child_process";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+
+// Fast-forward-only merging (see CLAUDE.md) keeps main's history linear, so a
+// plain commit count from the root doubles as a stable, human-readable build
+// number. Falls back to "dev" if there's no git history to read (e.g. a
+// tarball checkout with no .git).
+function appVersion(): string {
+  try {
+    const count = execSync("git rev-list --count HEAD").toString().trim();
+    const hash = execSync("git rev-parse --short HEAD").toString().trim();
+    return `${count}-${hash}`;
+  } catch {
+    return "dev";
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   base: "/bloomwatch/",
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion()),
+  },
   plugins: [react()],
   server: {
     port: 5173,

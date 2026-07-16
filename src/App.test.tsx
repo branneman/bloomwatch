@@ -140,6 +140,19 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("resets to the report-input screen when the header logo/wordmark is clicked", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+
+    await user.click(screen.getByRole("button", { name: "Bloomwatch" }));
+
+    expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
+  });
+
   it("excludes trash fights from the fights it detects druids across", async () => {
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
@@ -464,6 +477,19 @@ describe("App — Onboarding", () => {
       screen.getByRole("heading", { name: "What this is" }),
     ).toBeInTheDocument();
     expect(localStorage.getItem(ONBOARDING_SEEN_KEY)).toBe("true");
+  });
+
+  it("reopens onboarding from the persistent footer's About link once authenticated", async () => {
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "About" }));
+
+    expect(
+      screen.getByRole("heading", { name: "What this is" }),
+    ).toBeInTheDocument();
   });
 });
 

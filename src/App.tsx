@@ -33,6 +33,7 @@ import {
   RATE_LIMIT_BANNER_THRESHOLD_PCT,
 } from "./app/components/ui/RateLimitBanner";
 import { AppHeader } from "./app/components/ui/AppHeader";
+import { Footer } from "./app/components/ui/Footer";
 import { withRateLimitDetection, withErrorReporting } from "./wcl/client";
 import { useRateLimitUsage } from "./wcl/useRateLimitUsage";
 import { useHashRoute } from "./app/routing/useHashRoute";
@@ -376,7 +377,9 @@ function App() {
           large centered logo+heading (a "hero" treatment) — this persistent
           slim header only starts once the user is past that gate, so it
           never duplicates the identity chrome. */}
-      {onboardingDismissed && accessToken && <AppHeader />}
+      {onboardingDismissed && accessToken && (
+        <AppHeader onClick={handleStartOver} />
+      )}
 
       {onboardingDismissed && accessToken && rateLimited && (
         <Shell>
@@ -528,6 +531,10 @@ function App() {
               </Shell>
             )}
         </div>
+      )}
+
+      {onboardingDismissed && accessToken && (
+        <Footer onReopenOnboarding={reopenOnboarding} />
       )}
     </>
   );
