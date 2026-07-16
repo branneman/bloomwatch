@@ -289,28 +289,56 @@ export interface ReportAbility {
   name: string;
 }
 
+// Unlike the other fetch* functions, this one can't lean on postGraphQL's
+// retry-on-WclGraphQLError alone: WCL doesn't always attach an `errors`
+// array when masterData.abilities resolves null before the cache is warm
+// (see WclGraphQLError above) — sometimes it's just a null field on an
+// otherwise error-free response. So this retries once on either signal:
+// a caught WclGraphQLError, or a resolved-but-null field.
 export async function fetchMasterDataAbilities(
   accessToken: string,
   reportCode: string,
   signal?: AbortSignal,
 ): Promise<ReportAbility[]> {
-  const data = await postGraphQL(
-    accessToken,
-    `query {
+  const query = `query {
   rateLimitData { limitPerHour pointsSpentThisHour }
   reportData {
     report(code: "${reportCode}") {
       masterData { abilities { gameID name } }
     }
   }
-}`,
-    signal,
-  );
-  const abilities = data.reportData.report.masterData.abilities;
-  return abilities.map(
-    (ability: { gameID: number; name: string }): ReportAbility => ({
-      gameID: ability.gameID,
-      name: ability.name,
-    }),
-  );
+}`;
+
+  const fetchAbilities = async () => {
+    const data = await postGraphQLOnce(accessToken, query, signal);
+    return data.reportData.report.masterData.abilities as Array<{
+      gameID: number;
+      name: string;
+    }> | null;
+  };
+
+  let abilities: Array<{ gameID: number; name: string }> | null;
+  try {
+    abilities = await fetchAbilities();
+  } catch (err) {
+    if (!(err instanceof WclGraphQLError)) throw err;
+    abilities = null;
+  }
+
+  if (abilities === null) {
+    await new Promise((resolve) => setTimeout(resolve, GRAPHQL_RETRY_DELAY_MS));
+    abilities = await fetchAbilities();
+  }
+
+  if (abilities === null) {
+    const err = new WclApiError(200, "masterData.abilities was null twice");
+    err.message =
+      "Warcraft Logs hasn't finished analyzing this report's abilities yet — try again in a moment.";
+    throw err;
+  }
+
+  return abilities.map((ability): ReportAbility => ({
+    gameID: ability.gameID,
+    name: ability.name,
+  }));
 }

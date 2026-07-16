@@ -289,6 +289,69 @@ describe("fetchMasterDataAbilities", () => {
       vi.useRealTimers();
     }
   });
+
+  // Live-reported gap in the regression fix above: WCL doesn't always attach
+  // an `errors` array when a field resolves null before the cache is warm —
+  // sometimes it's just `data: { ...abilities: null }` with no `errors` key
+  // at all. Reported live on t7MbDaAjcnXvZTxh. The existing retry only
+  // triggers by catching WclGraphQLError, so this shape bypassed it entirely
+  // and crashed on `.map` of null.
+  it("retries once and succeeds when WCL returns a null field with no accompanying errors array", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(USER_API_URL, () => {
+        callCount++;
+        if (callCount === 1) {
+          return HttpResponse.json({
+            data: {
+              reportData: { report: { masterData: { abilities: null } } },
+            },
+          });
+        }
+        return HttpResponse.json(masterDataAbilitiesFixture);
+      }),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchMasterDataAbilities(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+      );
+      await vi.advanceTimersByTimeAsync(2000);
+      const result = await promise;
+
+      expect(callCount).toBe(2);
+      expect(result).toHaveLength(930);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("throws a readable error (not a crash on the null field) if it's still null on retry with no errors array", async () => {
+    server.use(
+      http.post(USER_API_URL, () =>
+        HttpResponse.json({
+          data: {
+            reportData: { report: { masterData: { abilities: null } } },
+          },
+        }),
+      ),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchMasterDataAbilities(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+      );
+      const rejects = expect(promise).rejects.toThrow(WclApiError);
+      await vi.advanceTimersByTimeAsync(2000);
+      await rejects;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("withRateLimitDetection", () => {
