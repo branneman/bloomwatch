@@ -78,7 +78,16 @@ async function main(): Promise<void> {
   const body: unknown = await response.json();
   console.log(JSON.stringify(body, null, 2));
 
-  if (!response.ok) {
+  // WCL's API returns HTTP 200 even for GraphQL-level errors (e.g. an
+  // invalid field) — the error lives in the response body, not the status
+  // code, so `response.ok` alone misses it.
+  const hasGraphQLErrors =
+    typeof body === "object" &&
+    body !== null &&
+    "errors" in body &&
+    Array.isArray((body as { errors: unknown }).errors);
+
+  if (!response.ok || hasGraphQLErrors) {
     process.exit(1);
   }
 }
