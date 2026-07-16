@@ -14,6 +14,42 @@ import {
 } from "../../src/abilities/resolveAbilities";
 import type { ResolvedAbility } from "../../src/abilities/resolveAbilities";
 import type { ActorClass } from "../../src/metrics/innervateAudit";
+import { computeGcdUtilization } from "../../src/metrics/gcdUtilization";
+import { computeIdleGaps } from "../../src/metrics/idleGaps";
+import { computeLb3Uptime } from "../../src/metrics/lb3Uptime";
+import { computeRefreshCadence } from "../../src/metrics/refreshCadence";
+import { computeAccidentalBlooms } from "../../src/metrics/accidentalBlooms";
+import { computeRestackTax } from "../../src/metrics/restackTax";
+import { computeConcurrentLb3Targets } from "../../src/metrics/concurrentLb3Targets";
+import { computeHotClipDetection } from "../../src/metrics/hotClipDetection";
+import { computeSwiftmendAudit } from "../../src/metrics/swiftmendAudit";
+import { computeDownrankingDiscipline } from "../../src/metrics/downrankingDiscipline";
+import { computeNaturesSwiftnessAudit } from "../../src/metrics/naturesSwiftnessAudit";
+import { computeManaCurve } from "../../src/metrics/manaCurve";
+import { computeConsumableThroughput } from "../../src/metrics/consumableThroughput";
+import { computeOverhealTable } from "../../src/metrics/overhealTable";
+import { computeInnervateAudit } from "../../src/metrics/innervateAudit";
+import { computeDeathForensics } from "../../src/metrics/deathForensics";
+import { computePrepHygiene } from "../../src/metrics/prepHygiene";
+import {
+  summarizeGcdEconomy,
+  summarizeLifebloomDiscipline,
+  summarizeSpellDiscipline,
+  summarizeManaEconomy,
+  summarizeDeathForensics,
+  summarizePrepHygiene,
+} from "../../src/metrics/epicSummary";
+import type { EpicSummary } from "../../src/metrics/epicSummary";
+import type {
+  EpicResult,
+  FightResult,
+  GcdEconomyMetrics,
+  LifebloomDisciplineMetrics,
+  SpellDisciplineMetrics,
+  ManaEconomyMetrics,
+  DeathForensicsMetrics,
+  PrepHygieneMetrics,
+} from "./types";
 
 export interface ReportContext {
   accessToken: string;
@@ -81,5 +117,266 @@ export async function buildReportContext(
     ),
     actorClasses,
     fetchEvents,
+  };
+}
+
+function toEpicResult<M>(
+  compute: () => { summary: EpicSummary; metrics: M },
+): EpicResult<M> {
+  try {
+    const { summary, metrics } = compute();
+    return {
+      status: "ready",
+      judgement: summary.judgement,
+      stats: summary.stats,
+      metrics,
+    };
+  } catch (err) {
+    return {
+      status: "error",
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+export async function computeFightResult(
+  ctx: ReportContext,
+  candidate: DruidCandidate,
+  fight: Fight,
+  pullNumber: number | null,
+): Promise<FightResult> {
+  const druidId = candidate.id;
+  const durationMs = fight.endTime - fight.startTime;
+
+  const [
+    buffEvents,
+    castEvents,
+    healingEvents,
+    deathEvents,
+    combatantInfoEvents,
+  ] = await Promise.all([
+    ctx.fetchEvents(
+      ctx.accessToken,
+      ctx.reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "Buffs",
+    ),
+    ctx.fetchEvents(
+      ctx.accessToken,
+      ctx.reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "Casts",
+      true,
+    ),
+    ctx.fetchEvents(
+      ctx.accessToken,
+      ctx.reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "Healing",
+      true,
+    ),
+    ctx.fetchEvents(
+      ctx.accessToken,
+      ctx.reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "Deaths",
+    ),
+    ctx.fetchEvents(
+      ctx.accessToken,
+      ctx.reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "CombatantInfo",
+    ),
+  ]);
+
+  const gcdEconomy = toEpicResult<GcdEconomyMetrics>(() => {
+    const gcdUtilization = computeGcdUtilization(
+      castEvents,
+      druidId,
+      fight.startTime,
+      fight.endTime,
+    );
+    const idleGaps = computeIdleGaps(
+      castEvents,
+      druidId,
+      fight.startTime,
+      fight.endTime,
+    );
+    return {
+      summary: summarizeGcdEconomy(gcdUtilization, idleGaps),
+      metrics: { gcdUtilization, idleGaps },
+    };
+  });
+
+  const lifebloomDiscipline = toEpicResult<LifebloomDisciplineMetrics>(() => {
+    const lb3Uptime = computeLb3Uptime(
+      buffEvents,
+      druidId,
+      ctx.lifebloomAbilityIds,
+      fight.startTime,
+      fight.endTime,
+    );
+    const refreshCadence = computeRefreshCadence(
+      buffEvents,
+      druidId,
+      ctx.lifebloomAbilityIds,
+    );
+    const accidentalBlooms = computeAccidentalBlooms(
+      buffEvents,
+      healingEvents,
+      druidId,
+      ctx.lifebloomAbilityIds,
+    );
+    const restackTax = computeRestackTax(
+      buffEvents,
+      castEvents,
+      druidId,
+      ctx.lifebloomAbilityIds,
+      durationMs,
+    );
+    return {
+      summary: summarizeLifebloomDiscipline(
+        lb3Uptime,
+        refreshCadence,
+        accidentalBlooms,
+        restackTax,
+      ),
+      metrics: { lb3Uptime, refreshCadence, accidentalBlooms, restackTax },
+    };
+  });
+
+  const spellDiscipline = toEpicResult<SpellDisciplineMetrics>(() => {
+    const hotClipDetection = computeHotClipDetection(
+      buffEvents,
+      castEvents,
+      druidId,
+      ctx.rejuvenationAbilityIds,
+      ctx.regrowthAbilityIds,
+    );
+    const swiftmendAudit = computeSwiftmendAudit(
+      buffEvents,
+      castEvents,
+      healingEvents,
+      druidId,
+      ctx.swiftmendAbilityIds,
+      ctx.rejuvenationAbilityIds,
+      ctx.regrowthAbilityIds,
+      durationMs,
+    );
+    const downrankingDiscipline = computeDownrankingDiscipline(
+      castEvents,
+      healingEvents,
+      druidId,
+      ctx.resolvedAbilities,
+    );
+    return {
+      summary: summarizeSpellDiscipline(
+        hotClipDetection,
+        swiftmendAudit,
+        downrankingDiscipline,
+      ),
+      metrics: { hotClipDetection, swiftmendAudit, downrankingDiscipline },
+    };
+  });
+
+  const manaEconomy = toEpicResult<ManaEconomyMetrics>(() => {
+    const manaCurve = computeManaCurve(
+      castEvents,
+      druidId,
+      fight.kill === true,
+      durationMs,
+    );
+    const consumableThroughput = computeConsumableThroughput(
+      castEvents,
+      druidId,
+      ctx.resolvedAbilities,
+      durationMs,
+    );
+    const overhealTable = computeOverhealTable(
+      healingEvents,
+      druidId,
+      ctx.resolvedAbilities,
+    );
+    const innervateAudit = computeInnervateAudit(
+      castEvents,
+      druidId,
+      ctx.resolvedAbilities,
+      ctx.actorClasses,
+      durationMs,
+      fight.startTime,
+    );
+    return {
+      summary: summarizeManaEconomy(
+        manaCurve,
+        consumableThroughput,
+        overhealTable,
+        innervateAudit,
+      ),
+      metrics: {
+        manaCurve,
+        consumableThroughput,
+        overhealTable,
+        innervateAudit,
+      },
+    };
+  });
+
+  const deathForensics = toEpicResult<DeathForensicsMetrics>(() => {
+    const result = computeDeathForensics(
+      deathEvents,
+      castEvents,
+      buffEvents,
+      druidId,
+      ctx.swiftmendAbilityIds,
+      ctx.naturesSwiftnessAbilityIds,
+      ctx.lifebloomAbilityIds,
+      fight.startTime,
+      fight.endTime,
+    );
+    return {
+      summary: summarizeDeathForensics(result),
+      metrics: { deathForensics: result },
+    };
+  });
+
+  const prepHygiene = toEpicResult<PrepHygieneMetrics>(() => {
+    const result = computePrepHygiene(combatantInfoEvents, druidId);
+    return {
+      summary: summarizePrepHygiene(result),
+      metrics: { prepHygiene: result },
+    };
+  });
+
+  return {
+    fightId: fight.id,
+    bossName: fight.name,
+    kill: fight.kill,
+    bossPercentage: fight.bossPercentage,
+    pullNumber,
+    durationMs,
+    epics: {
+      gcdEconomy,
+      lifebloomDiscipline,
+      spellDiscipline,
+      manaEconomy,
+      deathForensics,
+      prepHygiene,
+    },
+    informational: {
+      concurrentLb3Targets: computeConcurrentLb3Targets(
+        buffEvents,
+        druidId,
+        ctx.lifebloomAbilityIds,
+        fight.startTime,
+        fight.endTime,
+      ),
+      naturesSwiftnessAudit: computeNaturesSwiftnessAudit(
+        castEvents,
+        druidId,
+        ctx.naturesSwiftnessAbilityIds,
+        ctx.resolvedAbilities,
+        durationMs,
+      ),
+    },
   };
 }
