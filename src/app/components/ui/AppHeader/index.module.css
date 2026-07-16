@@ -1,0 +1,29 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 12px var(--gutter);
+  box-sizing: border-box;
+}
+
+.logo {
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.wordmark {
+  font-weight: 700;
+  color: var(--text-h);
+  font-size: 18px;
+}
