@@ -2,7 +2,6 @@
   display: flex;
   align-items: flex-end;
   gap: var(--space-5);
-  height: 110px;
   margin-bottom: var(--space-4);
 }
 .column {
