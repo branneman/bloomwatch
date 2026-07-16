@@ -23,6 +23,13 @@ npm run test:e2e       # Playwright smoke test, needs WCL_TEST_ACCESS_TOKEN — 
 
 See [`docs/testing.md`](docs/testing.md) for the full test pyramid.
 
+## Developer scripts
+
+Two scripts under `scripts/` talk to the real Warcraft Logs API directly (not through the app's UI) — both need `WCL_TEST_ACCESS_TOKEN` in `.env.local`, see `docs/testing.md`.
+
+- `npm run wcl:query -- '<graphql query>'` — run any GraphQL query against WCL's API. See `docs/testing.md`.
+- `npm run calibrate -- <reportCode>` — compute every metric this app judges, for every resto druid detected in a report, per fight and rolled up across the whole report; writes `calibration-data/<reportCode>.json`. See `docs/testing.md`.
+
 ## Architecture
 
 - Vite + React + TypeScript static single-page app, deployed to GitHub Pages via GitHub Actions. No server, no database, no accounts.

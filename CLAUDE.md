@@ -20,6 +20,7 @@ Read both docs before starting substantial feature work — they define scope, t
 - **Commits follow [Conventional Commits](https://www.conventionalcommits.org/)**: `type(scope): summary`, e.g. `feat(lifebloom): add LB3 uptime per target`, `fix(auth): handle expired PKCE token`, `docs: update roadmap`. Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`. Scope is optional but preferred when a change is confined to one epic/module (e.g. `gcd`, `lifebloom`, `mana`, `auth`, `wcl-client`).
 - Backlog stories (`docs/backlog.md`) are the primary unit of work — one story is intended to be independently implementable in one session. When implementing a story, its acceptance criteria are the spec; don't add scope beyond them.
 - Spell/ability IDs must never be hardcoded — resolve them from the report's `masterData.abilities` at runtime (see backlog story 007). TBC has multiple ranks per spell.
+- `src/metrics/*.ts`'s `compute*` functions have two independent consumers: the UI's metric cards/`Scorecard/use*Summary.ts` hooks, and `scripts/calibrate.ts`. When changing a `compute*` function's signature, check both — the script isn't covered by any component test, so a mismatched call site there only surfaces as a runtime error when someone next runs `npm run calibrate`.
 - No secrets should ever be required at build or deploy time (see story 801 / principle 2). If an auth approach needs a client secret, it does not meet the no-backend bar — flag it rather than working around it.
 - Design specs go in `docs/specs/<topic>-design.md`; implementation plans go in `docs/plans/<topic>-plan.md`. No `superpowers` subdirectory, no dates in filenames. Once a story ships and its lasting details (rationale, tooling, conventions) are captured in a permanent doc (`docs/testing.md`, `docs/wcl-auth.md`, etc.), the spec/plan can be deleted — grep the repo for the file path first to confirm nothing else references it.
 - **A story isn't done until its paperwork is retired.** The moment a story ships, mark it `✅ Done` in `docs/backlog.md` and delete its `docs/specs/*-design.md` / `docs/plans/*-plan.md` files in the same commit (fix any dangling references first, per the point above). This is the standard for every story going forward — don't leave completed specs/plans lying around for a later cleanup pass.
@@ -28,7 +29,17 @@ Read both docs before starting substantial feature work — they define scope, t
 
 ## Running live WCL queries yourself
 
-If `.env.local` has `WCL_TEST_ACCESS_TOKEN` set (see `docs/testing.md`), you can call the real WCL API directly — no GraphQL client needed, it's plain HTTP+JSON:
+Prefer `scripts/wcl-query.ts` over raw curl — it handles auth and host selection for you:
+
+```bash
+npm run wcl:query -- 'query { reportData { report(code: "4GYHZRdtL3bvhpc8") { title fights { id name startTime endTime } } } }'
+```
+
+Pass `--host classic` or `--host fresh` to hit `classic.warcraftlogs.com`/`fresh.warcraftlogs.com` instead of the default `www.warcraftlogs.com` — useful since these three hosts don't always serve the same data for the same zone/report (e.g. `classic.warcraftlogs.com`'s SSC/TK zone conflates the 2021 TBC Classic launch with Anniversary data; `www.warcraftlogs.com` has a separate, Anniversary-only zone for the same content). See `scripts/wcl-query.ts` for the full `--host`/`--file` options.
+
+For calibrating the app's actual judgement output against a real report (every metric, every fight, with numeric pooling across the whole report), use `npm run calibrate -- <reportCode>` instead — see `docs/testing.md` for what it produces.
+
+**Fallback (no Node available):** raw curl still works the same way it always did:
 
 ```bash
 set -a; source .env.local; set +a
