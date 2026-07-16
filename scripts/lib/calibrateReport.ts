@@ -139,6 +139,14 @@ function toEpicResult<M>(
   }
 }
 
+function safeInformational<T>(compute: () => T, fallback: T): T {
+  try {
+    return compute();
+  } catch {
+    return fallback;
+  }
+}
+
 export async function computeFightResult(
   ctx: ReportContext,
   candidate: DruidCandidate,
@@ -363,19 +371,27 @@ export async function computeFightResult(
       prepHygiene,
     },
     informational: {
-      concurrentLb3Targets: computeConcurrentLb3Targets(
-        buffEvents,
-        druidId,
-        ctx.lifebloomAbilityIds,
-        fight.startTime,
-        fight.endTime,
+      concurrentLb3Targets: safeInformational(
+        () =>
+          computeConcurrentLb3Targets(
+            buffEvents,
+            druidId,
+            ctx.lifebloomAbilityIds,
+            fight.startTime,
+            fight.endTime,
+          ),
+        { avgConcurrent: 0, peakConcurrent: 0, levels: [] },
       ),
-      naturesSwiftnessAudit: computeNaturesSwiftnessAudit(
-        castEvents,
-        druidId,
-        ctx.naturesSwiftnessAbilityIds,
-        ctx.resolvedAbilities,
-        durationMs,
+      naturesSwiftnessAudit: safeInformational(
+        () =>
+          computeNaturesSwiftnessAudit(
+            castEvents,
+            druidId,
+            ctx.naturesSwiftnessAbilityIds,
+            ctx.resolvedAbilities,
+            durationMs,
+          ),
+        { casts: [], castCount: 0, availableWindows: 0 },
       ),
     },
   };
