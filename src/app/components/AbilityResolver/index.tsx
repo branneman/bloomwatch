@@ -4,6 +4,7 @@ import {
   resolveAbilities,
   type ResolvedAbility,
 } from "../../../abilities/resolveAbilities";
+import { Shell } from "../ui/Shell";
 
 export interface AbilityResolverProps {
   accessToken: string;
@@ -47,7 +48,12 @@ export function AbilityResolver({
   }, [accessToken, reportCode, fetchMasterDataAbilities, onResolved]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;
-  if (!isCurrent) return <p>Resolving abilities…</p>;
+  if (!isCurrent)
+    return (
+      <Shell>
+        <p>Resolving abilities…</p>
+      </Shell>
+    );
 
   return null;
 }

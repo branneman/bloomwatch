@@ -4,6 +4,7 @@ import {
   detectDruids,
   type DruidCandidate,
 } from "../../../report/druidDetection";
+import { Shell } from "../ui/Shell";
 
 export interface DruidDetectorProps {
   accessToken: string;
@@ -72,7 +73,12 @@ export function DruidDetector({
     result !== null &&
     result.accessToken === accessToken &&
     result.fightIdsKey === fightIdsKey;
-  if (!isCurrent) return <p>Detecting druids…</p>;
+  if (!isCurrent)
+    return (
+      <Shell>
+        <p>Detecting druids…</p>
+      </Shell>
+    );
 
   return null;
 }
