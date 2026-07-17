@@ -68,7 +68,12 @@ describe("parseReportInput", () => {
       `https://classic.warcraftlogs.com/reports/${CODE}`,
     );
     if (!result.ok) throw new Error("unreachable");
-    expect(result).toEqual({ ok: true, reportCode: CODE, fightId: null, host: "classic" });
+    expect(result).toEqual({
+      ok: true,
+      reportCode: CODE,
+      fightId: null,
+      host: "classic",
+    });
   });
 
   it("accepts a classic.warcraftlogs.com URL with a fight fragment", () => {
@@ -76,7 +81,12 @@ describe("parseReportInput", () => {
       `https://classic.warcraftlogs.com/reports/${CODE}#fight=6`,
     );
     if (!result.ok) throw new Error("unreachable");
-    expect(result).toEqual({ ok: true, reportCode: CODE, fightId: 6, host: "classic" });
+    expect(result).toEqual({
+      ok: true,
+      reportCode: CODE,
+      fightId: 6,
+      host: "classic",
+    });
   });
 
   it("defaults host to fresh for a bare report code", () => {
