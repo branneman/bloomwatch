@@ -27,7 +27,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 - Static single-page app, deployable via GitHub Pages. No server-side code.
 - Data source: **WCL API v2 (GraphQL)** — report metadata, fights, combatant info, casts/buffs/resources tables, and raw event streams.
 - Auth is resolved (Phase 0 spike, see `docs/wcl-auth.md`): Authorization Code + PKCE from the browser, no client secret, against WCL's OAuth endpoints. Token exchange happens entirely client-side via `fetch()`.
-- Anniversary ("fresh") realm reports resolve against `https://www.warcraftlogs.com/api/v2/user` (confirmed with report `4GYHZRdtL3bvhpc8`, see `docs/wcl-auth.md`) — a single host regardless of which subdomain the report link uses.
+- TBC reports resolve against `https://www.warcraftlogs.com/api/v2/user` regardless of whether the link is `fresh.warcraftlogs.com` (Anniversary) or `classic.warcraftlogs.com` (the original 2021-2024 Classic-launch TBC window) — confirmed with reports `4GYHZRdtL3bvhpc8` and `mtRh3kJ9YMLazyvQ` respectively (see `docs/wcl-auth.md`) — a single host regardless of which subdomain the report link uses. `classic.warcraftlogs.com` also serves Vanilla/Wrath/Cata/MoP logs, rejected via `zone.expansion.id !== 1001`; and older reports may require an active WCL subscription (`Report.archiveStatus.isAccessible`) — see backlog story 012.
 - The app ships with a default WCL API Client ID (registered and maintained by the project, not the user) baked into the client-side code — safe because PKCE client IDs aren't secrets. WCL rate limits are scoped per-client, not per-user, so if the shared default's budget is ever exhausted, the app degrades gracefully: it explains the situation and lets the user register and paste their own free Client ID, which is then used for all their future requests instead. See backlog story 008. A top-bar banner warns users proactively once the shared budget crosses 75% usage, before it's actually exhausted (009).
 - All heavy computation (event-stream analysis) happens in the browser per fight; results are cached in memory per report.
 
@@ -75,7 +75,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 - Judging _who_ should have been healed (target selection, assignments).
 - Other classes and specs (until the framework is proven).
 - Any server-side component.
-- Other WoW versions, expansions, or realm types — Vanilla/Wrath/Cataclysm Classic, Season of Discovery, retail, and non-Anniversary ("progression") TBC realms. TBC Anniversary ("fresh") realms only.
+- Other WoW versions or expansions — Vanilla/Wrath/Cataclysm/MoP Classic, Season of Discovery, retail. TBC content only (Anniversary "fresh" realms and the original 2021-2024 Classic-launch TBC window via `classic.warcraftlogs.com`) — no other realm type.
 - Trash / non-boss fights — too short for these metrics to produce a meaningful signal; boss pulls only (backlog 003).
 - Partial multi-fight selection — viewing "some but not all" boss fights in a report. It's either exactly one fight or the whole report (backlog 702); this also keeps WCL rate-limit usage predictable.
 - User-configurable judgement thresholds — thresholds are maintainer-calibrated (802), not user-editable.

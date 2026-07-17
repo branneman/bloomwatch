@@ -23,8 +23,7 @@ const TBC_EXPANSION_ID = 1001;
 // Best-effort fallback for the case (unverified — this project's test
 // account has full access to every report tried) where WCL denies the
 // whole report node for an inaccessible archived report instead of
-// resolving it with archiveStatus.isAccessible: false. See
-// docs/specs/classic-wcl-support-design.md's "Error handling" section.
+// resolving it with archiveStatus.isAccessible: false.
 const SUBSCRIPTION_ERROR_PATTERN = /subscri|premium|upgrade|archived/i;
 
 const UNSUPPORTED_EXPANSION_MESSAGE =
