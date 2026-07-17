@@ -35,7 +35,10 @@ import {
 import { AppHeader } from "./app/components/ui/AppHeader";
 import { Footer } from "./app/components/ui/Footer";
 import { withRateLimitDetection, withErrorReporting } from "./wcl/client";
-import { useRateLimitUsage } from "./wcl/useRateLimitUsage";
+import {
+  useRateLimitUsage,
+  useRateLimitUsageData,
+} from "./wcl/useRateLimitUsage";
 import { useHashRoute } from "./app/routing/useHashRoute";
 import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import type { DruidCandidate } from "./report/druidDetection";
@@ -56,6 +59,7 @@ function App() {
     usingDefaultClient,
   } = useWclAuth(reportError);
   const usagePct = useRateLimitUsage();
+  const rateLimitUsage = useRateLimitUsageData();
   const { route, navigate } = useHashRoute();
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
   const [druidCandidates, setDruidCandidates] = useState<
@@ -534,7 +538,10 @@ function App() {
       )}
 
       {onboardingDismissed && accessToken && (
-        <Footer onReopenOnboarding={reopenOnboarding} rateLimitUsage={null} />
+        <Footer
+          onReopenOnboarding={reopenOnboarding}
+          rateLimitUsage={rateLimitUsage}
+        />
       )}
     </>
   );
