@@ -474,6 +474,7 @@ function App() {
                 reportCode={reportCode}
                 fetchReportFights={wrappedFetchReportFights}
                 onReportLoaded={setLoadedReport}
+                onStartOver={handleStartOver}
               />
             </Shell>
           )}
