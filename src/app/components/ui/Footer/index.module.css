@@ -46,10 +46,7 @@
   }
 }
 
-.rateLimit {
-  color: var(--text);
-}
-
+.rateLimit,
 .version {
   color: var(--text);
 }
