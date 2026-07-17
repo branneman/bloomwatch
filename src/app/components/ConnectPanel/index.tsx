@@ -43,6 +43,8 @@ export function ConnectPanel({
 
   useEffect(() => {
     if (!accessToken) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- this always precedes new async work below (a fresh fetchReportFights call for this render's accessToken/reportCode), clearing any stale rejection from a previous fetch before it can render; it's not a same-render "adjusting state" case the rule is meant to catch.
+    setRejection(null);
     const controller = new AbortController();
     fetchReportFights(accessToken, reportCode, controller.signal)
       .then((report) => {
