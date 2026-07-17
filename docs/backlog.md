@@ -124,6 +124,24 @@ As a developer, I want test fixtures and factory support for a Dreamstate-spec d
 - 005's druid-detection tests (and any other spec-sensitive tests) run against both the full-Resto and Dreamstate fixtures.
 - Any production code found assuming full-Resto talent points is flagged; fixing it is only in scope for this story if it's a small, contained change — otherwise it's called out as separate follow-up rather than silently expanding this story's scope.
 
+### 012 — Support `classic.warcraftlogs.com` TBC reports for subscribed users 🔲 Todo
+
+I want the app to accept a report from `classic.warcraftlogs.com` — not just `fresh.` Anniversary realms — whenever the report is genuinely TBC content and the currently logged-in WCL account has an active subscription, so that the tool also works for the original 2021-2024 TBC Classic launch's logs, not only Anniversary realms. Critically, this does **not** require a personal Client ID (story 008): subscription entitlement belongs to the _authenticated account_ that completes the PKCE login, not to whichever Client ID (shared default or personal) facilitated that login — a paying subscriber logged in through the app's shared default client gets `classic.` access exactly the same as someone using their own registered Client ID. This widens principle 1's scope (`docs/roadmap.md`/CLAUDE.md currently say "TBC Anniversary ('fresh') realms only, no other realm type") — that principle needs updating alongside this story, not left contradicting shipped behavior.
+
+**What this does _not_ change:** the tool still only judges TBC content. `classic.warcraftlogs.com` also serves Classic Era (vanilla), Wrath, Cataclysm, and Mists of Pandaria logs (confirmed live this session: `expansion_id`s 1000/1001/1002/1003/1004 respectively, with 1001 = "The Burning Crusade") — every one of those non-TBC expansions must still be rejected, the same way story 002 already rejects non-Anniversary subdomains today.
+
+**Subscription mechanics, as understood from live testing this session (verify further during implementation):** some `classic.` data was freely queryable via `/client` with no subscription at all during this session's testing (character lookups, `recentReports`, full `zoneRankings` including Black Temple/Hyjal encounters, and at least one full report's fight list) — so it's not yet confirmed which specific queries actually require a subscription versus which are already open; likely gated per-report, based on the report's age/retention tier, not gated uniformly across the whole subdomain. Implementation should check whether WCL's `userData`/`currentUser` schema exposes a direct subscription-status field, which would let the app detect entitlement proactively (matching "the app will detect whether you have an active subscription") rather than only discovering it reactively from a failed report fetch.
+
+**Acceptance criteria**
+
+- Report URL/code parsing (story 002) accepts `classic.warcraftlogs.com` URLs for reports confirmed to be TBC content (`expansion_id` 1001), rejecting other expansions on that same subdomain with a clear message — not the current blanket "`classic.`/`www.` unsupported" rejection.
+- A bare report code (no host in the URL, story 002's existing supported input shape) is disambiguated by trying `www.warcraftlogs.com` first (today's only host) and falling back to `classic.warcraftlogs.com` if the report isn't found there, rather than requiring the user to specify which host.
+- `classic.` access is attempted with whatever Client ID is currently active — shared default or personal — since entitlement depends on the logged-in account, not the Client ID. Nothing in today's default-client flow (008) should block or discourage a `classic.` attempt.
+- The account's subscription status is surfaced to the user proactively if a WCL API field for it exists (see above); if not, a `classic.` report attempt that fails specifically due to a missing subscription is surfaced as a clear, distinct message (per story 708's error-handling conventions) that explains a WCL subscription is needed and links to WCL's own subscription page — not a generic "something went wrong," and not a prompt to register a personal Client ID, since that alone wouldn't fix it.
+- `src/wcl/client.ts`'s WCL API base URL, currently hardcoded to `www.warcraftlogs.com`, becomes a per-request choice based on which host the report resolved against.
+- `docs/roadmap.md` and CLAUDE.md's principle 1 are updated to describe the widened scope (TBC content generally — Anniversary _and_ the original Classic-launch TBC window — still excluding every other expansion/realm type) once this ships.
+- `docs/testing.md`'s known-reports table gains at least one validated `classic.`-sourced TBC report, the same way every other row documents what it validates.
+
 ---
 
 ## Epic B — GCD economy
@@ -447,3 +465,84 @@ As the project's maintainers, we want to review every R/O/G threshold in the app
 - Every threshold used anywhere in the app is listed in one place (a doc or dev-only view) with its current default and source rationale, to review against.
 - Each threshold is checked against real log data spanning a range of skill levels; any threshold that misjudges known-good or known-bad play is adjusted, with the change and its reasoning recorded in `docs/backlog.md`.
 - No `localStorage`-backed settings screen, no user-facing configuration UI — thresholds remain hardcoded defaults, just better-calibrated ones.
+
+The threshold inventory (`docs/thresholds.md`) and the `scripts/calibrate.ts`/`scripts/wcl-query.ts` tooling this story called for are done. Running that tooling against real reports surfaced findings much larger than "adjust a few numbers" — see Epic I below, which is now how this story is actually carried out.
+
+---
+
+## Epic I — Calibration & spec-awareness
+
+Discovered mid-802, once real calibration data existed: the app's thresholds implicitly assume one playstyle (deep resto, Tree of Life, HoT-heavy 4-GCD Lifebloom-stacking), but a talent scan of 45 real druids pulled from top-competing TBC Anniversary guilds found only 3 (7%) talent-eligible for that playstyle at all — the other 93% cluster into a small number of Balance-heavy hybrid builds (see story 903 for the exact split). Judging that 93% against deep-resto thresholds is a category error, not a calibration error, and it's the real reason early findings against story 802's initial corpus looked so uniformly harsh. This epic is ordered by product priority, not build-dependency order — 900-902 (exemplar-finding and Lifebloom recalibration) are judged the most urgent, since the tool has limited value until its flagship metric is calibrated against real examples of the playstyle it claims to judge.
+
+### 900 — Tag calibration corpus with detected talent-archetype buckets 🔲 Todo
+
+I want every report/druid we've already pulled into `calibration-data/` (and every one we pull from now on) tagged with a talent-archetype bucket, so that exemplar-hunting (901) and every later recalibration story can filter the corpus by archetype instead of re-deriving it by hand each time, the way this session's investigation had to.
+
+**Acceptance criteria**
+
+- Talent point totals (Balance/Feral/Restoration) are read from each fight's `CombatantInfo` event (`talents` field — confirmed live, three entries `{id, icon}` in tree order; TBC-era logs do not populate the richer `talentTree`/`specID` fields, so point totals are the ceiling of what's available, not a limitation of this story) and recorded per druid.
+- Buckets, derived from point totals only (exact talent picks are unavailable — see story 802's investigation): **deep resto** (Restoration ≥ 41, Tree of Life-eligible), **likely dreamstate** (Balance ≥ 31 — Dreamstate unlocks at 30 Balance points, so 1 point there requires ≥ 31 total; ≥ 33 for full 3/3), **mostly balance** (high Balance, doesn't reach the Dreamstate-eligible cutoff), **restokin-shaped** (signature still undetermined — flagged open, not blocking this story), **other/unclassified**.
+- Bucket assignment is a per-report/per-druid record (either embedded in `calibration-data/*.json` or a companion index) — not just a one-off script's stdout, so it persists across sessions.
+- The 46 reports already gathered this session are backfilled, not re-fetched.
+- Explicitly out of scope: inferring exact talent choices (Swiftmend/NS/Dreamstate specifically) from point totals alone — that needs behavioral corroboration, which is story 901/903's concern, not this one's.
+
+### 901 — Find and validate deep-resto 4-GCD exemplar reports 🔲 Todo
+
+I want a validated set of real reports/fights from druids who are both talent-eligible for deep resto _and_ behaviorally playing the 4-GCD, multi-target LB3-stacking style, so that story 902 has genuine exemplars to calibrate against — not just talent-filtered candidates, one of which (Profex, 16/0/45, a 99-parse on Lady Vashj) turned out to show zero maintained 3-stack targets on a real fight despite deep-resto talents. Talent eligibility alone doesn't prove playstyle; this story is deliberately treated as high-effort and important, since the tool has limited value without it.
+
+**Acceptance criteria**
+
+- A documented, repeatable method combines a talent filter (story 900's "deep resto" bucket) with a _behavioral_ filter — candidate fights must show sustained multi-target LB3 maintenance (e.g. `concurrentLb3Targets.avgConcurrent` above a real, evidence-set threshold), not just deep-resto talents.
+- WCL's top-parse rankings are not the sole sourcing method — story 802's own investigation showed HPS-based search is biased toward the Balance-hybrid majority, not deep resto, so this story also pursues community-sourced recommendations (e.g. druid Discord communities naming specific known-good players/reports) as a complementary source that captures reputation nuance an automated filter can't.
+- At least a handful of validated exemplar fights are captured in `docs/testing.md`'s known-reports table, each annotated with the evidence for why it qualifies (talent split + concurrent-LB3 behavior, or community sourcing rationale).
+- Exemplars are tagged via story 900's bucketing so they're queryable alongside the rest of the corpus.
+
+### 902 — Recalibrate Lifebloom discipline thresholds against exemplars 🔲 Todo
+
+I want LB3-uptime and refresh-cadence thresholds reviewed against story 901's exemplar data, so that judgements reflect what real, skilled 4-GCD play actually looks like — the initial 46-report corpus couldn't clear these thresholds at all (100% red at the whole-report rollup level, 68% red per-fight even before rollup amplification), which is a strong signal the thresholds were never validated against real examples of the target playstyle in the first place.
+
+**Acceptance criteria**
+
+- Every exemplar fight's per-target LB3 uptime and refresh-cadence median are tabulated against the current thresholds (`src/metrics/lb3Uptime.ts`: green ≥90%/orange 75-90%/red <75%; `src/metrics/refreshCadence.ts`: green 6-7s/orange 5-6s/red outside that).
+- Any threshold that misjudges known-good exemplar play is adjusted, with the change and reasoning recorded here per story 802's own acceptance criteria.
+- `docs/thresholds.md` is updated to reflect the recalibration and cite the exemplar evidence backing it.
+
+### 903 — Spec/archetype-aware judgement 🔲 Todo
+
+I want the app to detect a druid's talent archetype and actual per-fight healing role, and adjust which metrics it shows and how it judges them accordingly, so that a Dreamstate or Balance-hybrid druid isn't silently judged against deep-resto assumptions they were never trying to meet. A real talent scan this session found only 3 of 45 druids pulled from top-competing guilds were even talent-eligible for deep resto — the other 42 clustered into `35/0/26`, `37/0/24`, and `48/0/13` splits (Restoration below Swiftmend's 30-point requirement in every case), meaning the majority of real top players can't even take Swiftmend, which today's tool judges them on anyway.
+
+**Acceptance criteria**
+
+- Per-fight talent buckets (story 900's definitions) are computed and available to every metric card, not just as an offline analysis artifact.
+- Per-fight healing-role detection is refined to work per fight, not once per report — today's detection (story 005) sums healing casts across the whole report and reuses one druid identity for every fight, which misjudges a Restokin-style druid who legitimately swaps between healing and DPS per pull with no respec (see story 709, which this supersedes/absorbs).
+- Metrics whose prerequisite talent is unreachable for the detected bucket are hidden, not shown as a misleading judgement — e.g. the Swiftmend quality audit card doesn't render at all below 30 Restoration points, rather than defaulting to a fake "green" from 0 wasteful casts out of 0 total.
+- The onboarding screen (705) and/or a new in-app notice makes explicit which playstyles the tool judges well (deep resto, and Dreamstate to a lesser extent) versus which it doesn't yet support meaningfully (Regrowth-spec, Restokin, Balance druids playing a healer-style role) — so a user in an unsupported archetype gets an honest "this tool isn't built for your build yet" rather than a silently wrong scorecard.
+- Story 709 is retired once its scope is covered here (per this repo's "a story isn't done until its paperwork is retired" convention) — its off-role-fight exclusion becomes a special case of per-fight role detection, not a separate mechanism.
+
+### 904 — Overhaul whole-report rollup policy 🔲 Todo
+
+I want the whole-report dashboard's per-epic judgement to stop being a strict worst-of across every fight, so that one rough pull in an otherwise-clean 10-13-fight raid night doesn't single-handedly crush the whole night's verdict to red. Real corpus data showed this starkly: GCD economy was 33% green/27% orange/39% red _per fight_, but 0% green/9% orange/91% red at the worst-of rollup; spell discipline was 70% green per-fight but only 35% green at rollup. The threshold values aren't the problem here — the aggregation is.
+
+**Acceptance criteria**
+
+- A replacement aggregation mechanism is designed and documented (open question as of this writing — no mechanism has been chosen yet; candidates to evaluate include a duration-weighted or count-weighted blend per metric, matching `scripts/lib/rollup.ts`'s existing per-metric pooling rules, versus a "mostly green with call-outs" summary that surfaces the number of red/orange fights without letting the worst one dominate the headline verdict).
+- Whatever mechanism is chosen still lets a user drill into which specific fight(s) drove a bad result — this story must not lose the diagnostic value the current (harsh) worst-of policy at least provides honestly.
+- The per-fight scorecard (701) is unaffected — this story is scoped to 702's whole-report rollup and `scripts/lib/rollup.ts`'s judgement pooling, not single-fight judging.
+
+### 905 — Recalibrate mana economy thresholds 🔲 Todo
+
+I want mana economy's thresholds reviewed against real data, so that judgements reflect real play rather than an artifact of overheal thresholds tuned for a different gear/content-progression assumption. Real corpus data showed mana economy driven almost entirely by the overheal sub-metric (204/393 fight-rows red — mana curve, consumables, and Innervate were all reasonably distributed on their own). Scope and approach are not yet decided — parked pending the outcome of stories 900-903, since overheal patterns likely split by talent archetype too (a Balance-hybrid healer's overheal profile may look nothing like a deep-resto one's).
+
+**Acceptance criteria**
+
+- TBD — revisit once stories 900-903 land and the corpus can be split by archetype; recalibrating overheal against an un-archetyped corpus risks repeating story 802's original mistake (judging a mixed population against one playstyle's thresholds).
+
+### 906 — Fix locale-dependent ability-name matching 🔲 Todo
+
+I want ability resolution to stop depending on English spell-name strings, so that a report logged by a non-English WoW client doesn't silently lose data for any spell resolved through the name-matching fallback. `src/abilities/resolveAbilities.ts` matches by game ID first (locale-safe) but falls back to matching `ability.name` against hardcoded English strings for any ID not already in its rank table; `src/report/druidDetection.ts`'s `HEALING_SPELL_NAMES` (which decides who counts as a healer at all) is 100% name-based with no ID fallback whatsoever. This wasn't confirmed as a live bug this session (a suspected German-localized report turned out to log Lifebloom in English — combat logs reflect the uploader's client language, not each player's own), but the fragility is real and independently worth fixing.
+
+**Acceptance criteria**
+
+- WoW TBC has a fixed, enumerable set of supported client languages — every spell name currently matched via the English-only fallback path gets a hardcoded per-language translation table, rather than relying on a live non-English repro to drive the fix.
+- `druidDetection.ts`'s `HEALING_SPELL_NAMES` gains the same per-language coverage, or is changed to resolve via game ID the same way `resolveAbilities.ts`'s primary path already does.
+- A short note in `docs/testing.md` records which language(s) were actually validated against a real non-English-logged report, versus which are translated but unverified.
