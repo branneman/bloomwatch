@@ -22,10 +22,12 @@
 ### Task 1: `parseReportInput` accepts `classic.` and returns a `Host`
 
 **Files:**
+
 - Modify: `src/report/parseReportInput.ts`
 - Test: `src/report/parseReportInput.test.ts`
 
 **Interfaces:**
+
 - Produces: `export type Host = "fresh" | "classic";` (new, exported from this file — the canonical definition every other task imports).
 - Produces: `ParseReportInputResult`'s `ok: true` branch gains `host: Host`.
 
@@ -36,21 +38,31 @@ Open `src/report/parseReportInput.test.ts`. Find the existing `classic.` rejecti
 Replace the existing `it("rejects a classic.warcraftlogs.com URL", ...)`-style case (find it near the `www.` rejection case) with:
 
 ```ts
-  it("accepts a classic.warcraftlogs.com URL with host: classic", () => {
-    const result = parseReportInput(
-      `https://classic.warcraftlogs.com/reports/${CODE}`,
-    );
-    if (!result.ok) throw new Error("unreachable");
-    expect(result).toEqual({ ok: true, reportCode: CODE, fightId: null, host: "classic" });
+it("accepts a classic.warcraftlogs.com URL with host: classic", () => {
+  const result = parseReportInput(
+    `https://classic.warcraftlogs.com/reports/${CODE}`,
+  );
+  if (!result.ok) throw new Error("unreachable");
+  expect(result).toEqual({
+    ok: true,
+    reportCode: CODE,
+    fightId: null,
+    host: "classic",
   });
+});
 
-  it("accepts a classic.warcraftlogs.com URL with a fight fragment", () => {
-    const result = parseReportInput(
-      `https://classic.warcraftlogs.com/reports/${CODE}#fight=6`,
-    );
-    if (!result.ok) throw new Error("unreachable");
-    expect(result).toEqual({ ok: true, reportCode: CODE, fightId: 6, host: "classic" });
+it("accepts a classic.warcraftlogs.com URL with a fight fragment", () => {
+  const result = parseReportInput(
+    `https://classic.warcraftlogs.com/reports/${CODE}#fight=6`,
+  );
+  if (!result.ok) throw new Error("unreachable");
+  expect(result).toEqual({
+    ok: true,
+    reportCode: CODE,
+    fightId: 6,
+    host: "classic",
   });
+});
 ```
 
 Find the existing `fresh.` acceptance test(s) and add a `host` assertion — e.g. if it currently does `expect(result).toEqual({ ok: true, reportCode: CODE, fightId: null })`, change the expectation to `{ ok: true, reportCode: CODE, fightId: null, host: "fresh" }`. Apply the same `host: "fresh"` addition to every other existing `ok: true` assertion in the file (fight-fragment case, etc.) — do not remove any existing case, just add the field to each expected object.
@@ -58,11 +70,11 @@ Find the existing `fresh.` acceptance test(s) and add a `host` assertion — e.g
 Add a bare-code default case:
 
 ```ts
-  it("defaults host to fresh for a bare report code", () => {
-    const result = parseReportInput(CODE);
-    if (!result.ok) throw new Error("unreachable");
-    expect(result.host).toBe("fresh");
-  });
+it("defaults host to fresh for a bare report code", () => {
+  const result = parseReportInput(CODE);
+  if (!result.ok) throw new Error("unreachable");
+  expect(result.host).toBe("fresh");
+});
 ```
 
 Confirm the `www.` rejection case (and any other-subdomain rejection case) is untouched — it must still return `{ ok: false, reason: "unsupported-realm", ... }`.
@@ -158,12 +170,18 @@ git commit -m "feat(report): accept classic.warcraftlogs.com report links"
 ### Task 2: `hashRoute.ts` carries `Host` through the URL
 
 **Files:**
+
 - Modify: `src/app/routing/hashRoute.ts`
 - Test: `src/app/routing/hashRoute.test.ts`
+- Test: `src/app/routing/useHashRoute.test.ts` (constructs `Route` literals directly; breaks once `host` is required — fixed in this task, not deferred, since the repo's pre-commit hook runs full-project `typecheck` on every commit)
+- Modify: `src/App.tsx` (same reason — see Step 5 below; this is a **narrower** slice of Task 6's original scope, not a duplicate of it — see the note at the top of Task 6)
 
 **Interfaces:**
+
 - Consumes: `Host` from `../../report/parseReportInput` (Task 1).
 - Produces: `Route`'s four report-bearing variants each gain `host: Host`. URL shape: `#/r/<code>[/h/<host>]/d/<name>/f/<fightId>/e/<epicId>` — the `/h/<host>` segment is **omitted when `host === "fresh"`** (the default), so every existing `fresh.`-sourced hash/URL is byte-identical to today. Only `classic.`-sourced routes get the extra segment.
+
+**Why `App.tsx` is touched here, not only in Task 6:** making `Route.host` required breaks every `navigate({...})` call site that constructs a `Route` — the whole project must typecheck after every commit (Global Constraints), so this task must leave `App.tsx` compiling, not just `hashRoute.ts`/its own test. Everywhere `App.tsx` already has a `Route`'s `reportCode` in scope (from the existing top-level `reportCode` const or a narrowed `route.reportCode`), the matching `host` is equally in scope (`host` const or `route.host`) — those 8 call sites are fixed here. The 9th (`handleReportSubmit`, which builds a *new* route from a freshly-parsed `ParsedReport`) is the one exception: `ParsedReport` doesn't carry `host` until Task 6 changes `ReportInput`, so this task gives it a temporary hardcoded `host: "fresh"` with a `// TODO(story-012 Task 6)` marker, which Task 6 then replaces with the real `parsed.host`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -198,21 +216,21 @@ Add new cases to the `cases` array (any position, e.g. after the existing report
 Add a dedicated test for the "invalid host value degrades to fresh, not to the input screen" behavior (deliberately different from every other malformed-segment case, which falls back to `{ screen: "input" }`):
 
 ```ts
-  it("defaults to host: fresh (not the input screen) for an unrecognized host value", () => {
-    expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h/bogus")).toEqual({
-      screen: "druidPicker",
-      reportCode: "4GYHZRdtL3bvhpc8",
-      host: "fresh",
-    });
+it("defaults to host: fresh (not the input screen) for an unrecognized host value", () => {
+  expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h/bogus")).toEqual({
+    screen: "druidPicker",
+    reportCode: "4GYHZRdtL3bvhpc8",
+    host: "fresh",
   });
+});
 
-  it("defaults to host: fresh when the h segment has no value", () => {
-    expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h")).toEqual({
-      screen: "druidPicker",
-      reportCode: "4GYHZRdtL3bvhpc8",
-      host: "fresh",
-    });
+it("defaults to host: fresh when the h segment has no value", () => {
+  expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h")).toEqual({
+    screen: "druidPicker",
+    reportCode: "4GYHZRdtL3bvhpc8",
+    host: "fresh",
   });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify the new/changed ones fail**
@@ -364,10 +382,58 @@ export function serializeRoute(route: Route): string {
 Run: `npm test -- src/app/routing/hashRoute.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Fix `useHashRoute.test.ts` and `App.tsx` so the project still typechecks**
+
+Run: `npm run typecheck` — it will fail, listing every `Route` literal now missing `host`. Fix each as follows.
+
+In `src/app/routing/useHashRoute.test.ts`: every object literal with `screen: "druidPicker"` or `screen: "dashboard"` (there are 8 occurrences across the file, both as arguments to `navigate({...})` and as `expect(...).toEqual({...})` targets) needs `host: "fresh"` added as a sibling field of `reportCode`.
+
+In `src/App.tsx`:
+
+1. Add a `host` derivation right after the existing `const reportCode = ...` line (search for `const reportCode = route.screen === "input" ? null : route.reportCode;`):
+
+```ts
+  const host = route.screen === "input" ? null : route.host;
+```
+
+2. `handleOpenFight`, `handleCloseFight`, and both branches of `handleSelectEpic` already use the top-level `reportCode` const inside their `navigate({...})` calls — add `host,` alongside every existing `reportCode,` in each, and add `|| host === null` to each function's existing early-return guard (e.g. `handleOpenFight`'s `if (reportCode === null || selectedDruid === null) return;` becomes `if (reportCode === null || selectedDruid === null || host === null) return;`).
+
+3. `advanceFromPicker` narrows `route.screen === "druidPicker"` and uses `route.reportCode` directly in two `navigate({...})` calls — add `host: route.host,` alongside each `reportCode: route.reportCode,`.
+
+4. The two fallback-navigation `useEffect` blocks each call `navigate({ reportCode: route.reportCode, ... })` inside a narrowed `route` — add `host: route.host,` to each.
+
+5. `handleReportSubmit` builds a *new* route from `parsed: ParsedReport`, which doesn't carry `host` until Task 6 updates `ReportInput`. Give it a temporary hardcoded value with a marker comment:
+
+```ts
+  function handleReportSubmit(parsed: ParsedReport) {
+    resetReportState();
+    setPendingFightId(parsed.fightId);
+    navigate({
+      screen: "druidPicker",
+      reportCode: parsed.reportCode,
+      // TODO(story-012 Task 6): use parsed.host once ReportInput carries it.
+      host: "fresh",
+    });
+  }
+```
+
+Do **not** touch the `ConnectPanel` or `ReportDashboard` JSX render call sites in this task — they don't need `host` as a prop yet (that's Task 5/Task 7/Task 6's job) and adding it prematurely would just be reverted-and-redone.
+
+Run: `npm run typecheck`
+Expected: clean (no errors anywhere in the project). If any error remains outside `useHashRoute.test.ts`/`App.tsx`, it's a genuine gap this task missed — fix it the same way (add the matching `host`), it should not require touching `ConnectPanel`/`ReportDashboard`.
+
+Run: `npm test -- src/app/routing/useHashRoute.test.ts src/App.test.tsx`
+Expected: PASS (App.test.tsx exercises `handleReportSubmit` and friends; since `host` always resolves to `"fresh"` today — the only value any existing test input produces — behavior is unchanged, only the `Route` shape gained a field).
+
+- [ ] **Step 6: Full static analysis**
+
+Run: `npm run typecheck && npm run lint && npm run format:check`
+Expected: clean. Run `npm run format` first if `format:check` fails, then re-verify.
+
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/app/routing/hashRoute.ts src/app/routing/hashRoute.test.ts
+git add src/app/routing/hashRoute.ts src/app/routing/hashRoute.test.ts src/app/routing/useHashRoute.test.ts src/App.tsx
 git commit -m "feat(routing): carry report host through the URL hash"
 ```
 
@@ -376,10 +442,12 @@ git commit -m "feat(routing): carry report host through the URL hash"
 ### Task 3: `buildFightTimeUrl` takes a `host` parameter
 
 **Files:**
+
 - Modify: `src/report/wclLinks.ts`
 - Test: `src/report/wclLinks.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Host` from `../../report/parseReportInput`... actually same directory: `./parseReportInput` (Task 1).
 - Produces: `buildFightTimeUrl(host, reportCode, fightId, startMs, endMs): string` — **new leading `host` parameter** (signature order changed; every call site updated in Task 7).
 
@@ -400,13 +468,7 @@ describe("buildFightTimeUrl", () => {
   });
 
   it("builds a classic.warcraftlogs.com deep link when the report came from classic", () => {
-    const url = buildFightTimeUrl(
-      "classic",
-      "4GYHZRdtL3bvhpc8",
-      6,
-      1500,
-      5000,
-    );
+    const url = buildFightTimeUrl("classic", "4GYHZRdtL3bvhpc8", 6, 1500, 5000);
     expect(url).toBe(
       "https://classic.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8#fight=6&type=summary&start=1500&end=5000",
     );
@@ -457,6 +519,7 @@ git commit -m "feat(report): make buildFightTimeUrl host-aware"
 ### Task 4: `fetchReportFights` returns `expansionId` and `archiveStatus`
 
 **Files:**
+
 - Modify: `src/wcl/client.ts`
 - Modify: `src/testUtils/factories.ts`
 - Modify: `test/integration/fixtures/report-fights.json`
@@ -464,6 +527,7 @@ git commit -m "feat(report): make buildFightTimeUrl host-aware"
 - Test: `test/integration/client.test.ts`
 
 **Interfaces:**
+
 - Produces: `ReportFights` gains `expansionId: number` and `archiveStatus: { isArchived: boolean; isAccessible: boolean }`.
 
 - [ ] **Step 1: Update the fixtures (real captured data)**
@@ -542,40 +606,40 @@ import reportFightsClassicFixture from "./fixtures/report-fights-classic.json";
 Inside `describe("fetchReportFights", ...)`, add:
 
 ```ts
-  it("parses expansionId and archiveStatus from a real captured www response", async () => {
-    server.use(
-      http.post(USER_API_URL, () => HttpResponse.json(reportFightsFixture)),
-    );
-    const result = await fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
-    expect(result.expansionId).toBe(1001);
-    expect(result.archiveStatus).toEqual({
-      isArchived: false,
-      isAccessible: true,
-    });
+it("parses expansionId and archiveStatus from a real captured www response", async () => {
+  server.use(
+    http.post(USER_API_URL, () => HttpResponse.json(reportFightsFixture)),
+  );
+  const result = await fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
+  expect(result.expansionId).toBe(1001);
+  expect(result.archiveStatus).toEqual({
+    isArchived: false,
+    isAccessible: true,
   });
+});
 
-  it("parses a real captured classic.-sourced report the same way", async () => {
-    server.use(
-      http.post(USER_API_URL, () =>
-        HttpResponse.json(reportFightsClassicFixture),
-      ),
-    );
-    const result = await fetchReportFights("test-token", "mtRh3kJ9YMLazyvQ");
-    expect(result.title).toBe("BT / Hyjal");
-    expect(result.fights).toHaveLength(4);
-    expect(result.expansionId).toBe(1001);
-    expect(result.archiveStatus).toEqual({
-      isArchived: true,
-      isAccessible: true,
-    });
+it("parses a real captured classic.-sourced report the same way", async () => {
+  server.use(
+    http.post(USER_API_URL, () =>
+      HttpResponse.json(reportFightsClassicFixture),
+    ),
+  );
+  const result = await fetchReportFights("test-token", "mtRh3kJ9YMLazyvQ");
+  expect(result.title).toBe("BT / Hyjal");
+  expect(result.fights).toHaveLength(4);
+  expect(result.expansionId).toBe(1001);
+  expect(result.archiveStatus).toEqual({
+    isArchived: true,
+    isAccessible: true,
   });
+});
 ```
 
 Extend the existing `it("requests encounterID, kill, and bossPercentage for each fight", ...)` test's assertions to also check the query text:
 
 ```ts
-    expect(requestBody?.query).toContain("expansion");
-    expect(requestBody?.query).toContain("archiveStatus");
+expect(requestBody?.query).toContain("expansion");
+expect(requestBody?.query).toContain("archiveStatus");
 ```
 
 - [ ] **Step 3: Run tests to verify the new ones fail**
@@ -684,10 +748,12 @@ git commit -m "feat(wcl-client): fetch report expansion and archive-accessibilit
 ### Task 5: `ConnectPanel` rejects non-TBC and inaccessible reports
 
 **Files:**
+
 - Modify: `src/app/components/ConnectPanel/index.tsx`
 - Test: `src/app/components/ConnectPanel/index.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `ReportFights.expansionId` / `.archiveStatus` (Task 4).
 - Produces: `ConnectPanelProps` gains `onStartOver: () => void` (required).
 
@@ -927,17 +993,22 @@ git commit -m "feat(connect-panel): reject non-TBC and subscription-gated report
 
 ---
 
-### Task 6: Wire `host` through `App.tsx` routing and state
+### Task 6: Wire `host` through `ReportInput`, `ConnectPanel`, and `ReportDashboard`
+
+**Note:** Task 2 already added the `host` derivation and wired it through every `navigate()` call in `App.tsx` except `handleReportSubmit` (which needed `ParsedReport.host`, not yet defined at that point) — see Task 2 Step 5 if you need that context. This task finishes the remaining, narrower slice: `ReportInput`'s `ParsedReport` type, flipping `handleReportSubmit`'s temporary hardcoded `host: "fresh"` to the real `parsed.host`, and wiring `ConnectPanel`'s new `onStartOver` prop. `ReportDashboard`'s `host` prop is declared **optional** in this task (`host?: Host`) — Task 7 makes it required once `Scorecard` actually consumes it, so this task's commit stays green without depending on Task 7 landing first.
 
 **Files:**
+
 - Modify: `src/App.tsx`
 - Modify: `src/app/components/ReportInput/index.tsx`
+- Modify: `src/app/components/ReportDashboard/index.tsx` (only: add `host?: Host;` to `ReportDashboardProps` — do not destructure or use it yet, that's Task 7)
 - Test: `src/app/components/ReportInput/index.test.tsx`
 - Test: `src/App.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `Host` (Task 1), `Route` with `host` (Task 2), `ConnectPanelProps.onStartOver` (Task 5).
-- Produces: `ParsedReport` (from `ReportInput`) gains `host: Host`. App-level `host` derived value, passed to `ReportDashboard` (Task 7 consumes it there) and used in every `navigate()` call.
+- Produces: `ParsedReport` (from `ReportInput`) gains `host: Host`. `ReportDashboardProps` gains optional `host?: Host` (Task 7 makes it required and consumes it).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -987,115 +1058,48 @@ export interface ParsedReport {
 And in `handleSubmit`, change:
 
 ```ts
-    onSubmit({ reportCode: result.reportCode, fightId: result.fightId });
+onSubmit({ reportCode: result.reportCode, fightId: result.fightId });
 ```
 
 to:
 
 ```ts
-    onSubmit({
-      reportCode: result.reportCode,
-      fightId: result.fightId,
-      host: result.host,
-    });
+onSubmit({
+  reportCode: result.reportCode,
+  fightId: result.fightId,
+  host: result.host,
+});
 ```
 
-In `src/App.tsx`:
-
-1. Add `host` derivation right after the existing `const reportCode = ...` line (~line 79):
+In `src/App.tsx`, find `handleReportSubmit` (it currently has a temporary hardcoded `host: "fresh"` with a `// TODO(story-012 Task 6)` comment, added by Task 2) and replace it with the real value:
 
 ```ts
-  const host = route.screen === "input" ? null : route.host;
+function handleReportSubmit(parsed: ParsedReport) {
+  resetReportState();
+  setPendingFightId(parsed.fightId);
+  navigate({
+    screen: "druidPicker",
+    reportCode: parsed.reportCode,
+    host: parsed.host,
+  });
+}
 ```
 
-2. `handleReportSubmit` (~line 123): pass `host` into the initial navigation:
+Then, still in `src/App.tsx`:
 
-```ts
-  function handleReportSubmit(parsed: ParsedReport) {
-    resetReportState();
-    setPendingFightId(parsed.fightId);
-    navigate({
-      screen: "druidPicker",
-      reportCode: parsed.reportCode,
-      host: parsed.host,
-    });
-  }
-```
-
-3. `handleOpenFight` (~line 229) and `handleCloseFight` (~line 239) and `handleSelectEpic` (~line 248) all use the top-level `reportCode`/`host` consts already derived above — add `host,` alongside every existing `reportCode,` inside their `navigate({...})` calls. E.g. `handleOpenFight` becomes:
-
-```ts
-  function handleOpenFight(fightId: number) {
-    if (reportCode === null || selectedDruid === null || host === null) {
-      return;
-    }
-    navigate({
-      screen: "fight",
-      reportCode,
-      host,
-      druidName: selectedDruid.name,
-      fightId,
-    });
-  }
-```
-
-Apply the same pattern (add `host === null` to the guard, add `host,` to the `navigate({...})` call) to `handleCloseFight` and both branches inside `handleSelectEpic`.
-
-4. `advanceFromPicker` (~line 270) narrows `route.screen === "druidPicker"` and uses `route.reportCode` directly — add `route.host` alongside every `reportCode: route.reportCode,`:
-
-```ts
-  function advanceFromPicker(druidName: string) {
-    if (route.screen !== "druidPicker") return;
-    if (pendingFightId !== null) {
-      navigate({
-        screen: "fight",
-        reportCode: route.reportCode,
-        host: route.host,
-        druidName,
-        fightId: pendingFightId,
-      });
-      setPendingFightId(null);
-    } else {
-      navigate({
-        screen: "dashboard",
-        reportCode: route.reportCode,
-        host: route.host,
-        druidName,
-      });
-    }
-  }
-```
-
-5. The two `useEffect` fallback-navigation blocks (~line 305 and ~line 321) each call `navigate({ screen: "druidPicker" | "dashboard", reportCode: route.reportCode, ... })` inside a narrowed `route` — add `host: route.host,` to each:
-
-```ts
-      navigate({ screen: "druidPicker", reportCode: route.reportCode, host: route.host });
-```
-
-and
-
-```ts
-    navigate({
-      screen: "dashboard",
-      reportCode: route.reportCode,
-      host: route.host,
-      druidName: route.druidName,
-    });
-```
-
-6. `ConnectPanel` render (~line 455): add `onStartOver={handleStartOver}`:
+1. `ConnectPanel` render (~line 455): add `onStartOver={handleStartOver}`:
 
 ```tsx
-              <ConnectPanel
-                accessToken={accessToken}
-                reportCode={reportCode}
-                fetchReportFights={wrappedFetchReportFights}
-                onReportLoaded={setLoadedReport}
-                onStartOver={handleStartOver}
-              />
+<ConnectPanel
+  accessToken={accessToken}
+  reportCode={reportCode}
+  fetchReportFights={wrappedFetchReportFights}
+  onReportLoaded={setLoadedReport}
+  onStartOver={handleStartOver}
+/>
 ```
 
-7. `ReportDashboard` render (~line 512): add `host={host}` right after `reportCode={reportCode}` — this requires `host` to be non-null at that point, which it is (the surrounding condition already requires `reportCode` truthy, and `host` is derived from the same `route` in lockstep — add `host !== null` to that surrounding condition list, alongside the existing `reportCode &&` check at ~line 503):
+2. `ReportDashboard` render (~line 512): add `host={host}` right after `reportCode={reportCode}` — `host` is already derived (Task 2) as `route.screen === "input" ? null : route.host`, and the surrounding condition already requires `reportCode` truthy; add `host !== null` to that same condition list (alongside the existing `reportCode &&` check at ~line 503):
 
 ```tsx
           {loadedReport &&
@@ -1114,28 +1118,32 @@ and:
                   reportTitle={loadedReport.title}
 ```
 
+In `src/app/components/ReportDashboard/index.tsx`, add `host?: Host;` (optional) to `ReportDashboardProps`, and the matching import `import type { Host } from "../../../report/parseReportInput";`. Do not destructure it in the component function or use it anywhere yet — Task 7 does that.
+
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- src/app/components/ReportInput/index.test.tsx`
 Expected: PASS.
 
-Run: `npm run typecheck`
-Expected: FAILS at this point — `ReportDashboard` doesn't accept a `host` prop yet (that's Task 7). This is expected; proceed to Step 5 only after confirming the *ReportInput* test passes and the *only* typecheck errors are inside/downstream of `ReportDashboard`/`Scorecard`/the Content wrappers/cards (Task 7's territory). If typecheck reports errors anywhere else (e.g. inside `App.tsx` itself), fix those now.
+Run: `npm run typecheck && npm run lint && npm run format:check`
+Expected: all clean — this task's changes complete every remaining `host` gap in `App.tsx` (Task 2 already handled the rest), and `ReportDashboardProps.host` being optional means `ReportDashboard`'s own body doesn't need to change yet.
+
+Run: `npm test -- src/App.test.tsx`
+Expected: PASS (behavior is unchanged for every existing test input, since `parsed.host` resolves to `"fresh"` for every case they exercise).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/App.tsx src/app/components/ReportInput/index.tsx src/app/components/ReportInput/index.test.tsx
-git commit -m "feat(app): thread report host through routing and state"
+git add src/App.tsx src/app/components/ReportInput/index.tsx src/app/components/ReportInput/index.test.tsx src/app/components/ReportDashboard/index.tsx
+git commit -m "feat(app): wire report host into ReportInput, ConnectPanel, and ReportDashboard"
 ```
-
-(Do not run `src/App.test.tsx` yet — it will fail until Task 7 makes `ReportDashboard` accept `host`. Task 7 covers running and fixing it.)
 
 ---
 
 ### Task 7: Thread `host` through the report-view component tree
 
 **Files:**
+
 - Modify: `src/app/components/ReportDashboard/index.tsx`
 - Modify: `src/app/components/Scorecard/index.tsx`
 - Modify: `src/app/components/GcdEconomyContent/index.tsx`
@@ -1154,12 +1162,16 @@ git commit -m "feat(app): thread report host through routing and state"
 - Test: the `index.test.tsx` for each of the 8 cards above, plus `src/app/components/Scorecard/index.test.tsx`, `src/app/components/ReportDashboard/index.test.tsx`, `src/App.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `Host` (Task 1), `buildFightTimeUrl(host, reportCode, fightId, startMs, endMs)` (Task 3), `ReportDashboardProps` receiving `host` from `App.tsx` (Task 6).
 
-This task is one mechanical, uniform transformation repeated across every file above — it must land as one commit since the tree only type-checks once every file is done. **The rule, applied identically everywhere `reportCode` already appears:**
+**Special case — `ReportDashboard/index.tsx`:** Task 6 already added `host?: Host;` (optional) to `ReportDashboardProps` and the `Host` import; this task changes it to required (`host: Host;`), destructures `host` in the component function, and passes `host={host}` on the `<Scorecard ... />` render only (per the scope table below) — don't re-add the interface field or import from scratch, just tighten and use what's already there.
+
+This task is one mechanical, uniform transformation repeated across every file above — it must land as one commit since the tree only type-checks once every file is done. **The rule, applied identically everywhere `reportCode` already appears (except `ReportDashboard`, per the special case above):**
+
 1. Wherever `reportCode: string;` appears in a `Props` interface, add `host: Host;` on the next line (and `import type { Host } from ...` — path depends on file depth, e.g. `"../../../report/parseReportInput"` from a component two levels under `src/app/components/`).
 2. Wherever `reportCode,` appears in a destructured function-parameter list, add `host,` on the next line.
-3. Wherever `reportCode={reportCode}` appears as a JSX prop passed to a *child that itself needs `host`* (see the specific list below — not every child needs it), add `host={host}` immediately after it.
+3. Wherever `reportCode={reportCode}` appears as a JSX prop passed to a _child that itself needs `host`_ (see the specific list below — not every child needs it), add `host={host}` immediately after it.
 4. Wherever `buildFightTimeUrl(reportCode, ...)` is called, change it to `buildFightTimeUrl(host, reportCode, ...)` (new leading argument, per Task 3).
 
 **Exact scope per file** (only these children receive `host` — siblings that never call `buildFightTimeUrl` do not need it and must NOT be touched, to keep the diff minimal):
@@ -1213,6 +1225,7 @@ git commit -m "feat(scorecard): thread report host through every WCL deep-link"
 ### Task 8: Documentation updates
 
 **Files:**
+
 - Modify: `docs/backlog.md`
 - Modify: `docs/roadmap.md`
 - Modify: `CLAUDE.md`
@@ -1224,32 +1237,40 @@ git commit -m "feat(scorecard): thread report host through every WCL deep-link"
 Find story `012` (search for `### 012 — Support`). Change its status marker from `🔲 Todo` to `✅ Done`. Rewrite acceptance criteria bullet #2 (the www→classic fallback one) and #5 (the per-request base URL one) to reflect the confirmed host-agnostic reality:
 
 Replace:
+
 ```
 - A bare report code (no host in the URL, story 002's existing supported input shape) is disambiguated by trying `www.warcraftlogs.com` first (today's only host) and falling back to `classic.warcraftlogs.com` if the report isn't found there, rather than requiring the user to specify which host.
 ```
+
 with:
+
 ```
 - Report codes resolve identically regardless of which of `www`/`classic`/`fresh` WCL hosts serves the request (confirmed live during implementation) — a bare report code needs no host disambiguation at all; it's fetched exactly as it always has been.
 ```
 
 Replace:
+
 ```
 - `src/wcl/client.ts`'s WCL API base URL, currently hardcoded to `www.warcraftlogs.com`, becomes a per-request choice based on which host the report resolved against.
 ```
+
 with:
+
 ```
 - `src/wcl/client.ts`'s WCL API base URL stays a single hardcoded `www.warcraftlogs.com` endpoint — confirmed live that it already serves `classic.`-sourced reports identically, so no per-request host routing is needed. The parsed input `host` (`fresh`/`classic`) is used only for building outbound deep-links back to WCL's own web UI, not for choosing an API endpoint.
 ```
 
 Find the bullet naming the subscription-status field and sharpen it to name the real field:
+
 ```
 - The account's subscription status is surfaced to the user proactively via `Report.archiveStatus.isAccessible` (confirmed live — no `currentUser`-level subscription field exists in the schema); a `classic.` report attempt that fails despite that check is surfaced as a clear, distinct message (per story 708's error-handling conventions) that explains a WCL subscription is needed and links to WCL's own subscription page — not a generic "something went wrong," and not a prompt to register a personal Client ID, since that alone wouldn't fix it.
 ```
+
 (Replace whatever the existing similarly-worded bullet says with this.)
 
 - [ ] **Step 2: `docs/roadmap.md`**
 
-Find the line (~line 30): `Anniversary ("fresh") realm reports resolve against `https://www.warcraftlogs.com/api/v2/user`... — a single host regardless of which subdomain the report link uses.` Update to note `classic.`-sourced reports too:
+Find the line (~line 30): `Anniversary ("fresh") realm reports resolve against `https://www.warcraftlogs.com/api/v2/user`... — a single host regardless of which subdomain the report link uses.`Update to note`classic.`-sourced reports too:
 
 ```
 - TBC reports resolve against `https://www.warcraftlogs.com/api/v2/user` regardless of whether the link is `fresh.warcraftlogs.com` (Anniversary) or `classic.warcraftlogs.com` (the original 2021-2024 Classic-launch TBC window) — confirmed with reports `4GYHZRdtL3bvhpc8` and `mtRh3kJ9YMLazyvQ` respectively (see `docs/wcl-auth.md`) — a single host regardless of which subdomain the report link uses. `classic.warcraftlogs.com` also serves Vanilla/Wrath/Cata/MoP logs, rejected via `zone.expansion.id !== 1001`; and older reports may require an active WCL subscription (`Report.archiveStatus.isAccessible`) — see backlog story 012.
@@ -1290,9 +1311,11 @@ git rm docs/specs/classic-wcl-support-design.md
 ```
 
 Confirm nothing else references that path first:
+
 ```bash
 grep -rn "classic-wcl-support-design" . --include=*.md --include=*.ts --include=*.tsx 2>/dev/null
 ```
+
 Expected: no output after the `git rm` (the only prior reference was this plan file itself, which is expected to mention it).
 
 - [ ] **Step 6: Commit**
