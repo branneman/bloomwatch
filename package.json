@@ -16,6 +16,7 @@
     "typecheck": "tsc -b && tsc --noEmit -p tsconfig.scripts.json",
     "calibrate": "tsx scripts/calibrate.ts",
     "wcl:query": "tsx scripts/wcl-query.ts",
+    "tag-archetype": "tsx scripts/tagArchetypes.ts",
     "prepare": "husky"
   },
   "dependencies": {

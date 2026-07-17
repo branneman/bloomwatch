@@ -1,0 +1,689 @@
+{
+  "bucketDefinitions": {
+    "deep-resto": "Restoration >= 41 (Tree of Life-eligible)",
+    "likely-dreamstate-full": "Balance >= 33 (full 3/3 Dreamstate-eligible)",
+    "likely-dreamstate-partial": "Balance >= 31 (>=1 point Dreamstate-eligible)",
+    "mostly-resto": "Restoration > Balance, but below deep-resto's 41-point cutoff and below Dreamstate's 31-point Balance threshold",
+    "mostly-balance": "Balance >= Restoration and Balance >= 20",
+    "restokin-shaped": "signature not yet determined — see story 900",
+    "other-unclassified": "doesn't fit any bucket above",
+    "unknown-no-talent-data": "talent read failed or unavailable"
+  },
+  "reports": {
+    "mtRh3kJ9YMLazyvQ:Olklo": {
+      "druidId": 6,
+      "druidName": "Olklo",
+      "source": "classic",
+      "balance": 8,
+      "feral": 11,
+      "restoration": 42,
+      "bucket": "deep-resto"
+    },
+    "mtRh3kJ9YMLazyvQ:Serpentx": {
+      "druidId": 30,
+      "druidName": "Serpentx",
+      "source": "classic",
+      "balance": 48,
+      "feral": 0,
+      "restoration": 13,
+      "bucket": "likely-dreamstate-full"
+    },
+    "1kFcJtYQz3bHZvqL:Khiara": {
+      "druidId": 12,
+      "druidName": "Khiara",
+      "source": "classic",
+      "balance": null,
+      "feral": null,
+      "restoration": null,
+      "bucket": "unknown-no-talent-data"
+    },
+    "3AfLVJXqhYwpgcR4:Yverna": {
+      "druidId": 13,
+      "druidName": "Yverna",
+      "source": "classic",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "4kvb3H7RmxV28GtQ:Olklo": {
+      "druidId": 10,
+      "druidName": "Olklo",
+      "source": "classic",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "4QP6RCHfKWGcZFb3:Was": {
+      "druidId": 5,
+      "druidName": "Was",
+      "source": "classic",
+      "balance": 5,
+      "feral": 0,
+      "restoration": 56,
+      "bucket": "deep-resto"
+    },
+    "7kdJZF6wAbjzVh2P:Оря": {
+      "druidId": 6,
+      "druidName": "Оря",
+      "source": "classic",
+      "balance": 8,
+      "feral": 11,
+      "restoration": 42,
+      "bucket": "deep-resto"
+    },
+    "8xH4w1PRCvfM36G7:Elmaskecura": {
+      "druidId": 1,
+      "druidName": "Elmaskecura",
+      "source": "classic",
+      "balance": 0,
+      "feral": 11,
+      "restoration": 50,
+      "bucket": "deep-resto"
+    },
+    "a2HMJ3wX6Tq9jpn7:Olklo": {
+      "druidId": 14,
+      "druidName": "Olklo",
+      "source": "classic",
+      "balance": 8,
+      "feral": 11,
+      "restoration": 42,
+      "bucket": "deep-resto"
+    },
+    "aL93nAXvbg86tCqV:Wah": {
+      "druidId": 22,
+      "druidName": "Wah",
+      "source": "classic",
+      "balance": 0,
+      "feral": 11,
+      "restoration": 50,
+      "bucket": "deep-resto"
+    },
+    "BN7gmjKHJ8AMZxT3:Perridur": {
+      "druidId": 5,
+      "druidName": "Perridur",
+      "source": "classic",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "cWqmJzFvBMVwyAa9:Spideyhoof": {
+      "druidId": 9,
+      "druidName": "Spideyhoof",
+      "source": "classic",
+      "balance": 21,
+      "feral": 0,
+      "restoration": 40,
+      "bucket": "mostly-resto"
+    },
+    "DRtXV4ChA2Kw3c81:Stuuri": {
+      "druidId": 10,
+      "druidName": "Stuuri",
+      "source": "classic",
+      "balance": 13,
+      "feral": 0,
+      "restoration": 48,
+      "bucket": "deep-resto"
+    },
+    "HMfaXqjRZNQ32BmA:Onipower": {
+      "druidId": 14,
+      "druidName": "Onipower",
+      "source": "classic",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "HMfaXqjRZNQ32BmA:Kurashina": {
+      "druidId": 28,
+      "druidName": "Kurashina",
+      "source": "classic",
+      "balance": 0,
+      "feral": 46,
+      "restoration": 15,
+      "bucket": "other-unclassified"
+    },
+    "kCnydQTcXwmhB3zL:Kudryavka": {
+      "druidId": 8,
+      "druidName": "Kudryavka",
+      "source": "classic",
+      "balance": 16,
+      "feral": 0,
+      "restoration": 45,
+      "bucket": "deep-resto"
+    },
+    "R2JtCk4VmxTBMdFn:Khiara": {
+      "druidId": 2,
+      "druidName": "Khiara",
+      "source": "classic",
+      "balance": 17,
+      "feral": 0,
+      "restoration": 44,
+      "bucket": "deep-resto"
+    },
+    "rvgDLANhVXYcdfBC:Frankensteak": {
+      "druidId": 5,
+      "druidName": "Frankensteak",
+      "source": "classic",
+      "balance": 13,
+      "feral": 0,
+      "restoration": 48,
+      "bucket": "deep-resto"
+    },
+    "T4FLKV2DAtMGBQwz:Suliss": {
+      "druidId": 11,
+      "druidName": "Suliss",
+      "source": "classic",
+      "balance": 11,
+      "feral": 0,
+      "restoration": 50,
+      "bucket": "deep-resto"
+    },
+    "tWCqHha9jRfTw8rG:Nachobeár": {
+      "druidId": 23,
+      "druidName": "Nachobeár",
+      "source": "classic",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "vBMGaRjtk4qYr2Cf:Joedekage": {
+      "druidId": 31,
+      "druidName": "Joedekage",
+      "source": "classic",
+      "balance": 6,
+      "feral": 0,
+      "restoration": 55,
+      "bucket": "deep-resto"
+    },
+    "vLjd89VQqbB2mCYZ:Apalistar": {
+      "druidId": 11,
+      "druidName": "Apalistar",
+      "source": "classic",
+      "balance": 21,
+      "feral": 0,
+      "restoration": 40,
+      "bucket": "mostly-resto"
+    },
+    "wdXfLBM2PzZ6Dcyh:Frankensteak": {
+      "druidId": 57,
+      "druidName": "Frankensteak",
+      "source": "classic",
+      "balance": 13,
+      "feral": 0,
+      "restoration": 48,
+      "bucket": "deep-resto"
+    },
+    "1d7zP2nJqvhVW3Qa:Toxickn": {
+      "druidId": 12,
+      "druidName": "Toxickn",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "1HBANpGxMbP8ZtrX:Azaq": {
+      "druidId": 14,
+      "druidName": "Azaq",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "1ZD72N6CK9jpbhyg:Cowpop": {
+      "druidId": 22,
+      "druidName": "Cowpop",
+      "source": "fresh",
+      "balance": null,
+      "feral": null,
+      "restoration": null,
+      "bucket": "unknown-no-talent-data"
+    },
+    "2BtcLqgWQR3dT6jf:Dommymomplz": {
+      "druidId": 17,
+      "druidName": "Dommymomplz",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "3CdFq78BY1nLDcba:Rejuveniac": {
+      "druidId": 5,
+      "druidName": "Rejuveniac",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "3YLbnvyWwaXN6fpH:Profex": {
+      "druidId": 4,
+      "druidName": "Profex",
+      "source": "fresh",
+      "balance": 16,
+      "feral": 0,
+      "restoration": 45,
+      "bucket": "deep-resto"
+    },
+    "4GYHZRdtL3bvhpc8:Dassz": {
+      "druidId": 2,
+      "druidName": "Dassz",
+      "source": "fresh",
+      "balance": 12,
+      "feral": 0,
+      "restoration": 49,
+      "bucket": "deep-resto"
+    },
+    "4wfPLztpjCdvkc1a:Rejuveniac": {
+      "druidId": 7,
+      "druidName": "Rejuveniac",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "78nY9avAydQCpZfw:Steakform": {
+      "druidId": 5,
+      "druidName": "Steakform",
+      "source": "fresh",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "8FHmP9zKxcrNn7b4:Oxtaled": {
+      "druidId": 3,
+      "druidName": "Oxtaled",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "8pYXNKr7JWQTcAka:Havub": {
+      "druidId": 6,
+      "druidName": "Havub",
+      "source": "fresh",
+      "balance": 48,
+      "feral": 0,
+      "restoration": 13,
+      "bucket": "likely-dreamstate-full"
+    },
+    "9C8tfmFpxHDQvhLB:Steakform": {
+      "druidId": 8,
+      "druidName": "Steakform",
+      "source": "fresh",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "9q7F8PvyCj3RfnGL:Toxickn": {
+      "druidId": 3,
+      "druidName": "Toxickn",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "AVxKz1WqMfhLjCvm:Ascedià": {
+      "druidId": 3,
+      "druidName": "Ascedià",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "bVCfq4wYJmk7jLXK:Asahg": {
+      "druidId": 18,
+      "druidName": "Asahg",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "CaZjmhzLDKNPd4Hq:Fraxeer": {
+      "druidId": 15,
+      "druidName": "Fraxeer",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "F7aL6x13zVq8kTRt:Nebd": {
+      "druidId": 33,
+      "druidName": "Nebd",
+      "source": "fresh",
+      "balance": 48,
+      "feral": 0,
+      "restoration": 13,
+      "bucket": "likely-dreamstate-full"
+    },
+    "fdrxyCh4jk186t2Z:Lifecoon": {
+      "druidId": 15,
+      "druidName": "Lifecoon",
+      "source": "fresh",
+      "balance": 12,
+      "feral": 0,
+      "restoration": 49,
+      "bucket": "deep-resto"
+    },
+    "9GQrRM2pcmVC1vL8:Garyounis": {
+      "druidId": 11,
+      "druidName": "Garyounis",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "g4Cajf8DKAd2nR69:Blakeatron": {
+      "druidId": 19,
+      "druidName": "Blakeatron",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "g6FQWbHvMmht2LCw:Profex": {
+      "druidId": 22,
+      "druidName": "Profex",
+      "source": "fresh",
+      "balance": 16,
+      "feral": 0,
+      "restoration": 45,
+      "bucket": "deep-resto"
+    },
+    "gfW3MNmQ8GCJYTxV:Fraxeer": {
+      "druidId": 4,
+      "druidName": "Fraxeer",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "GJY84mB3pCzZr1vD:Havub": {
+      "druidId": 4,
+      "druidName": "Havub",
+      "source": "fresh",
+      "balance": 48,
+      "feral": 0,
+      "restoration": 13,
+      "bucket": "likely-dreamstate-full"
+    },
+    "gNYhK1ZAP7RQz2pa:Cowpop": {
+      "druidId": 16,
+      "druidName": "Cowpop",
+      "source": "fresh",
+      "balance": 36,
+      "feral": 0,
+      "restoration": 25,
+      "bucket": "likely-dreamstate-full"
+    },
+    "Hk3JKZCXnVjPMGmN:Garyounis": {
+      "druidId": 23,
+      "druidName": "Garyounis",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "JmpKPbvB3jRz9DdV:Toxickn": {
+      "druidId": 12,
+      "druidName": "Toxickn",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "jzQyXvxLtYfpb3BH:Ronkin": {
+      "druidId": 17,
+      "druidName": "Ronkin",
+      "source": "fresh",
+      "balance": 12,
+      "feral": 0,
+      "restoration": 49,
+      "bucket": "deep-resto"
+    },
+    "L8DZ3raTpjyPCVmx:Ptore": {
+      "druidId": 20,
+      "druidName": "Ptore",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "n73BCVNL6cAfKG8h:Ronkin": {
+      "druidId": 7,
+      "druidName": "Ronkin",
+      "source": "fresh",
+      "balance": 12,
+      "feral": 0,
+      "restoration": 49,
+      "bucket": "deep-resto"
+    },
+    "nfP8V1QvF97pXjMD:Ascediaa": {
+      "druidId": 11,
+      "druidName": "Ascediaa",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "nP4A1ZhQa3fwy2dH:Nebd": {
+      "druidId": 20,
+      "druidName": "Nebd",
+      "source": "fresh",
+      "balance": 36,
+      "feral": 0,
+      "restoration": 25,
+      "bucket": "likely-dreamstate-full"
+    },
+    "PCnWhat38VdYywpg:Esatikkanen": {
+      "druidId": 9,
+      "druidName": "Esatikkanen",
+      "source": "fresh",
+      "balance": 48,
+      "feral": 0,
+      "restoration": 13,
+      "bucket": "likely-dreamstate-full"
+    },
+    "Pf3NJaXZB2qph47z:Blohz": {
+      "druidId": 6,
+      "druidName": "Blohz",
+      "source": "fresh",
+      "balance": 0,
+      "feral": 0,
+      "restoration": 61,
+      "bucket": "deep-resto"
+    },
+    "qDXd7yKJvGzbmpHN:Sheudd": {
+      "druidId": 1,
+      "druidName": "Sheudd",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "QJBdLMVFZ7jPc6hG:Ptore": {
+      "druidId": 11,
+      "druidName": "Ptore",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "R4zt9A2WG1jk68MJ:Uppis": {
+      "druidId": 13,
+      "druidName": "Uppis",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "N3aJQTBy4RqADLjC:Ñikolajokic": {
+      "druidId": 7,
+      "druidName": "Ñikolajokic",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "R2BDwFWXY4z8fAyt:Uppis": {
+      "druidId": 13,
+      "druidName": "Uppis",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "rbKapnV8PTXmwxR3:Ascediaa": {
+      "druidId": 33,
+      "druidName": "Ascediaa",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "Rv2GazZXDt8THngk:Ascedià": {
+      "druidId": 15,
+      "druidName": "Ascedià",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "t3qNHgVKd46YDaj9:Oxtaled": {
+      "druidId": 24,
+      "druidName": "Oxtaled",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "v36dmkKYQgRqPGra:Asahg": {
+      "druidId": 3,
+      "druidName": "Asahg",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "vh7A9HdfNBnVLakG:Ascediaa": {
+      "druidId": 13,
+      "druidName": "Ascediaa",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "wmGhkyYKtAxgjPTM:Blakeatron": {
+      "druidId": 15,
+      "druidName": "Blakeatron",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "WNX1xHFqKLn3AkZC:Dommymomplz": {
+      "druidId": 20,
+      "druidName": "Dommymomplz",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "x1pftLJDc6nXAqY7:Asahg": {
+      "druidId": 26,
+      "druidName": "Asahg",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "XF1aMxbG2dztTmR3:Ptore": {
+      "druidId": 11,
+      "druidName": "Ptore",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "Ya1kRfBhrLjq67PG:Fraxeer": {
+      "druidId": 13,
+      "druidName": "Fraxeer",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    },
+    "yD8HzpTGAX6ngB3b:Esatikkanen": {
+      "druidId": 48,
+      "druidName": "Esatikkanen",
+      "source": "fresh",
+      "balance": 48,
+      "feral": 0,
+      "restoration": 13,
+      "bucket": "likely-dreamstate-full"
+    },
+    "YZ68A2p4yFfKjbQw:Azaq": {
+      "druidId": 16,
+      "druidName": "Azaq",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "zW7bZYmvyF3TBkcP:Dommymomplz": {
+      "druidId": 11,
+      "druidName": "Dommymomplz",
+      "source": "fresh",
+      "balance": 35,
+      "feral": 0,
+      "restoration": 26,
+      "bucket": "likely-dreamstate-full"
+    },
+    "Zx2WpFMQyqGbgYvf:Blakeatron": {
+      "druidId": 15,
+      "druidName": "Blakeatron",
+      "source": "fresh",
+      "balance": 37,
+      "feral": 0,
+      "restoration": 24,
+      "bucket": "likely-dreamstate-full"
+    }
+  }
+}
