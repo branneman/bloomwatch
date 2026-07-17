@@ -30,6 +30,26 @@
   text-decoration: underline;
 }
 
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+
+@media (min-width: 600px) {
+  .meta {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.rateLimit {
+  color: var(--text);
+}
+
 .version {
   color: var(--text);
 }

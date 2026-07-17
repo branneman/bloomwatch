@@ -534,7 +534,7 @@ function App() {
       )}
 
       {onboardingDismissed && accessToken && (
-        <Footer onReopenOnboarding={reopenOnboarding} />
+        <Footer onReopenOnboarding={reopenOnboarding} rateLimitUsage={null} />
       )}
     </>
   );
