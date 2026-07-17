@@ -1,12 +1,14 @@
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { Host } from "../../../report/parseReportInput";
 import { DeathForensicsCard } from "../DeathForensicsCard";
 import styles from "./index.module.css";
 
 export interface DeathForensicsContentProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   swiftmendAbilityIds: Set<number>;
@@ -25,6 +27,7 @@ export interface DeathForensicsContentProps {
 export function DeathForensicsContent({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   swiftmendAbilityIds,
@@ -38,6 +41,7 @@ export function DeathForensicsContent({
       <DeathForensicsCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         swiftmendAbilityIds={swiftmendAbilityIds}

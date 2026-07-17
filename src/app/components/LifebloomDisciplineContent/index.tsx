@@ -1,6 +1,7 @@
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { Host } from "../../../report/parseReportInput";
 import { LB3UptimeCard } from "../LB3UptimeCard";
 import { RefreshCadenceCard } from "../RefreshCadenceCard";
 import { AccidentalBloomsCard } from "../AccidentalBloomsCard";
@@ -11,6 +12,7 @@ import styles from "./index.module.css";
 export interface LifebloomDisciplineContentProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   lifebloomAbilityIds: Set<number>;
@@ -26,6 +28,7 @@ export interface LifebloomDisciplineContentProps {
 export function LifebloomDisciplineContent({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   lifebloomAbilityIds,
@@ -54,6 +57,7 @@ export function LifebloomDisciplineContent({
       <AccidentalBloomsCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         lifebloomAbilityIds={lifebloomAbilityIds}
@@ -63,6 +67,7 @@ export function LifebloomDisciplineContent({
       <RestackTaxCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         lifebloomAbilityIds={lifebloomAbilityIds}

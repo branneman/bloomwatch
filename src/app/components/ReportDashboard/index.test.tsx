@@ -15,6 +15,7 @@ const druid: DruidCandidate = {
 const baseProps = {
   accessToken: "test-token",
   reportCode: "4GYHZRdtL3bvhpc8",
+  host: "fresh" as const,
   reportTitle: "SSC+TK 2026-07-07",
   druidId: 101,
   druid,

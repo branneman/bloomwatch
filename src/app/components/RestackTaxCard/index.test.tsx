@@ -47,6 +47,7 @@ describe("RestackTaxCard", () => {
       <RestackTaxCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
@@ -72,6 +73,7 @@ describe("RestackTaxCard", () => {
       <RestackTaxCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
@@ -96,6 +98,7 @@ describe("RestackTaxCard", () => {
       <RestackTaxCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
@@ -119,6 +122,7 @@ describe("RestackTaxCard", () => {
       <RestackTaxCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
@@ -147,6 +151,7 @@ describe("RestackTaxCard", () => {
       <RestackTaxCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}

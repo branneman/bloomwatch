@@ -8,6 +8,7 @@ import {
   type NaturesSwiftnessAuditResult,
   type NaturesSwiftnessFollowUp,
 } from "../../../metrics/naturesSwiftnessAudit";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -15,6 +16,7 @@ import { MetricCard } from "../ui/MetricCard";
 export interface NaturesSwiftnessCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   naturesSwiftnessAbilityIds: Set<number>;
@@ -55,6 +57,7 @@ function formatFollowUp(
 export function NaturesSwiftnessCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   naturesSwiftnessAbilityIds,
@@ -162,6 +165,7 @@ export function NaturesSwiftnessCard({
             <li key={cast.timestampMs}>
               <a
                 href={buildFightTimeUrl(
+                  host,
                   reportCode,
                   fight.id,
                   cast.timestampMs,

@@ -26,7 +26,7 @@ import styles from "./index.module.css";
 export interface ReportDashboardProps {
   accessToken: string;
   reportCode: string;
-  host?: Host;
+  host: Host;
   reportTitle: string;
   fights: Fight[];
   druidId: number;
@@ -161,6 +161,7 @@ function FightRow({
 export function ReportDashboard({
   accessToken,
   reportCode,
+  host,
   reportTitle,
   fights,
   druidId,
@@ -204,6 +205,7 @@ export function ReportDashboard({
       <Scorecard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={openFight}
         druidId={druidId}
         druid={druid}

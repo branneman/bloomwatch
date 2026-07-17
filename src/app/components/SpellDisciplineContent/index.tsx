@@ -2,6 +2,7 @@ import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
+import type { Host } from "../../../report/parseReportInput";
 import { HotClipDetectionCard } from "../HotClipDetectionCard";
 import { SwiftmendAuditCard } from "../SwiftmendAuditCard";
 import { DownrankingDisciplineCard } from "../DownrankingDisciplineCard";
@@ -11,6 +12,7 @@ import styles from "./index.module.css";
 export interface SpellDisciplineContentProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   rejuvenationAbilityIds: Set<number>;
@@ -31,6 +33,7 @@ export interface SpellDisciplineContentProps {
 export function SpellDisciplineContent({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   rejuvenationAbilityIds,
@@ -46,6 +49,7 @@ export function SpellDisciplineContent({
       <HotClipDetectionCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         rejuvenationAbilityIds={rejuvenationAbilityIds}
@@ -56,6 +60,7 @@ export function SpellDisciplineContent({
       <SwiftmendAuditCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         swiftmendAbilityIds={swiftmendAbilityIds}
@@ -75,6 +80,7 @@ export function SpellDisciplineContent({
       <NaturesSwiftnessCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}

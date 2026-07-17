@@ -40,6 +40,7 @@ describe("NaturesSwiftnessCard", () => {
       <NaturesSwiftnessCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         naturesSwiftnessAbilityIds={new Set([17116])}
@@ -72,6 +73,7 @@ describe("NaturesSwiftnessCard", () => {
       <NaturesSwiftnessCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         naturesSwiftnessAbilityIds={new Set([17116])}
@@ -95,6 +97,7 @@ describe("NaturesSwiftnessCard", () => {
       <NaturesSwiftnessCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         naturesSwiftnessAbilityIds={new Set([17116])}
@@ -119,6 +122,7 @@ describe("NaturesSwiftnessCard", () => {
       <NaturesSwiftnessCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         naturesSwiftnessAbilityIds={new Set([17116])}
@@ -143,6 +147,7 @@ describe("NaturesSwiftnessCard", () => {
       <NaturesSwiftnessCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         naturesSwiftnessAbilityIds={new Set([17116])}
@@ -175,6 +180,7 @@ describe("NaturesSwiftnessCard", () => {
       <NaturesSwiftnessCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         naturesSwiftnessAbilityIds={new Set([17116])}

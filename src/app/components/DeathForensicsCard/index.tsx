@@ -6,6 +6,7 @@ import {
   computeDeathForensics,
   type DeathForensicsResult,
 } from "../../../metrics/deathForensics";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -15,6 +16,7 @@ import { Alert } from "../ui/Alert";
 export interface DeathForensicsCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   swiftmendAbilityIds: Set<number>;
@@ -43,6 +45,7 @@ const THRESHOLD =
 export function DeathForensicsCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   swiftmendAbilityIds,
@@ -166,6 +169,7 @@ export function DeathForensicsCard({
               time={
                 <a
                   href={buildFightTimeUrl(
+                    host,
                     reportCode,
                     fight.id,
                     death.timestampMs,

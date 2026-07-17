@@ -16,6 +16,7 @@ const druid: DruidCandidate = {
 const baseProps = {
   accessToken: "test-token",
   reportCode: "4GYHZRdtL3bvhpc8",
+  host: "fresh" as const,
   druidId: 101,
   druid,
   lifebloomAbilityIds: new Set([33763]),

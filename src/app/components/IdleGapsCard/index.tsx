@@ -6,6 +6,7 @@ import {
   computeIdleGaps,
   type IdleGapsResult,
 } from "../../../metrics/idleGaps";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -16,6 +17,7 @@ const idleGapsIcon =
 export interface IdleGapsCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   fetchEvents: (
@@ -34,6 +36,7 @@ type FetchResult =
 export function IdleGapsCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   fetchEvents,
@@ -133,6 +136,7 @@ export function IdleGapsCard({
             <li key={gap.startMs}>
               <a
                 href={buildFightTimeUrl(
+                  host,
                   reportCode,
                   fight.id,
                   gap.startMs,

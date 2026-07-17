@@ -6,6 +6,7 @@ import {
   computeRestackTax,
   type RestackTaxResult,
 } from "../../../metrics/restackTax";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -14,6 +15,7 @@ import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 export interface RestackTaxCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   lifebloomAbilityIds: Set<number>;
@@ -37,6 +39,7 @@ const THRESHOLD =
 export function RestackTaxCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   lifebloomAbilityIds,
@@ -142,6 +145,7 @@ export function RestackTaxCard({
             <li key={`${cast.timestampMs}-${cast.targetId}`}>
               <a
                 href={buildFightTimeUrl(
+                  host,
                   reportCode,
                   fight.id,
                   cast.timestampMs,

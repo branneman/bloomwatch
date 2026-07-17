@@ -6,6 +6,7 @@ import {
   computeAccidentalBlooms,
   type AccidentalBloomsResult,
 } from "../../../metrics/accidentalBlooms";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -14,6 +15,7 @@ import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 export interface AccidentalBloomsCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   lifebloomAbilityIds: Set<number>;
@@ -37,6 +39,7 @@ const THRESHOLD =
 export function AccidentalBloomsCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   lifebloomAbilityIds,
@@ -141,6 +144,7 @@ export function AccidentalBloomsCard({
             <li key={`${bloom.timestampMs}-${bloom.targetId}`}>
               <a
                 href={buildFightTimeUrl(
+                  host,
                   reportCode,
                   fight.id,
                   bloom.timestampMs,

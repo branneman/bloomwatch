@@ -1,6 +1,7 @@
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { Host } from "../../../report/parseReportInput";
 import { GCDUtilizationCard } from "../GCDUtilizationCard";
 import { IdleGapsCard } from "../IdleGapsCard";
 import styles from "./index.module.css";
@@ -8,6 +9,7 @@ import styles from "./index.module.css";
 export interface GcdEconomyContentProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   fetchEvents: (
@@ -21,6 +23,7 @@ export interface GcdEconomyContentProps {
 export function GcdEconomyContent({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   fetchEvents,
@@ -37,6 +40,7 @@ export function GcdEconomyContent({
       <IdleGapsCard
         accessToken={accessToken}
         reportCode={reportCode}
+        host={host}
         fight={fight}
         druidId={druidId}
         fetchEvents={fetchEvents}

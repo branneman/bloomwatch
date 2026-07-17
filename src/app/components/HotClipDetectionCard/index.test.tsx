@@ -45,6 +45,7 @@ describe("HotClipDetectionCard", () => {
       <HotClipDetectionCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}
@@ -94,6 +95,7 @@ describe("HotClipDetectionCard", () => {
       <HotClipDetectionCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}
@@ -116,6 +118,7 @@ describe("HotClipDetectionCard", () => {
       <HotClipDetectionCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}
@@ -138,6 +141,7 @@ describe("HotClipDetectionCard", () => {
       <HotClipDetectionCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}
@@ -162,6 +166,7 @@ describe("HotClipDetectionCard", () => {
       <HotClipDetectionCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}
@@ -194,6 +199,7 @@ describe("HotClipDetectionCard", () => {
       <HotClipDetectionCard
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         rejuvenationAbilityIds={new Set([26982])}

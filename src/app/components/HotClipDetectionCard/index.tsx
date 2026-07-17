@@ -6,6 +6,7 @@ import {
   computeHotClipDetection,
   type HotClipDetectionResult,
 } from "../../../metrics/hotClipDetection";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -14,6 +15,7 @@ import { DataTable } from "../ui/DataTable";
 export interface HotClipDetectionCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   rejuvenationAbilityIds: Set<number>;
@@ -41,6 +43,7 @@ const THRESHOLD =
 export function HotClipDetectionCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   rejuvenationAbilityIds,
@@ -164,6 +167,7 @@ export function HotClipDetectionCard({
             <li key={`${clip.timestampMs}-${clip.targetId}-${clip.spell}`}>
               <a
                 href={buildFightTimeUrl(
+                  host,
                   reportCode,
                   fight.id,
                   clip.timestampMs,

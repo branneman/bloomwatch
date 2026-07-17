@@ -8,6 +8,7 @@ import {
   type ActorClass,
   type InnervateAuditResult,
 } from "../../../metrics/innervateAudit";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -15,6 +16,7 @@ import { MetricCard } from "../ui/MetricCard";
 export interface InnervateAuditCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   resolvedAbilities: Map<number, ResolvedAbility>;
@@ -55,6 +57,7 @@ function describeTarget(
 export function InnervateAuditCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   resolvedAbilities,
@@ -181,6 +184,7 @@ export function InnervateAuditCard({
               Also cast at{" "}
               <a
                 href={buildFightTimeUrl(
+                  host,
                   reportCode,
                   fight.id,
                   cast.timestampMs,

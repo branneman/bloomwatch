@@ -5,6 +5,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { ActorClass } from "../../../metrics/innervateAudit";
 import type { DruidCandidate } from "../../../report/druidDetection";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { GcdEconomyContent } from "../GcdEconomyContent";
@@ -24,6 +25,7 @@ import styles from "./index.module.css";
 export interface ScorecardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   druid: DruidCandidate;
@@ -62,6 +64,7 @@ const PREP_HYGIENE_ICON =
 export function Scorecard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   druid,
@@ -122,6 +125,7 @@ export function Scorecard({
         Report <code>{reportCode}</code>{" "}
         <a
           href={buildFightTimeUrl(
+            host,
             reportCode,
             fight.id,
             0,
@@ -294,6 +298,7 @@ export function Scorecard({
           <GcdEconomyContent
             accessToken={accessToken}
             reportCode={reportCode}
+            host={host}
             fight={fight}
             druidId={druidId}
             fetchEvents={fetchEvents}
@@ -320,6 +325,7 @@ export function Scorecard({
           <LifebloomDisciplineContent
             accessToken={accessToken}
             reportCode={reportCode}
+            host={host}
             fight={fight}
             druidId={druidId}
             lifebloomAbilityIds={lifebloomAbilityIds}
@@ -348,6 +354,7 @@ export function Scorecard({
           <SpellDisciplineContent
             accessToken={accessToken}
             reportCode={reportCode}
+            host={host}
             fight={fight}
             druidId={druidId}
             rejuvenationAbilityIds={rejuvenationAbilityIds}
@@ -380,6 +387,7 @@ export function Scorecard({
           <ManaEconomyContent
             accessToken={accessToken}
             reportCode={reportCode}
+            host={host}
             fight={fight}
             druidId={druidId}
             resolvedAbilities={resolvedAbilities}
@@ -409,6 +417,7 @@ export function Scorecard({
           <DeathForensicsContent
             accessToken={accessToken}
             reportCode={reportCode}
+            host={host}
             fight={fight}
             druidId={druidId}
             swiftmendAbilityIds={swiftmendAbilityIds}

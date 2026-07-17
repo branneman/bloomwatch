@@ -7,6 +7,7 @@ import {
   type SwiftmendAuditResult,
   type SwiftmendClassification,
 } from "../../../metrics/swiftmendAudit";
+import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -16,6 +17,7 @@ import { ClassTag } from "../ui/ClassTag";
 export interface SwiftmendAuditCardProps {
   accessToken: string;
   reportCode: string;
+  host: Host;
   fight: Fight;
   druidId: number;
   swiftmendAbilityIds: Set<number>;
@@ -50,6 +52,7 @@ const CLASSIFICATION_LABEL: Record<SwiftmendClassification, string> = {
 export function SwiftmendAuditCard({
   accessToken,
   reportCode,
+  host,
   fight,
   druidId,
   swiftmendAbilityIds,
@@ -174,6 +177,7 @@ export function SwiftmendAuditCard({
           rows={casts.map((cast) => [
             <a
               href={buildFightTimeUrl(
+                host,
                 reportCode,
                 fight.id,
                 cast.timestampMs,

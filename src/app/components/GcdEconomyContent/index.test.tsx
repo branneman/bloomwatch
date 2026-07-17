@@ -12,6 +12,7 @@ describe("GcdEconomyContent", () => {
       <GcdEconomyContent
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
         fight={fight}
         druidId={2}
         fetchEvents={fetchEvents}
