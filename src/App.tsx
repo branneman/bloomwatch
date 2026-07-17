@@ -131,8 +131,7 @@ function App() {
     navigate({
       screen: "druidPicker",
       reportCode: parsed.reportCode,
-      // TODO(story-012 Task 6): use parsed.host once ReportInput carries it.
-      host: "fresh",
+      host: parsed.host,
     });
   }
 
@@ -519,6 +518,7 @@ function App() {
 
           {loadedReport &&
             reportCode &&
+            host !== null &&
             selectedDruid !== null &&
             resolvedAbilities !== null &&
             lifebloomAbilityIds !== null &&
@@ -530,6 +530,7 @@ function App() {
                 <ReportDashboard
                   accessToken={accessToken}
                   reportCode={reportCode}
+                  host={host}
                   reportTitle={loadedReport.title}
                   fights={loadedReport.fights}
                   druidId={selectedDruid.id}

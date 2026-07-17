@@ -14,7 +14,11 @@ describe("ReportInput", () => {
     await user.type(screen.getByLabelText(/report url or code/i), CODE);
     await user.click(screen.getByRole("button", { name: /load report/i }));
 
-    expect(onSubmit).toHaveBeenCalledWith({ reportCode: CODE, fightId: null });
+    expect(onSubmit).toHaveBeenCalledWith({
+      reportCode: CODE,
+      fightId: null,
+      host: "fresh",
+    });
   });
 
   it("calls onSubmit with the parsed fight id from a URL fragment", async () => {
@@ -28,7 +32,29 @@ describe("ReportInput", () => {
     );
     await user.click(screen.getByRole("button", { name: /load report/i }));
 
-    expect(onSubmit).toHaveBeenCalledWith({ reportCode: CODE, fightId: 5 });
+    expect(onSubmit).toHaveBeenCalledWith({
+      reportCode: CODE,
+      fightId: 5,
+      host: "fresh",
+    });
+  });
+
+  it("calls onSubmit with host: classic for a classic.warcraftlogs.com URL", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<ReportInput onSubmit={onSubmit} />);
+
+    await user.type(
+      screen.getByLabelText(/report url or code/i),
+      `https://classic.warcraftlogs.com/reports/${CODE}`,
+    );
+    await user.click(screen.getByRole("button", { name: /load report/i }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      reportCode: CODE,
+      fightId: null,
+      host: "classic",
+    });
   });
 
   it("shows the unsupported-realm message and does not submit for a www. URL", async () => {

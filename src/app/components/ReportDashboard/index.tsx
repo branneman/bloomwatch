@@ -6,6 +6,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { ActorClass } from "../../../metrics/innervateAudit";
 import type { DruidCandidate } from "../../../report/druidDetection";
+import type { Host } from "../../../report/parseReportInput";
 import { buildFightRows, formatDuration } from "../../../report/fightRows";
 import {
   combineFightEpicStatus,
@@ -25,6 +26,7 @@ import styles from "./index.module.css";
 export interface ReportDashboardProps {
   accessToken: string;
   reportCode: string;
+  host?: Host;
   reportTitle: string;
   fights: Fight[];
   druidId: number;

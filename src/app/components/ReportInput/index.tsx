@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { parseReportInput } from "../../../report/parseReportInput";
+import { parseReportInput, type Host } from "../../../report/parseReportInput";
 import { Field } from "../ui/Field";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -9,6 +9,7 @@ import styles from "./index.module.css";
 export interface ParsedReport {
   reportCode: string;
   fightId: number | null;
+  host: Host;
 }
 
 export interface ReportInputProps {
@@ -27,7 +28,11 @@ export function ReportInput({ onSubmit }: ReportInputProps) {
       return;
     }
     setError(null);
-    onSubmit({ reportCode: result.reportCode, fightId: result.fightId });
+    onSubmit({
+      reportCode: result.reportCode,
+      fightId: result.fightId,
+      host: result.host,
+    });
   }
 
   return (
