@@ -62,7 +62,12 @@ Additionally, the existing `.catch()` (which currently just no-ops for non-abort
 `ConnectPanel` needs a new prop (e.g. `onStartOver: () => void`) to power its rejection back-link, matching the pattern `App.tsx` already uses elsewhere (`handleStartOver`).
 
 ### `src/report/wclLinks.ts`
-- `buildFightTimeUrl(host, reportCode, fightId, startMs, endMs)` — a new leading `host: "fresh" | "classic"` parameter, interpolated in place of the hardcoded `"fresh"` literal. Callers thread through the `host` captured at parse time (via report state / whatever already carries `reportCode` to these call sites).
+- `buildFightTimeUrl(host, reportCode, fightId, startMs, endMs)` — a new leading `host: "fresh" | "classic"` parameter, interpolated in place of the hardcoded `"fresh"` literal.
+
+### Routing (`src/app/routing/hashRoute.ts`) and the component tree
+Per story 703, the URL hash is the single source of truth for navigation — so `host` must survive reload and shared links, not just live in transient React state. `Route`'s four report-bearing variants gain `host: "fresh" | "classic"`; the serialized URL only appends a `/h/classic` segment when non-default, so every existing `fresh.`-sourced URL is unchanged. `parseHash` treats a missing or unrecognized host segment as `"fresh"` (a soft default, not a route-rejecting error, since host is cosmetic metadata, not routing-critical).
+
+From there, `host` is prop-threaded exactly the way `reportCode` already is today, end to end: `App.tsx` → `ReportDashboard` → `Scorecard` → each of the six `*Content` wrapper components → the individual metric cards that call `buildFightTimeUrl` (`IdleGapsCard`, `AccidentalBloomsCard`, `RestackTaxCard`, `HotClipDetectionCard`, `SwiftmendAuditCard`, `NaturesSwiftnessCard`, `InnervateAuditCard`, `DeathForensicsCard`). This touches on the order of 20 files. It was evaluated against a smaller alternative (a dedicated ambient-state module, mirroring `rateLimitUsage.ts`'s existing pub/sub pattern) and against dropping the feature entirely; prop-threading was chosen to stay consistent with how `reportCode` — a conceptually identical per-report fact — already flows through this exact same component tree, rather than introducing a second ambient-state mechanism for a sibling fact.
 
 ## Error handling
 
