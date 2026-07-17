@@ -680,6 +680,7 @@ git commit -m "feat(wcl-client): fetch report expansion and archive-accessibilit
 
 - Modify: `src/app/components/ConnectPanel/index.tsx`
 - Test: `src/app/components/ConnectPanel/index.test.tsx`
+- Modify: `src/App.tsx` (one-line addition only — see Step 4 below; required in this same commit because `ConnectPanel` is instantiated in exactly one place in the app, and a new required prop that call site doesn't supply would fail the project-wide typecheck the pre-commit hook runs)
 
 **Interfaces:**
 
@@ -913,10 +914,27 @@ export function ConnectPanel({
 Run: `npm test -- src/app/components/ConnectPanel/index.test.tsx`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Wire the new prop into its one call site**
+
+In `src/App.tsx`, find the `<ConnectPanel ... />` render (search for `fetchReportFights={wrappedFetchReportFights}`) and add `onStartOver={handleStartOver}` — `handleStartOver` is an existing function in this file (unrelated to this story), already used elsewhere for the same "load a different report" back-link:
+
+```tsx
+<ConnectPanel
+  accessToken={accessToken}
+  reportCode={reportCode}
+  fetchReportFights={wrappedFetchReportFights}
+  onReportLoaded={setLoadedReport}
+  onStartOver={handleStartOver}
+/>
+```
+
+Run: `npm run typecheck && npm run lint && npm run format:check`
+Expected: all clean.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/app/components/ConnectPanel/index.tsx src/app/components/ConnectPanel/index.test.tsx
+git add src/app/components/ConnectPanel/index.tsx src/app/components/ConnectPanel/index.test.tsx src/App.tsx
 git commit -m "feat(connect-panel): reject non-TBC and subscription-gated reports"
 ```
 
@@ -1014,21 +1032,9 @@ function handleReportSubmit(parsed: ParsedReport) {
 }
 ```
 
-Then, still in `src/App.tsx`:
+Then, still in `src/App.tsx` (note: `ConnectPanel`'s render already got `onStartOver={handleStartOver}` in Task 5 — nothing more to do there in this task):
 
-1. `ConnectPanel` render (~line 455): add `onStartOver={handleStartOver}`:
-
-```tsx
-<ConnectPanel
-  accessToken={accessToken}
-  reportCode={reportCode}
-  fetchReportFights={wrappedFetchReportFights}
-  onReportLoaded={setLoadedReport}
-  onStartOver={handleStartOver}
-/>
-```
-
-2. `ReportDashboard` render (~line 512): add `host={host}` right after `reportCode={reportCode}` — `host` is already derived (Task 2) as `route.screen === "input" ? null : route.host`, and the surrounding condition already requires `reportCode` truthy; add `host !== null` to that same condition list (alongside the existing `reportCode &&` check at ~line 503):
+`ReportDashboard` render (~line 512): add `host={host}` right after `reportCode={reportCode}` — `host` is already derived (Task 2) as `route.screen === "input" ? null : route.host`, and the surrounding condition already requires `reportCode` truthy; add `host !== null` to that same condition list (alongside the existing `reportCode &&` check at ~line 503):
 
 ```tsx
           {loadedReport &&
