@@ -11,12 +11,13 @@ The backlog story flagged two things as unverified: (a) whether WCL's API expose
 - **A better, per-report field exists instead: `Report.archiveStatus`.** Shape: `{ isArchived: boolean, isAccessible: boolean, archiveDate: Int }`. Confirmed live:
   - `mtRh3kJ9YMLazyvQ` (2021-era BT/Hyjal): `{ isArchived: true, isAccessible: true, archiveDate: 1723865664 }`
   - `4GYHZRdtL3bvhpc8` (recent Anniversary report): `{ isArchived: false, isAccessible: true, archiveDate: null }`
-  - `isAccessible` is scoped to the *authenticated account making the request* — this is the proactive entitlement signal the backlog story was looking for, just not where it expected. The test account used for this research already has full access to every report tried, so `isAccessible: false` was never observed directly; the field's shape and naming make its meaning unambiguous, but the "what happens if the whole report node is denied instead" case (see Error handling) is a documented gap, not a verified behavior.
+  - `isAccessible` is scoped to the _authenticated account making the request_ — this is the proactive entitlement signal the backlog story was looking for, just not where it expected. The test account used for this research already has full access to every report tried, so `isAccessible: false` was never observed directly; the field's shape and naming make its meaning unambiguous, but the "what happens if the whole report node is denied instead" case (see Error handling) is a documented gap, not a verified behavior.
 - **`Report.zone.expansion.id`** gives the expansion ID needed to confirm TBC content: `1001` = "The Burning Crusade" (confirmed live). `1000`/`1002`/`1003`/`1004` = Vanilla/Wrath/Cata/MoP respectively (per backlog story 012's own text, confirmed same session).
 
 ## Backlog amendments
 
 Story 012's acceptance criteria #2 ("bare code tries www then falls back to classic") and #5 ("WCL API base URL becomes a per-request choice") are replaced — they described a host-routing mechanism that live testing shows is unnecessary. `docs/backlog.md` will be updated in the same commit as implementation to reflect:
+
 - No host-based fallback or base-URL selection — one endpoint (`www.warcraftlogs.com/api/v2/user`) already serves all three source hosts.
 - The subscription-detection criterion is sharpened to name the real field: `Report.archiveStatus.isAccessible`, not a `currentUser`-level field.
 
@@ -34,9 +35,13 @@ report(code: "...") {
 ```
 
 `ReportFights` (exported from `src/wcl/client.ts`) gains:
+
 ```ts
 expansionId: number;
-archiveStatus: { isArchived: boolean; isAccessible: boolean };
+archiveStatus: {
+  isArchived: boolean;
+  isAccessible: boolean;
+}
 ```
 
 The TBC-content check and the accessibility check both require this network round-trip, so neither can live in the existing pure/sync `parseReportInput`. They're evaluated in `ConnectPanel`, the one place the app already gates report readiness before advancing past it.
@@ -44,15 +49,19 @@ The TBC-content check and the accessibility check both require this network roun
 ## Component changes
 
 ### `src/report/parseReportInput.ts`
+
 - `WCL_HOSTNAME_PATTERN` match: accept `"fresh"` and `"classic"` (currently only `"fresh"`); everything else (`www`, any other subdomain) still hits `unsupported-realm` with the existing message.
 - `ParseReportInputResult`'s `ok: true` branch gains `host: "fresh" | "classic"`. A bare 16-char code (no URL) has no host string to read — defaults to `"fresh"`, matching today's only-implicit-host behavior.
 - Pure/sync, no I/O — unchanged in kind, only in accepted host set and return shape.
 
 ### `src/wcl/client.ts`
+
 - `fetchReportFights`'s query string and return mapping gain the two field groups above. No other exported function changes.
 
 ### `src/app/components/ConnectPanel/index.tsx`
+
 After `fetchReportFights` resolves, before calling `onReportLoaded`:
+
 1. `report.expansionId !== 1001` → render a rejection `Alert` ("This report isn't Burning Crusade content — Bloomwatch only judges TBC logs.") plus a back-link to load a different report. Do not call `onReportLoaded`.
 2. Else if `report.archiveStatus.isAccessible === false` → render a distinct rejection `Alert` ("This report requires an active Warcraft Logs subscription to view.") with a link to WCL's subscription page, plus the same back-link.
 3. Else → unchanged, calls `onReportLoaded` as today.
@@ -62,9 +71,11 @@ Additionally, the existing `.catch()` (which currently just no-ops for non-abort
 `ConnectPanel` needs a new prop (e.g. `onStartOver: () => void`) to power its rejection back-link, matching the pattern `App.tsx` already uses elsewhere (`handleStartOver`).
 
 ### `src/report/wclLinks.ts`
+
 - `buildFightTimeUrl(host, reportCode, fightId, startMs, endMs)` — a new leading `host: "fresh" | "classic"` parameter, interpolated in place of the hardcoded `"fresh"` literal.
 
 ### Routing (`src/app/routing/hashRoute.ts`) and the component tree
+
 Per story 703, the URL hash is the single source of truth for navigation — so `host` must survive reload and shared links, not just live in transient React state. `Route`'s four report-bearing variants gain `host: "fresh" | "classic"`; the serialized URL only appends a `/h/classic` segment when non-default, so every existing `fresh.`-sourced URL is unchanged. `parseHash` treats a missing or unrecognized host segment as `"fresh"` (a soft default, not a route-rejecting error, since host is cosmetic metadata, not routing-critical).
 
 From there, `host` is prop-threaded exactly the way `reportCode` already is today, end to end: `App.tsx` → `ReportDashboard` → `Scorecard` → each of the six `*Content` wrapper components → the individual metric cards that call `buildFightTimeUrl` (`IdleGapsCard`, `AccidentalBloomsCard`, `RestackTaxCard`, `HotClipDetectionCard`, `SwiftmendAuditCard`, `NaturesSwiftnessCard`, `InnervateAuditCard`, `DeathForensicsCard`). This touches on the order of 20 files. It was evaluated against a smaller alternative (a dedicated ambient-state module, mirroring `rateLimitUsage.ts`'s existing pub/sub pattern) and against dropping the feature entirely; prop-threading was chosen to stay consistent with how `reportCode` — a conceptually identical per-report fact — already flows through this exact same component tree, rather than introducing a second ambient-state mechanism for a sibling fact.
@@ -72,12 +83,13 @@ From there, `host` is prop-threaded exactly the way `reportCode` already is toda
 ## Error handling
 
 Four distinct rejection reasons, two existing and two new:
-| Reason | Where raised | Existing? |
-|---|---|---|
-| `invalid` | `parseReportInput`, sync | yes |
-| `unsupported-realm` | `parseReportInput`, sync | yes |
-| `unsupported-expansion` | `ConnectPanel`, after fetch | **new** |
-| `subscription-required` | `ConnectPanel`, after fetch (proactive field or fallback message match) | **new** |
+
+| Reason                  | Where raised                                                            | Existing? |
+| ----------------------- | ----------------------------------------------------------------------- | --------- |
+| `invalid`               | `parseReportInput`, sync                                                | yes       |
+| `unsupported-realm`     | `parseReportInput`, sync                                                | yes       |
+| `unsupported-expansion` | `ConnectPanel`, after fetch                                             | **new**   |
+| `subscription-required` | `ConnectPanel`, after fetch (proactive field or fallback message match) | **new**   |
 
 The two new reasons follow story 708's existing split: they are business-rule rejections on an otherwise-successful fetch, not technical failures, so they render as local inline `Alert`s (same tier as `ReportInput`'s existing parse-error display) rather than escalating to the full-screen `ErrorOverlay`. Genuine technical failures (429, timeout, malformed response) continue to escalate exactly as today.
 
