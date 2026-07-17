@@ -37,3 +37,12 @@ docs/design_v*
 # superpowers:subagent-driven-development's progress ledger — local scratch
 # state for an in-progress plan execution, not project content.
 .superpowers/
+
+# scripts/calibrate.ts output — local working cache for calibration passes
+# (story 802/900-902). Durable findings get distilled into docs/testing.md's
+# known-reports table and docs/thresholds.md instead; the raw per-report JSON
+# is scratch material, not itself worth committing at the volume a real
+# calibration pass generates. (One pre-existing committed file predates this
+# policy — calibration-data/4GYHZRdtL3bvhpc8.json — left as historical, not
+# retroactively removed.)
+calibration-data/

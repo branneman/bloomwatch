@@ -124,6 +124,12 @@ export function LB3UptimeCard({
         <p>No maintained targets.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 4px" }}>
+            Strongest as a read on a dedicated tank-healer assignment. If you're
+            mainly raid-healing this fight — splitting attention across many
+            targets by design — a lower number here doesn't mean worse play,
+            just a wider job.
+          </p>
           {result.result.targets.map((target) => (
             <div key={target.targetId}>
               <div
