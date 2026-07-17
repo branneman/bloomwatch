@@ -81,6 +81,7 @@ function App() {
   );
 
   const reportCode = route.screen === "input" ? null : route.reportCode;
+  const host = route.screen === "input" ? null : route.host;
 
   const wrappedFetchReportFights = useMemo(
     () =>
@@ -127,7 +128,12 @@ function App() {
   function handleReportSubmit(parsed: ParsedReport) {
     resetReportState();
     setPendingFightId(parsed.fightId);
-    navigate({ screen: "druidPicker", reportCode: parsed.reportCode });
+    navigate({
+      screen: "druidPicker",
+      reportCode: parsed.reportCode,
+      // TODO(story-012 Task 6): use parsed.host once ReportInput carries it.
+      host: "fresh",
+    });
   }
 
   function handleStartOver() {
@@ -227,32 +233,35 @@ function App() {
   const activeEpicId = route.screen === "fightEpic" ? route.epicId : null;
 
   function handleOpenFight(fightId: number) {
-    if (reportCode === null || selectedDruid === null) return;
+    if (reportCode === null || selectedDruid === null || host === null) return;
     navigate({
       screen: "fight",
       reportCode,
+      host,
       druidName: selectedDruid.name,
       fightId,
     });
   }
 
   function handleCloseFight() {
-    if (reportCode === null || selectedDruid === null) return;
+    if (reportCode === null || selectedDruid === null || host === null) return;
     navigate({
       screen: "dashboard",
       reportCode,
+      host,
       druidName: selectedDruid.name,
     });
   }
 
   function handleSelectEpic(epicId: EpicId | null) {
-    if (reportCode === null || selectedDruid === null) return;
+    if (reportCode === null || selectedDruid === null || host === null) return;
     if (route.screen !== "fight" && route.screen !== "fightEpic") return;
     const fightId = route.fightId;
     if (epicId === null) {
       navigate({
         screen: "fight",
         reportCode,
+        host,
         druidName: selectedDruid.name,
         fightId,
       });
@@ -260,6 +269,7 @@ function App() {
       navigate({
         screen: "fightEpic",
         reportCode,
+        host,
         druidName: selectedDruid.name,
         fightId,
         epicId,
@@ -273,6 +283,7 @@ function App() {
       navigate({
         screen: "fight",
         reportCode: route.reportCode,
+        host: route.host,
         druidName,
         fightId: pendingFightId,
       });
@@ -281,6 +292,7 @@ function App() {
       navigate({
         screen: "dashboard",
         reportCode: route.reportCode,
+        host: route.host,
         druidName,
       });
     }
@@ -312,7 +324,11 @@ function App() {
     }
     if (druidCandidates === null) return;
     if (druidCandidates.some((d) => d.name === route.druidName)) return;
-    navigate({ screen: "druidPicker", reportCode: route.reportCode });
+    navigate({
+      screen: "druidPicker",
+      reportCode: route.reportCode,
+      host: route.host,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable (useCallback with no deps in useHashRoute); route/druidCandidates are the only real inputs.
   }, [route, druidCandidates]);
 
@@ -325,6 +341,7 @@ function App() {
     navigate({
       screen: "dashboard",
       reportCode: route.reportCode,
+      host: route.host,
       druidName: route.druidName,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable; route/loadedReport/nonTrashFightIds are the only real inputs.

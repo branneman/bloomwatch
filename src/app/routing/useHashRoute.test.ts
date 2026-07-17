@@ -19,6 +19,7 @@ describe("useHashRoute", () => {
     expect(result.current.route).toEqual({
       screen: "druidPicker",
       reportCode: "4GYHZRdtL3bvhpc8",
+      host: "fresh",
     });
   });
 
@@ -53,6 +54,7 @@ describe("useHashRoute", () => {
     expect(result.current.route).toEqual({
       screen: "dashboard",
       reportCode: "CODE",
+      host: "fresh",
       druidName: "Name",
     });
   });
@@ -64,6 +66,7 @@ describe("useHashRoute", () => {
       result.current.navigate({
         screen: "dashboard",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
         druidName: "Dassz",
       });
     });
@@ -72,6 +75,7 @@ describe("useHashRoute", () => {
     expect(result.current.route).toEqual({
       screen: "dashboard",
       reportCode: "4GYHZRdtL3bvhpc8",
+      host: "fresh",
       druidName: "Dassz",
     });
   });
@@ -83,12 +87,14 @@ describe("useHashRoute", () => {
       result.current.navigate({
         screen: "druidPicker",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
       });
     });
     act(() => {
       result.current.navigate({
         screen: "dashboard",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
         druidName: "Dassz",
       });
     });
@@ -113,6 +119,7 @@ describe("useHashRoute", () => {
     expect(result.current.route).toEqual({
       screen: "druidPicker",
       reportCode: "4GYHZRdtL3bvhpc8",
+      host: "fresh",
     });
   });
 
@@ -125,6 +132,7 @@ describe("useHashRoute", () => {
       result.current.navigate({
         screen: "druidPicker",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
       });
     });
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0);
@@ -134,6 +142,7 @@ describe("useHashRoute", () => {
       result.current.navigate({
         screen: "dashboard",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
         druidName: "Dassz",
       });
     });

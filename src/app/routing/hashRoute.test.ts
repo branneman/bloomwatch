@@ -8,7 +8,11 @@ describe("parseHash / serializeRoute", () => {
     {
       name: "report only",
       hash: "#/r/4GYHZRdtL3bvhpc8",
-      route: { screen: "druidPicker", reportCode: "4GYHZRdtL3bvhpc8" },
+      route: {
+        screen: "druidPicker",
+        reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
+      },
     },
     {
       name: "report + druid",
@@ -16,6 +20,7 @@ describe("parseHash / serializeRoute", () => {
       route: {
         screen: "dashboard",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
         druidName: "Dassz",
       },
     },
@@ -25,6 +30,7 @@ describe("parseHash / serializeRoute", () => {
       route: {
         screen: "fight",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
         druidName: "Dassz",
         fightId: 6,
       },
@@ -35,6 +41,28 @@ describe("parseHash / serializeRoute", () => {
       route: {
         screen: "fightEpic",
         reportCode: "4GYHZRdtL3bvhpc8",
+        host: "fresh",
+        druidName: "Dassz",
+        fightId: 6,
+        epicId: "lifebloom",
+      },
+    },
+    {
+      name: "report + classic host",
+      hash: "#/r/4GYHZRdtL3bvhpc8/h/classic",
+      route: {
+        screen: "druidPicker",
+        reportCode: "4GYHZRdtL3bvhpc8",
+        host: "classic",
+      },
+    },
+    {
+      name: "report + classic host + druid + fight + epic",
+      hash: "#/r/4GYHZRdtL3bvhpc8/h/classic/d/Dassz/f/6/e/lifebloom",
+      route: {
+        screen: "fightEpic",
+        reportCode: "4GYHZRdtL3bvhpc8",
+        host: "classic",
         druidName: "Dassz",
         fightId: 6,
         epicId: "lifebloom",
@@ -56,6 +84,7 @@ describe("parseHash / serializeRoute", () => {
     const route: Route = {
       screen: "dashboard",
       reportCode: "4GYHZRdtL3bvhpc8",
+      host: "fresh",
       druidName: "O'Bran Leafwhisper",
     };
     expect(parseHash(serializeRoute(route))).toEqual(route);
@@ -77,5 +106,21 @@ describe("parseHash / serializeRoute", () => {
     "#/r/100%",
   ])("falls back to the input screen for malformed hash %s", (hash) => {
     expect(parseHash(hash)).toEqual({ screen: "input" });
+  });
+
+  it("defaults to host: fresh (not the input screen) for an unrecognized host value", () => {
+    expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h/bogus")).toEqual({
+      screen: "druidPicker",
+      reportCode: "4GYHZRdtL3bvhpc8",
+      host: "fresh",
+    });
+  });
+
+  it("defaults to host: fresh when the h segment has no value", () => {
+    expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h")).toEqual({
+      screen: "druidPicker",
+      reportCode: "4GYHZRdtL3bvhpc8",
+      host: "fresh",
+    });
   });
 });

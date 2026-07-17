@@ -1,18 +1,26 @@
 import type { EpicId } from "../components/Scorecard/useFightEpicSummaries";
+import type { Host } from "../../report/parseReportInput";
 
 export type Route =
   | { screen: "input" }
-  | { screen: "druidPicker"; reportCode: string }
-  | { screen: "dashboard"; reportCode: string; druidName: string }
+  | { screen: "druidPicker"; reportCode: string; host: Host }
+  | {
+      screen: "dashboard";
+      reportCode: string;
+      host: Host;
+      druidName: string;
+    }
   | {
       screen: "fight";
       reportCode: string;
+      host: Host;
       druidName: string;
       fightId: number;
     }
   | {
       screen: "fightEpic";
       reportCode: string;
+      host: Host;
       druidName: string;
       fightId: number;
       epicId: EpicId;
@@ -31,6 +39,10 @@ function isEpicId(value: string): value is EpicId {
   return (EPIC_IDS as readonly string[]).includes(value);
 }
 
+function isHost(value: string): value is Host {
+  return value === "fresh" || value === "classic";
+}
+
 const INPUT_ROUTE: Route = { screen: "input" };
 
 export function parseHash(hash: string): Route {
@@ -44,28 +56,52 @@ export function parseHash(hash: string): Route {
     if (segments[0] !== "r" || segments.length < 2) return INPUT_ROUTE;
     const reportCode = decodeURIComponent(segments[1]);
 
-    if (segments.length === 2) return { screen: "druidPicker", reportCode };
-    if (segments[2] !== "d" || segments.length < 4) return INPUT_ROUTE;
-    const druidName = decodeURIComponent(segments[3]);
-
-    if (segments.length === 4) {
-      return { screen: "dashboard", reportCode, druidName };
+    let index = 2;
+    let host: Host = "fresh";
+    if (segments[index] === "h") {
+      const hostRaw =
+        segments[index + 1] !== undefined
+          ? decodeURIComponent(segments[index + 1])
+          : "";
+      host = isHost(hostRaw) ? hostRaw : "fresh";
+      // Consume the "h", and consume the value if it exists
+      index += segments[index + 1] !== undefined ? 2 : 1;
     }
-    if (segments[4] !== "f" || segments.length < 6) return INPUT_ROUTE;
-    const fightId = Number.parseInt(segments[5], 10);
+
+    if (segments.length === index) {
+      return { screen: "druidPicker", reportCode, host };
+    }
+    if (segments[index] !== "d" || segments.length < index + 2) {
+      return INPUT_ROUTE;
+    }
+    const druidName = decodeURIComponent(segments[index + 1]);
+    index += 2;
+
+    if (segments.length === index) {
+      return { screen: "dashboard", reportCode, host, druidName };
+    }
+    if (segments[index] !== "f" || segments.length < index + 2) {
+      return INPUT_ROUTE;
+    }
+    const fightId = Number.parseInt(segments[index + 1], 10);
     if (Number.isNaN(fightId)) return INPUT_ROUTE;
+    index += 2;
 
-    if (segments.length === 6) {
-      return { screen: "fight", reportCode, druidName, fightId };
+    if (segments.length === index) {
+      return { screen: "fight", reportCode, host, druidName, fightId };
     }
-    if (segments[6] !== "e" || segments.length < 8) return INPUT_ROUTE;
-    const epicIdRaw = decodeURIComponent(segments[7]);
+    if (segments[index] !== "e" || segments.length < index + 2) {
+      return INPUT_ROUTE;
+    }
+    const epicIdRaw = decodeURIComponent(segments[index + 1]);
     if (!isEpicId(epicIdRaw)) return INPUT_ROUTE;
+    index += 2;
 
-    if (segments.length === 8) {
+    if (segments.length === index) {
       return {
         screen: "fightEpic",
         reportCode,
+        host,
         druidName,
         fightId,
         epicId: epicIdRaw,
@@ -80,17 +116,21 @@ export function parseHash(hash: string): Route {
   }
 }
 
+function hostSegment(host: Host): string {
+  return host === "fresh" ? "" : `/h/${host}`;
+}
+
 export function serializeRoute(route: Route): string {
   switch (route.screen) {
     case "input":
       return "#";
     case "druidPicker":
-      return `#/r/${encodeURIComponent(route.reportCode)}`;
+      return `#/r/${encodeURIComponent(route.reportCode)}${hostSegment(route.host)}`;
     case "dashboard":
-      return `#/r/${encodeURIComponent(route.reportCode)}/d/${encodeURIComponent(route.druidName)}`;
+      return `#/r/${encodeURIComponent(route.reportCode)}${hostSegment(route.host)}/d/${encodeURIComponent(route.druidName)}`;
     case "fight":
-      return `#/r/${encodeURIComponent(route.reportCode)}/d/${encodeURIComponent(route.druidName)}/f/${route.fightId}`;
+      return `#/r/${encodeURIComponent(route.reportCode)}${hostSegment(route.host)}/d/${encodeURIComponent(route.druidName)}/f/${route.fightId}`;
     case "fightEpic":
-      return `#/r/${encodeURIComponent(route.reportCode)}/d/${encodeURIComponent(route.druidName)}/f/${route.fightId}/e/${route.epicId}`;
+      return `#/r/${encodeURIComponent(route.reportCode)}${hostSegment(route.host)}/d/${encodeURIComponent(route.druidName)}/f/${route.fightId}/e/${route.epicId}`;
   }
 }
