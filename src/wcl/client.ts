@@ -181,6 +181,8 @@ export interface Fight {
 export interface ReportFights {
   title: string;
   fights: Fight[];
+  expansionId: number;
+  archiveStatus: { isArchived: boolean; isAccessible: boolean };
 }
 
 export async function fetchReportFights(
@@ -196,6 +198,8 @@ export async function fetchReportFights(
     report(code: "${reportCode}") {
       title
       fights { id name startTime endTime encounterID kill bossPercentage }
+      zone { expansion { id name } }
+      archiveStatus { isArchived isAccessible }
     }
   }
 }`,
@@ -223,6 +227,11 @@ export async function fetchReportFights(
         bossPercentage: fight.bossPercentage,
       }),
     ),
+    expansionId: report.zone.expansion.id,
+    archiveStatus: {
+      isArchived: report.archiveStatus.isArchived,
+      isAccessible: report.archiveStatus.isAccessible,
+    },
   };
 }
 

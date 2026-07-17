@@ -25,6 +25,7 @@ import {
 } from "../../src/wcl/client";
 import tokenResponseFixture from "./fixtures/token-response.json";
 import reportFightsFixture from "./fixtures/report-fights.json";
+import reportFightsClassicFixture from "./fixtures/report-fights-classic.json";
 import castsTableFixture from "./fixtures/casts-table.json";
 import masterDataAbilitiesFixture from "./fixtures/masterdata-abilities.json";
 import { subscribeRateLimitUsage } from "../../src/wcl/rateLimitUsage";
@@ -111,6 +112,36 @@ describe("fetchReportFights", () => {
     expect(requestBody?.query).toContain("kill");
     expect(requestBody?.query).toContain("bossPercentage");
     expect(requestBody?.query).not.toContain("gameZone");
+    expect(requestBody?.query).toContain("expansion");
+    expect(requestBody?.query).toContain("archiveStatus");
+  });
+
+  it("parses expansionId and archiveStatus from a real captured www response", async () => {
+    server.use(
+      http.post(USER_API_URL, () => HttpResponse.json(reportFightsFixture)),
+    );
+    const result = await fetchReportFights("test-token", "4GYHZRdtL3bvhpc8");
+    expect(result.expansionId).toBe(1001);
+    expect(result.archiveStatus).toEqual({
+      isArchived: false,
+      isAccessible: true,
+    });
+  });
+
+  it("parses a real captured classic.-sourced report the same way", async () => {
+    server.use(
+      http.post(USER_API_URL, () =>
+        HttpResponse.json(reportFightsClassicFixture),
+      ),
+    );
+    const result = await fetchReportFights("test-token", "mtRh3kJ9YMLazyvQ");
+    expect(result.title).toBe("BT / Hyjal");
+    expect(result.fights).toHaveLength(4);
+    expect(result.expansionId).toBe(1001);
+    expect(result.archiveStatus).toEqual({
+      isArchived: true,
+      isAccessible: true,
+    });
   });
 
   // The GraphQL-errors retry is shared plumbing (postGraphQL), not specific

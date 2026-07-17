@@ -1,0 +1,49 @@
+{
+  "data": {
+    "reportData": {
+      "report": {
+        "title": "BT / Hyjal",
+        "fights": [
+          {
+            "id": 1,
+            "name": "Coilskar Wrangler",
+            "startTime": 414939,
+            "endTime": 427463,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
+          },
+          {
+            "id": 2,
+            "name": "Leviathan",
+            "startTime": 498879,
+            "endTime": 552783,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
+          },
+          {
+            "id": 3,
+            "name": "Coilskar Wrangler",
+            "startTime": 572463,
+            "endTime": 572463,
+            "encounterID": 0,
+            "kill": null,
+            "bossPercentage": null
+          },
+          {
+            "id": 10,
+            "name": "High Warlord Naj'entus",
+            "startTime": 1118581,
+            "endTime": 1271196,
+            "encounterID": 601,
+            "kill": true,
+            "bossPercentage": 0.01
+          }
+        ],
+        "zone": { "expansion": { "id": 1001, "name": "The Burning Crusade" } },
+        "archiveStatus": { "isArchived": true, "isAccessible": true }
+      }
+    }
+  }
+}

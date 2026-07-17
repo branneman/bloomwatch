@@ -64,7 +64,9 @@
             "bossPercentage": 0.01,
             "gameZone": { "id": 548, "name": "Serpentshrine Cavern" }
           }
-        ]
+        ],
+        "zone": { "expansion": { "id": 1001, "name": "The Burning Crusade" } },
+        "archiveStatus": { "isArchived": false, "isAccessible": true }
       }
     }
   }

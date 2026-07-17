@@ -26,6 +26,8 @@ export function aReportFights(
   return {
     title: "SSC+TK 2026-07-07",
     fights: [aFight()],
+    expansionId: 1001,
+    archiveStatus: { isArchived: false, isAccessible: true },
     ...overrides,
   };
 }
