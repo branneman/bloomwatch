@@ -9,6 +9,7 @@ describe("parseReportInput", () => {
       ok: true,
       reportCode: CODE,
       fightId: null,
+      host: "fresh",
     });
   });
 
@@ -17,13 +18,14 @@ describe("parseReportInput", () => {
       ok: true,
       reportCode: CODE,
       fightId: null,
+      host: "fresh",
     });
   });
 
   it("accepts a fresh.warcraftlogs.com URL with no fragment", () => {
     expect(
       parseReportInput(`https://fresh.warcraftlogs.com/reports/${CODE}`),
-    ).toEqual({ ok: true, reportCode: CODE, fightId: null });
+    ).toEqual({ ok: true, reportCode: CODE, fightId: null, host: "fresh" });
   });
 
   it("accepts a fresh.warcraftlogs.com URL without a scheme", () => {
@@ -31,6 +33,7 @@ describe("parseReportInput", () => {
       ok: true,
       reportCode: CODE,
       fightId: null,
+      host: "fresh",
     });
   });
 
@@ -39,7 +42,7 @@ describe("parseReportInput", () => {
       parseReportInput(
         `https://fresh.warcraftlogs.com/reports/${CODE}#fight=5`,
       ),
-    ).toEqual({ ok: true, reportCode: CODE, fightId: 5 });
+    ).toEqual({ ok: true, reportCode: CODE, fightId: 5, host: "fresh" });
   });
 
   it("extracts the fight id when the fragment has extra params", () => {
@@ -47,7 +50,7 @@ describe("parseReportInput", () => {
       parseReportInput(
         `https://fresh.warcraftlogs.com/reports/${CODE}#fight=12&type=healing`,
       ),
-    ).toEqual({ ok: true, reportCode: CODE, fightId: 12 });
+    ).toEqual({ ok: true, reportCode: CODE, fightId: 12, host: "fresh" });
   });
 
   it("rejects a www. URL as an unsupported realm", () => {
@@ -60,13 +63,26 @@ describe("parseReportInput", () => {
     expect(result.message).toMatch(/fresh/i);
   });
 
-  it("rejects a classic. URL as an unsupported realm", () => {
+  it("accepts a classic.warcraftlogs.com URL with host: classic", () => {
     const result = parseReportInput(
       `https://classic.warcraftlogs.com/reports/${CODE}`,
     );
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error("unreachable");
-    expect(result.reason).toBe("unsupported-realm");
+    if (!result.ok) throw new Error("unreachable");
+    expect(result).toEqual({ ok: true, reportCode: CODE, fightId: null, host: "classic" });
+  });
+
+  it("accepts a classic.warcraftlogs.com URL with a fight fragment", () => {
+    const result = parseReportInput(
+      `https://classic.warcraftlogs.com/reports/${CODE}#fight=6`,
+    );
+    if (!result.ok) throw new Error("unreachable");
+    expect(result).toEqual({ ok: true, reportCode: CODE, fightId: 6, host: "classic" });
+  });
+
+  it("defaults host to fresh for a bare report code", () => {
+    const result = parseReportInput(CODE);
+    if (!result.ok) throw new Error("unreachable");
+    expect(result.host).toBe("fresh");
   });
 
   it("rejects empty input as generically invalid", () => {
