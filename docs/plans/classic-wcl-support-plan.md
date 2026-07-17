@@ -1328,7 +1328,16 @@ Expected: all PASS (Tiers 1-3).
 
 - [ ] **Step 3: Sanity-check the plan's live-data claims are still embedded correctly**
 
-Run: `npm run wcl:query -- 'query { reportData { report(code: "mtRh3kJ9YMLazyvQ") { title zone { expansion { id name } } archiveStatus { isArchived isAccessible } } } }'`
+**Do not use `npm run wcl:query` for this check** — that script (`scripts/wcl-query.ts`) always hits `/api/v2/client`, which has no logged-in-user context, so `archiveStatus.isAccessible` reads `false` there for any archived report regardless of the querying account's real subscription (confirmed live this session — see `docs/testing.md`'s `mtRh3kJ9YMLazyvQ` row). The app's actual `fetchReportFights` (`src/wcl/client.ts`) uses `/api/v2/user`, which is scoped to the authenticated account — query that endpoint directly instead, per `CLAUDE.md`'s curl fallback:
+
+```bash
+set -a; source .env.local; set +a
+curl -s -X POST https://www.warcraftlogs.com/api/v2/user \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $WCL_TEST_ACCESS_TOKEN" \
+  -d '{"query":"query { reportData { report(code: \"mtRh3kJ9YMLazyvQ\") { title zone { expansion { id name } } archiveStatus { isArchived isAccessible } } } }"}'
+```
+
 Expected: JSON output matching `title: "BT / Hyjal"`, `expansion: { id: 1001, name: "The Burning Crusade" }`, `archiveStatus: { isArchived: true, isAccessible: true }` — confirms the fixtures embedded in Task 4 still reflect live reality (no need to update anything if it matches; investigate if it doesn't).
 
 - [ ] **Step 4: No stray changes**
