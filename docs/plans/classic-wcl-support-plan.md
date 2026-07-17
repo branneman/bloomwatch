@@ -181,7 +181,7 @@ git commit -m "feat(report): accept classic.warcraftlogs.com report links"
 - Consumes: `Host` from `../../report/parseReportInput` (Task 1).
 - Produces: `Route`'s four report-bearing variants each gain `host: Host`. URL shape: `#/r/<code>[/h/<host>]/d/<name>/f/<fightId>/e/<epicId>` — the `/h/<host>` segment is **omitted when `host === "fresh"`** (the default), so every existing `fresh.`-sourced hash/URL is byte-identical to today. Only `classic.`-sourced routes get the extra segment.
 
-**Why `App.tsx` is touched here, not only in Task 6:** making `Route.host` required breaks every `navigate({...})` call site that constructs a `Route` — the whole project must typecheck after every commit (Global Constraints), so this task must leave `App.tsx` compiling, not just `hashRoute.ts`/its own test. Everywhere `App.tsx` already has a `Route`'s `reportCode` in scope (from the existing top-level `reportCode` const or a narrowed `route.reportCode`), the matching `host` is equally in scope (`host` const or `route.host`) — those 8 call sites are fixed here. The 9th (`handleReportSubmit`, which builds a *new* route from a freshly-parsed `ParsedReport`) is the one exception: `ParsedReport` doesn't carry `host` until Task 6 changes `ReportInput`, so this task gives it a temporary hardcoded `host: "fresh"` with a `// TODO(story-012 Task 6)` marker, which Task 6 then replaces with the real `parsed.host`.
+**Why `App.tsx` is touched here, not only in Task 6:** making `Route.host` required breaks every `navigate({...})` call site that constructs a `Route` — the whole project must typecheck after every commit (Global Constraints), so this task must leave `App.tsx` compiling, not just `hashRoute.ts`/its own test. Everywhere `App.tsx` already has a `Route`'s `reportCode` in scope (from the existing top-level `reportCode` const or a narrowed `route.reportCode`), the matching `host` is equally in scope (`host` const or `route.host`) — those 8 call sites are fixed here. The 9th (`handleReportSubmit`, which builds a _new_ route from a freshly-parsed `ParsedReport`) is the one exception: `ParsedReport` doesn't carry `host` until Task 6 changes `ReportInput`, so this task gives it a temporary hardcoded `host: "fresh"` with a `// TODO(story-012 Task 6)` marker, which Task 6 then replaces with the real `parsed.host`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -393,7 +393,7 @@ In `src/App.tsx`:
 1. Add a `host` derivation right after the existing `const reportCode = ...` line (search for `const reportCode = route.screen === "input" ? null : route.reportCode;`):
 
 ```ts
-  const host = route.screen === "input" ? null : route.host;
+const host = route.screen === "input" ? null : route.host;
 ```
 
 2. `handleOpenFight`, `handleCloseFight`, and both branches of `handleSelectEpic` already use the top-level `reportCode` const inside their `navigate({...})` calls — add `host,` alongside every existing `reportCode,` in each, and add `|| host === null` to each function's existing early-return guard (e.g. `handleOpenFight`'s `if (reportCode === null || selectedDruid === null) return;` becomes `if (reportCode === null || selectedDruid === null || host === null) return;`).
@@ -402,19 +402,19 @@ In `src/App.tsx`:
 
 4. The two fallback-navigation `useEffect` blocks each call `navigate({ reportCode: route.reportCode, ... })` inside a narrowed `route` — add `host: route.host,` to each.
 
-5. `handleReportSubmit` builds a *new* route from `parsed: ParsedReport`, which doesn't carry `host` until Task 6 updates `ReportInput`. Give it a temporary hardcoded value with a marker comment:
+5. `handleReportSubmit` builds a _new_ route from `parsed: ParsedReport`, which doesn't carry `host` until Task 6 updates `ReportInput`. Give it a temporary hardcoded value with a marker comment:
 
 ```ts
-  function handleReportSubmit(parsed: ParsedReport) {
-    resetReportState();
-    setPendingFightId(parsed.fightId);
-    navigate({
-      screen: "druidPicker",
-      reportCode: parsed.reportCode,
-      // TODO(story-012 Task 6): use parsed.host once ReportInput carries it.
-      host: "fresh",
-    });
-  }
+function handleReportSubmit(parsed: ParsedReport) {
+  resetReportState();
+  setPendingFightId(parsed.fightId);
+  navigate({
+    screen: "druidPicker",
+    reportCode: parsed.reportCode,
+    // TODO(story-012 Task 6): use parsed.host once ReportInput carries it.
+    host: "fresh",
+  });
+}
 ```
 
 Do **not** touch the `ConnectPanel` or `ReportDashboard` JSX render call sites in this task — they don't need `host` as a prop yet (that's Task 5/Task 7/Task 6's job) and adding it prematurely would just be reverted-and-redone.
@@ -439,80 +439,9 @@ git commit -m "feat(routing): carry report host through the URL hash"
 
 ---
 
-### Task 3: `buildFightTimeUrl` takes a `host` parameter
+### Task 3: MERGED INTO TASK 7
 
-**Files:**
-
-- Modify: `src/report/wclLinks.ts`
-- Test: `src/report/wclLinks.test.ts`
-
-**Interfaces:**
-
-- Consumes: `Host` from `../../report/parseReportInput`... actually same directory: `./parseReportInput` (Task 1).
-- Produces: `buildFightTimeUrl(host, reportCode, fightId, startMs, endMs): string` — **new leading `host` parameter** (signature order changed; every call site updated in Task 7).
-
-- [ ] **Step 1: Write the failing test**
-
-Replace `src/report/wclLinks.test.ts` in full:
-
-```ts
-import { describe, expect, it } from "vitest";
-import { buildFightTimeUrl } from "./wclLinks";
-
-describe("buildFightTimeUrl", () => {
-  it("builds a fresh.warcraftlogs.com deep link scoped to the fight and time range", () => {
-    const url = buildFightTimeUrl("fresh", "4GYHZRdtL3bvhpc8", 6, 1500, 5000);
-    expect(url).toBe(
-      "https://fresh.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8#fight=6&type=summary&start=1500&end=5000",
-    );
-  });
-
-  it("builds a classic.warcraftlogs.com deep link when the report came from classic", () => {
-    const url = buildFightTimeUrl("classic", "4GYHZRdtL3bvhpc8", 6, 1500, 5000);
-    expect(url).toBe(
-      "https://classic.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8#fight=6&type=summary&start=1500&end=5000",
-    );
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `npm test -- src/report/wclLinks.test.ts`
-Expected: FAIL (argument count / hardcoded `fresh.` mismatch).
-
-- [ ] **Step 3: Implement**
-
-Replace `src/report/wclLinks.ts` in full:
-
-```ts
-import type { Host } from "./parseReportInput";
-
-// Deep-links into a specific moment of a fight's timeline on the WCL web UI.
-// start/end are report-relative milliseconds — the same convention used by
-// event.timestamp and fight.startTime/endTime throughout this codebase.
-export function buildFightTimeUrl(
-  host: Host,
-  reportCode: string,
-  fightId: number,
-  startMs: number,
-  endMs: number,
-): string {
-  return `https://${host}.warcraftlogs.com/reports/${reportCode}#fight=${fightId}&type=summary&start=${startMs}&end=${endMs}`;
-}
-```
-
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `npm test -- src/report/wclLinks.test.ts`
-Expected: PASS.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add src/report/wclLinks.ts src/report/wclLinks.test.ts
-git commit -m "feat(report): make buildFightTimeUrl host-aware"
-```
+Originally a standalone task changing `buildFightTimeUrl`'s signature to take a leading `host` parameter. Discovered during Task 2's execution (same root cause): changing a shared function's signature breaks every caller that isn't updated in the same commit, and this repo's pre-commit hook runs full-project `typecheck` — so `buildFightTimeUrl`'s signature can't change in a commit that leaves its 9 callers (`Scorecard` + 8 metric cards) still calling the old 4-arg form. Since Task 7 already has to touch all 9 of those callers anyway (to add `host,` to their `buildFightTimeUrl(...)` calls), the signature change now lands as part of Task 7's single atomic commit instead of its own. See Task 7's file list and steps — `src/report/wclLinks.ts` and `src/report/wclLinks.test.ts` are listed there now.
 
 ---
 
@@ -1144,6 +1073,8 @@ git commit -m "feat(app): wire report host into ReportInput, ConnectPanel, and R
 
 **Files:**
 
+- Modify: `src/report/wclLinks.ts` (merged in from the original Task 3 — see the "Task 3: MERGED INTO TASK 7" note above)
+- Test: `src/report/wclLinks.test.ts`
 - Modify: `src/app/components/ReportDashboard/index.tsx`
 - Modify: `src/app/components/Scorecard/index.tsx`
 - Modify: `src/app/components/GcdEconomyContent/index.tsx`
@@ -1185,16 +1116,70 @@ This task is one mechanical, uniform transformation repeated across every file a
 - `DeathForensicsContent/index.tsx`: add `host`, pass `host={host}` to its one child, `<DeathForensicsCard>`.
 - The 8 card files (`IdleGapsCard`, `AccidentalBloomsCard`, `RestackTaxCard`, `HotClipDetectionCard`, `SwiftmendAuditCard`, `NaturesSwiftnessCard`, `InnervateAuditCard`, `DeathForensicsCard`): add `host: Host;` to their `Props` interface (right after `reportCode: string;`), destructure `host`, and update their `buildFightTimeUrl(reportCode, ...)` call to `buildFightTimeUrl(host, reportCode, ...)`.
 
-- [ ] **Step 1: Apply the mechanical edit to all 15 files listed above**
+- [ ] **Step 1: Change `buildFightTimeUrl`'s signature (do this first — everything else in this task calls it)**
+
+Replace `src/report/wclLinks.test.ts` in full:
+
+```ts
+import { describe, expect, it } from "vitest";
+import { buildFightTimeUrl } from "./wclLinks";
+
+describe("buildFightTimeUrl", () => {
+  it("builds a fresh.warcraftlogs.com deep link scoped to the fight and time range", () => {
+    const url = buildFightTimeUrl("fresh", "4GYHZRdtL3bvhpc8", 6, 1500, 5000);
+    expect(url).toBe(
+      "https://fresh.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8#fight=6&type=summary&start=1500&end=5000",
+    );
+  });
+
+  it("builds a classic.warcraftlogs.com deep link when the report came from classic", () => {
+    const url = buildFightTimeUrl(
+      "classic",
+      "4GYHZRdtL3bvhpc8",
+      6,
+      1500,
+      5000,
+    );
+    expect(url).toBe(
+      "https://classic.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8#fight=6&type=summary&start=1500&end=5000",
+    );
+  });
+});
+```
+
+Run: `npm test -- src/report/wclLinks.test.ts` — Expected: FAIL (argument count / hardcoded `fresh.` mismatch).
+
+Replace `src/report/wclLinks.ts` in full:
+
+```ts
+import type { Host } from "./parseReportInput";
+
+// Deep-links into a specific moment of a fight's timeline on the WCL web UI.
+// start/end are report-relative milliseconds — the same convention used by
+// event.timestamp and fight.startTime/endTime throughout this codebase.
+export function buildFightTimeUrl(
+  host: Host,
+  reportCode: string,
+  fightId: number,
+  startMs: number,
+  endMs: number,
+): string {
+  return `https://${host}.warcraftlogs.com/reports/${reportCode}#fight=${fightId}&type=summary&start=${startMs}&end=${endMs}`;
+}
+```
+
+Run: `npm test -- src/report/wclLinks.test.ts` — Expected: PASS. At this point every one of the 9 callers (`Scorecard` + 8 cards) fails to typecheck — that's expected and exactly what Step 2 fixes next.
+
+- [ ] **Step 2: Apply the mechanical edit to the remaining 15 files listed above**
 
 Use the exact rule and per-file scope given above. Import path for `Host`: from `src/app/components/<Name>/index.tsx` it's `"../../../report/parseReportInput"`.
 
-- [ ] **Step 2: Run typecheck to find anything missed**
+- [ ] **Step 3: Run typecheck to find anything missed**
 
 Run: `npm run typecheck`
 Expected: initially FAILS, listing every call site still missing `host`. Fix each reported error (it will point at an exact file:line — either a missing prop on a JSX element, or a missing field on a destructure/interface) until the run is clean. This is the primary correctness check for this task — the compiler enumerates every remaining gap precisely.
 
-- [ ] **Step 3: Update the 8 card test files**
+- [ ] **Step 4: Update the 8 card test files**
 
 For each of `IdleGapsCard`, `AccidentalBloomsCard`, `RestackTaxCard`, `HotClipDetectionCard`, `SwiftmendAuditCard`, `NaturesSwiftnessCard`, `InnervateAuditCard`, `DeathForensicsCard`'s `index.test.tsx`: every existing `render(<XCard reportCode="..." .../>)` call needs `host="fresh"` added alongside `reportCode="..."`. Run each file, e.g.:
 
@@ -1203,20 +1188,20 @@ Expected: FAILS to compile until `host="fresh"` is added to every render call in
 
 Repeat for all 8 files, plus `src/app/components/Scorecard/index.test.tsx` and `src/app/components/ReportDashboard/index.test.tsx` (same pattern: add `host="fresh"` to every existing render call).
 
-- [ ] **Step 4: Run the full suite, including `App.test.tsx`**
+- [ ] **Step 5: Run the full suite, including `App.test.tsx`**
 
 Run: `npm test`
 Expected: PASS. If `App.test.tsx` fails, the failure will point at a specific assertion — most likely a hash string or a missing `host` on a hand-built route/props object somewhere in that file's setup; fix by adding `host: "fresh"` (or the hash equivalent, which needs no change since `"fresh"` serializes with no `/h/` segment per Task 2) to whatever the failure identifies.
 
-- [ ] **Step 5: Full static analysis**
+- [ ] **Step 6: Full static analysis**
 
 Run: `npm run typecheck && npm run lint && npm run format:check`
 Expected: all clean. If `format:check` fails, run `npm run format` and re-verify.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/app/components/ReportDashboard src/app/components/Scorecard src/app/components/GcdEconomyContent src/app/components/LifebloomDisciplineContent src/app/components/SpellDisciplineContent src/app/components/ManaEconomyContent src/app/components/DeathForensicsContent src/app/components/IdleGapsCard src/app/components/AccidentalBloomsCard src/app/components/RestackTaxCard src/app/components/HotClipDetectionCard src/app/components/SwiftmendAuditCard src/app/components/NaturesSwiftnessCard src/app/components/InnervateAuditCard src/app/components/DeathForensicsCard
+git add src/report/wclLinks.ts src/report/wclLinks.test.ts src/app/components/ReportDashboard src/app/components/Scorecard src/app/components/GcdEconomyContent src/app/components/LifebloomDisciplineContent src/app/components/SpellDisciplineContent src/app/components/ManaEconomyContent src/app/components/DeathForensicsContent src/app/components/IdleGapsCard src/app/components/AccidentalBloomsCard src/app/components/RestackTaxCard src/app/components/HotClipDetectionCard src/app/components/SwiftmendAuditCard src/app/components/NaturesSwiftnessCard src/app/components/InnervateAuditCard src/app/components/DeathForensicsCard
 git commit -m "feat(scorecard): thread report host through every WCL deep-link"
 ```
 
