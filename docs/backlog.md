@@ -432,16 +432,6 @@ I want any error — an uncaught bug, a failed WCL request, or a GraphQL request
 - The overlay shows: an apology ("Sorry, something went wrong"), a collapsed-by-default "View details" disclosure with the error's message, stack trace (when available), and a timestamp, a "Start over" button that navigates to `#/` and reloads the app, and a prompt to open an issue at `https://github.com/branneman/bloomwatch/issues` (with the same details) if a retry doesn't fix it.
 - No error-reporting/telemetry service is introduced (principles 2/4 — no backend, FOSS) — "View details" is for the user to copy into a manually-filed GitHub issue; nothing is sent anywhere automatically.
 
-### 709 — Exclude off-role fights from a druid's per-report aggregation 🔲 Todo
-
-I want fights where my selected druid wasn't actually playing Restoration that pull (e.g. respecced to Balance/Feral for specific bosses, then back) excluded from that druid's whole-report aggregation and scorecard, so that zero-healing-cast fights don't silently read as a false 'green' pass instead of 'not applicable.'
-
-**Acceptance criteria**
-
-- A fight where the selected druid's healing-cast count falls below story 005's `MIN_HEALING_CASTS_FOR_DETECTION` threshold is excluded from that druid's aggregation in 702's whole-report dashboard and doesn't contribute to any epic's worst-of judgement.
-- The excluded fight is still visible in the fight list (e.g. labeled 'not healing this fight' or similar), not silently dropped, so a user isn't confused about a missing pull.
-- Confirmed against a real report with this exact scenario (see `docs/testing.md`'s `F7aL6x13zVq8kTRt` entry — a druid respecs to DPS for some bosses, back to Resto for others, within one report; flagged during story 802's calibration-tooling work).
-
 ### 801 — Build & test tooling ✅ Done
 
 As a developer, I want a Vite + React + TypeScript project scaffold with a full test pyramid and automated CI/CD to GitHub Pages, so that the app has a maintainable foundation and every later story can be built and verified with confidence.
@@ -526,7 +516,7 @@ I want per-fight talent-archetype detection (story 900's bucket definitions) com
 - The detected bucket (or an explicit "unknown — talent read failed" state when the event is missing/malformed) is surfaced somewhere visible in the Scorecard UI (e.g. next to the druid name/label), so this story has a verifiable, user-visible outcome rather than shipping as dead plumbing with no consumer yet.
 - Out of scope: card-hiding behavior (903c) and any change to healing-role detection (903b) — this story is detection + display only.
 
-### 903b — Per-fight healing-role detection 🔲 Todo
+### 903b — Per-fight healing-role detection ✅ Done
 
 I want healing-role detection refined to work per fight instead of once per report, so that a Restokin-style druid who legitimately swaps between healing and DPS across pulls (no respec) is judged per-fight rather than by one whole-report identity. Absorbs/supersedes story 709.
 
