@@ -81,6 +81,7 @@ export interface DruidFights {
 
 export interface EpicRollupBase {
   judgement: Judgement | null;
+  judgementBreakdown: Record<Judgement, number>;
   fightsReady: number;
   fightsErrored: number;
 }

@@ -1,4 +1,8 @@
-import { worstJudgement, type Judgement } from "../../src/metrics/judgement";
+import {
+  weightedMedianJudgement,
+  judgementBreakdown,
+  type Judgement,
+} from "../../src/metrics/judgement";
 import type {
   EpicResult,
   FightResult,
@@ -21,13 +25,6 @@ import type {
   InformationalRollup,
   DruidRollup,
 } from "./types";
-
-function rollupJudgement(judgements: Judgement[]): Judgement | null {
-  // worstJudgement([]) defaults to "green" (its reduce's seed value) — wrong
-  // here, since "no fights ready" must not read as a clean pass.
-  if (judgements.length === 0) return null;
-  return worstJudgement(judgements);
-}
 
 function isReady<M>(
   epic: EpicResult<M>,
@@ -68,7 +65,12 @@ function epicRollupBase<M>(
   ready: ReadyEntry<M>[],
 ): EpicRollupBase {
   return {
-    judgement: rollupJudgement(ready.map((r) => r.judgement)),
+    judgement: weightedMedianJudgement(
+      ready.map((r) => ({ judgement: r.judgement, weightMs: r.durationMs })),
+    ),
+    judgementBreakdown: judgementBreakdown(
+      ready.map((r) => ({ judgement: r.judgement })),
+    ),
     fightsReady: ready.length,
     fightsErrored: totalCount - ready.length,
   };
