@@ -6,11 +6,16 @@ Each threshold's rationale lives as a code comment next to its constant (princip
 
 ## GCD economy (epic B)
 
-| Metric              | Threshold            | Current default      | Source    | Code                                                |
-| ------------------- | -------------------- | -------------------- | --------- | --------------------------------------------------- |
-| GCD utilization     | green / orange / red | ≥85% / 70–85% / <70% | story 101 | `src/metrics/gcdUtilization.ts`                     |
-| Idle-gap dead time  | green / orange / red | <5% / 5–15% / >15%   | story 102 | `src/metrics/idleGaps.ts`                           |
-| Idle-gap definition | gap counts as "idle" | >1.7s between casts  | story 102 | `src/metrics/idleGaps.ts` (`IDLE_GAP_THRESHOLD_MS`) |
+| Metric              | Threshold            | Current default      | Source                       | Code                                                |
+| ------------------- | -------------------- | -------------------- | ---------------------------- | --------------------------------------------------- |
+| GCD utilization     | green / orange / red | ≥85% / 70–85% / <70% | story 101                    | `src/metrics/gcdUtilization.ts`                     |
+| Idle-gap dead time  | green / orange / red | <7% / 7–15% / >15%   | story 102, revised story 908 | `src/metrics/idleGaps.ts`                           |
+| Idle-gap definition | gap counts as "idle" | >1.7s between casts  | story 102                    | `src/metrics/idleGaps.ts` (`IDLE_GAP_THRESHOLD_MS`) |
+
+**Calibration review (story 908, 2026-07):** reviewed against the same story-901 exemplar corpus 902 used (22 real `classic.warcraftlogs.com` reports, talent-confirmed deep-resto) — 167 real kill-fights (duration > 30s, Karazhan's non-boss "Chess Event" excluded) computed via `scripts/calibrate.ts`.
+
+- **GCD utilization: no change.** 81% green / 11% orange / 7% red across the sample, median 98.3% — strong, real validation that the current 85%/70% bands already fit known-good deep-resto play, the same character of finding 902 made for refresh cadence.
+- **Idle-gap dead time: green boundary revised 5% → 7%.** The old boundary sat almost exactly on the sample's median (4.0%), so only 56% of genuinely elite pulls landed green; moving only the green line (red ceiling stays 15%, so what counts as genuinely bad idle time is unchanged) shifts the sample to 64% green / 20% orange / 16% red, a real improvement in fit backed by the percentile curve (p60 ≈ 5.9%, p70 ≈ 9.5%).
 
 ## Lifebloom discipline (epic C)
 
