@@ -24,7 +24,9 @@ const baseProps = {
   regrowthAbilityIds: new Set([26980]),
   swiftmendAbilityIds: new Set([18562]),
   naturesSwiftnessAbilityIds: new Set([17116]),
-  resolvedAbilities: new Map(),
+  resolvedAbilities: new Map([
+    [33763, { kind: "spell" as const, spell: "Lifebloom" as const, rank: 1 }],
+  ]),
   targetNames: new Map(),
   actorClasses: new Map(),
   activeEpic: null,
@@ -44,7 +46,33 @@ describe("Scorecard", () => {
     });
     const onBackToFights = vi.fn();
     const onStartOver = vi.fn();
-    const fetchEvents = () => Promise.resolve([]);
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) =>
+      Promise.resolve(
+        dataType === "Casts"
+          ? [
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 1000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 2000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 3000,
+              }),
+            ]
+          : [],
+      );
 
     render(
       <Scorecard
@@ -172,5 +200,31 @@ describe("Scorecard", () => {
 
     await user.click(screen.getByRole("button", { name: "← All metrics" }));
     expect(onSelectEpic).toHaveBeenCalledWith(null);
+  });
+
+  it("shows an off-role Alert when the druid didn't clear the healing-cast threshold this fight", async () => {
+    const fight = aFight({
+      id: 6,
+      name: "Lady Vashj",
+      kill: true,
+      startTime: 0,
+      endTime: 341000,
+    });
+    const fetchEvents = () => Promise.resolve([]);
+
+    render(
+      <Scorecard
+        {...baseProps}
+        fight={fight}
+        fetchEvents={fetchEvents}
+        onBackToFights={vi.fn()}
+        onStartOver={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getAllByRole("alert")).toHaveLength(2));
+    expect(
+      screen.getByText(/cast 0 healing spells this fight/),
+    ).toBeInTheDocument();
   });
 });

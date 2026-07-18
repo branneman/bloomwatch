@@ -16,6 +16,7 @@ import { DeathForensicsContent } from "../DeathForensicsContent";
 import { PrepHygieneContent } from "../PrepHygieneContent";
 import { useFightEpicSummaries, type EpicId } from "./useFightEpicSummaries";
 import { useArchetypeBucket } from "./useArchetypeBucket";
+import { useHealingRoleThisFight } from "./useHealingRoleThisFight";
 import {
   BUCKET_DEFINITIONS,
   type TalentBucket,
@@ -126,6 +127,14 @@ export function Scorecard({
     druidId,
     fetchEvents,
   );
+  const healingRoleStatus = useHealingRoleThisFight(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    resolvedAbilities,
+    fetchEvents,
+  );
 
   const outcome =
     fight.kill === true
@@ -154,6 +163,14 @@ export function Scorecard({
           </span>
         )}
       </p>
+      {healingRoleStatus.status === "ready" &&
+        !healingRoleStatus.isHealingThisFight && (
+          <Alert tone="warning">
+            {druid.name} cast {healingRoleStatus.healingCastCount} healing spell
+            {healingRoleStatus.healingCastCount === 1 ? "" : "s"} this fight —
+            the judgements below may not be meaningful for an off-role pull.
+          </Alert>
+        )}
       <p className={styles.reportLine}>
         Report <code>{reportCode}</code>{" "}
         <a
