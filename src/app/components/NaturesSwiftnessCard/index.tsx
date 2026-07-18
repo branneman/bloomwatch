@@ -12,6 +12,8 @@ import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
+import { useArchetypeBucket } from "../Scorecard/useArchetypeBucket";
+import { NATURES_SWIFTNESS_MIN_RESTORATION } from "../../../report/archetypeDetection";
 
 export interface NaturesSwiftnessCardProps {
   accessToken: string;
@@ -66,6 +68,14 @@ export function NaturesSwiftnessCard({
   fetchEvents,
 }: NaturesSwiftnessCardProps) {
   const [result, setResult] = useState<FetchResult | null>(null);
+
+  const archetypeStatus = useArchetypeBucket(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
 
   useEffect(() => {
     fetchEvents(
@@ -137,6 +147,39 @@ export function NaturesSwiftnessCard({
         threshold={THRESHOLD}
       >
         <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  if (archetypeStatus.status === "loading") {
+    return (
+      <MetricCard
+        icon={ICON}
+        title="Nature's Swiftness audit"
+        note="Informational — no judgement"
+        threshold={THRESHOLD}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if (
+    archetypeStatus.status === "ready" &&
+    archetypeStatus.restoration < NATURES_SWIFTNESS_MIN_RESTORATION
+  ) {
+    return (
+      <MetricCard
+        icon={ICON}
+        title="Nature's Swiftness audit"
+        note="Informational — no judgement"
+        threshold={THRESHOLD}
+      >
+        <p>
+          Not shown — this build can&apos;t take Nature&apos;s Swiftness (needs{" "}
+          {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points; this
+          fight&apos;s build has {archetypeStatus.restoration}).
+        </p>
       </MetricCard>
     );
   }

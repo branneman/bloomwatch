@@ -5,7 +5,11 @@ import * as naturesSwiftnessAuditModule from "../../../metrics/naturesSwiftnessA
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
-import { aFight, aCastEvent } from "../../../testUtils/factories";
+import {
+  aFight,
+  aCastEvent,
+  aCombatantInfoEvent,
+} from "../../../testUtils/factories";
 
 const RESOLVED: Map<number, ResolvedAbility> = new Map([
   [17116, { kind: "spell", spell: "Nature's Swiftness", rank: 1 }],
@@ -20,6 +24,14 @@ function makeFetchEvents(castEvents: WclEvent[]) {
     dataType: WclEventDataType,
   ): Promise<WclEvent[]> => {
     if (dataType === "Casts") return Promise.resolve(castEvents);
+    if (dataType === "CombatantInfo") {
+      return Promise.resolve([
+        aCombatantInfoEvent({
+          sourceID: 2,
+          talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
+        }),
+      ]);
+    }
     return Promise.resolve([]);
   };
 }
@@ -193,5 +205,48 @@ describe("NaturesSwiftnessCard", () => {
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("boom"),
     );
+  });
+
+  it("shows a placeholder instead of real content when Restoration is below Nature's Swiftness's threshold", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 400000 });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> =>
+      dataType === "CombatantInfo"
+        ? Promise.resolve([
+            aCombatantInfoEvent({
+              sourceID: 2,
+              talents: [{ id: 0 }, { id: 0 }, { id: 19 }],
+            }),
+          ])
+        : Promise.resolve([]);
+
+    render(
+      <NaturesSwiftnessCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        resolvedAbilities={RESOLVED}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          /Not shown — this build can't take Nature's Swiftness/,
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText("Nature's Swiftness was not cast this fight."),
+    ).not.toBeInTheDocument();
   });
 });
