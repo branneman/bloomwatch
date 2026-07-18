@@ -528,15 +528,33 @@ I want healing-role detection refined to work per fight instead of once per repo
 - Confirmed against a real report with this exact scenario (see `docs/testing.md`'s `F7aL6x13zVq8kTRt` entry — a druid respecs to DPS for some bosses, back to Resto for others, within one report; flagged during story 802's calibration-tooling work).
 - Story 709 is retired once this ships (per this repo's "a story isn't done until its paperwork is retired" convention) — its off-role-fight exclusion becomes a special case of per-fight role detection, not a separate mechanism.
 
-### 903c — Hide metrics whose prerequisite talent is unreachable 🔲 Todo
+### 903c — Hide metrics whose prerequisite talent is unreachable (app) 🔲 Todo
 
-Depends on 903a. I want metric cards gated behind a talent the detected archetype bucket can't reach to stop rendering a misleading judgement — e.g. the Swiftmend quality audit card doesn't render at all below 30 Restoration points, rather than defaulting to a fake "green" from 0 wasteful casts out of 0 total.
+Depends on 903a. I want metric cards gated behind a talent the fight's actual Restoration point count can't reach to stop rendering a misleading judgement — e.g. the Swiftmend quality audit card doesn't render at all below 30 Restoration points, rather than defaulting to a fake "green" from 0 wasteful casts out of 0 total. Scoped to what a live user actually sees (cards, the Scorecard overview widget, and 702's whole-report rollup); the CLI calibration tool's own separate pooling is out of scope here — see the new story this investigation filed for that.
+
+**Talent-threshold inventory** (researched and cross-validated against this repo's own already-verified talent-bucket data — Swiftmend at 30 points and Tree of Life at 41 points, both already documented elsewhere in this file, match TBC's standard 5-points-per-tier rule applied to Swiftmend's tier 7 and Tree of Life's tier 9, which cross-checks the same rule's tier 5 placement for Nature's Swiftness):
+
+- **Swiftmend quality audit** (story 302): needs Restoration ≥ 30.
+- **Nature's Swiftness card** (story 204's sibling audit): needs Restoration ≥ 20. Informational-only today (no R/O/G judgement), but its "usage vs. availability windows" count is just as fictitious for a Nature's Swiftness-ineligible build as Swiftmend's own availability count already flagged in story 302's note below — hidden for the same reason.
+- **Innervate audit** (story 403): **not gated** — Innervate is a base trainable spell available to every druid spec regardless of talent investment, confirmed live research; no card hiding needed.
 
 **Acceptance criteria**
 
-- An inventory of which metric cards require which talent thresholds is documented (at minimum: Swiftmend quality audit needs Restoration ≥ 30; review the Nature's Swiftness and Innervate audit cards, and any others, for a similar talent prerequisite).
-- Each identified card is hidden — not rendered, not silently scored "green" — for a fight where 903a's detected bucket doesn't meet that card's prerequisite; a short explanatory note replaces it (e.g. "Not shown — this build can't take Swiftmend").
-- Whole-report/epic rollup logic (`scripts/lib/rollup.ts` and the Scorecard epic summaries) treats a hidden card's absence as "not applicable," not as a missing or failing data point.
+- 903a's `useArchetypeBucket` hook is extended to also expose the fight's raw Restoration point count (the categorical bucket alone isn't precise enough to gate an exact point threshold — e.g. a "mostly-resto" bucket could be anywhere from ~20 to ~40 Restoration points).
+- The Swiftmend quality audit and Nature's Swiftness cards are each hidden — not rendered, not silently scored "green" — for a fight where the druid's Restoration points fall below that card's threshold; a short explanatory note replaces each (e.g. "Not shown — this build can't take Swiftmend").
+- The "Spell discipline" epic summary (`useSpellDisciplineSummary`/`summarizeSpellDiscipline`, shared by both the Scorecard overview widget and `ReportDashboard`'s whole-report rollup) excludes a talent-ineligible metric's judgement and stat line from its pooling, treating it as "not applicable" rather than a spurious green or a missing data point.
+- Story 302's Swiftmend-availability note is resolved as a side effect of hiding the whole card — no separate fix needed.
+- Story 501's Death Forensics `unspentCount` inflation (flagged during story 011, `docs/backlog.md`'s existing note) is fixed now that real talent data exists: `swiftmendReady`/`nsReady` are only `true` when the druid's build can actually reach that talent, not merely "no prior cast recorded."
+
+### 907 — Talent-aware pooling for the calibration CLI tool 🔲 Todo
+
+Depends on 903c. I want `scripts/lib/rollup.ts`'s whole-report pooling (used by `scripts/calibrate.ts`) to exclude a fight's Swiftmend/Nature's Swiftness metrics from a druid's numeric rollup when 903a's per-fight talent data shows the build can't reach that talent, so the CLI tool's own calibration output doesn't suffer the same fake-green/fake-availability distortion 903c fixes in the live app.
+
+**Acceptance criteria**
+
+- `scripts/calibrate.ts`'s fight-context building fetches `CombatantInfo` per fight (reusing 903a's `parseTalentPoints`) and threads the resulting Restoration point count into its metrics pipeline.
+- `scripts/lib/rollup.ts`'s `SpellDisciplineRollup` pooling excludes a fight's Swiftmend audit judgement/stats from the whole-report numeric rollup when that fight's druid can't reach Swiftmend's talent threshold (903c's threshold constant, reused not redefined), and similarly for Nature's Swiftness.
+- Confirmed against a real report already known to include a Swiftmend-ineligible druid (e.g. `docs/testing.md`'s `bKRZ68XqgwYkxtzm` entry).
 
 ### 903d — Onboarding notice on supported playstyles 🔲 Todo
 
