@@ -15,8 +15,7 @@ This is a real fork in how the fix should work — not just new numbers for the 
 
 - **Bloom overheal** (`src/metrics/overhealTable.ts`'s `judgeBloomOverheal`): recalibrated as a single pooled threshold, unchanged across archetypes. The data doesn't support splitting it, so it isn't split.
 - **Regrowth-direct overheal**: gets its own threshold per archetype bucket (deep-resto vs. dreamstate). Healing Touch and Swiftmend keep today's single `judgeDirectOverheal` threshold, unchanged.
-- **Story 907 folds in**: `rollup.ts`'s `SpellDisciplineRollup` pooling (`swiftmendEntries`, `scripts/lib/rollup.ts` around line 198-212) currently pools every ready fight's `swiftmendAudit.wastefulPct` unconditionally, including fights where the druid's build can't reach Swiftmend's 30-Restoration requirement — the same fake-data problem 903c already fixed in the live app's cards, still open in the CLI's own rollup. This story fixes it as part of adding the talent/archetype plumbing 905 needs anyway.
-- Nature's Swiftness has no numeric pooling in `rollup.ts` today (it's informational-only per 903c) — nothing to fix there.
+- **Story 907 folds in, corrected against the real code (not the story's original hunch):** `rollup.ts`'s `SpellDisciplineRollup.swiftmendWastefulPctPooled` turns out to already be safe — `computeSwiftmendAudit` returns `wastefulPct: 0` with `weight: casts.length === 0`, and a zero-weight entry is mathematically neutral in `countWeightedAverage`, confirmed against a real talent-confirmed Swiftmend-ineligible druid's corpus output (`swiftmendWastefulPctPooled: null`, not a fake number). The real live bug is `InformationalRollup.naturesSwiftnessAvailableWindowsTotal` (`scripts/lib/rollup.ts`'s informational block) — a plain `sum()`, not a weighted average, so it silently accumulates a fictitious cooldown-based "available windows" count from every fight regardless of whether the druid's build can reach Nature's Swiftness's 20-Restoration requirement. Unlike Swiftmend's field, a `sum()` has no zero-weight neutrality to protect it. 907's fix is scoped to this field (and its sibling `naturesSwiftnessCastsTotal`, for consistency, though that one is already naturally 0 for an ineligible fight).
 - Out of scope: HoT-tick overheal (already informational-only, no judgement); any change to `computeOverhealTable`'s row classification or event handling; story 904's rollup-aggregation-policy work (separate, unrelated to this story's per-metric threshold values).
 
 ## Data & methodology
@@ -54,17 +53,16 @@ Exact cutoffs are finalized during implementation, against the fullest corpus av
 
 **Story 907's rollup fix**
 
-- `FightResult` (`scripts/lib/types.ts`) gains a `hasSwiftmend: boolean` field, populated from the value `calibrateReport.ts` already computes locally today but doesn't currently expose on the returned object.
-- `rollup.ts`'s `swiftmendEntries.push(...)` (in the spell-discipline pooling loop, ~line 209) is skipped for any fight where `hasSwiftmend` is `false`, so a Swiftmend-ineligible fight no longer contributes fake near-zero-cast data to the whole-report `swiftmendWastefulPctPooled` average.
+- `FightResult` (`scripts/lib/types.ts`) gains a `hasNaturesSwiftness: boolean` field, populated from the value `calibrateReport.ts` already computes locally today but doesn't currently expose on the returned object.
+- `rollup.ts`'s informational block filters `fights` to `hasNaturesSwiftness` before summing `naturesSwiftnessAvailableWindowsTotal` (and, for consistency, `naturesSwiftnessCastsTotal`), so a Nature's Swiftness-ineligible fight no longer contributes a fictitious cooldown-based "available windows" count to the whole-report total.
 
 ## Testing
 
 Per `docs/testing.md`'s tiers:
 
 - **Unit** (`src/metrics/overhealTable.test.ts`): each archetype bucket's Regrowth-direct judgement at its new boundaries; the fallback-to-deep-resto behavior for an unsupported/unknown bucket and for an omitted bucket argument; Bloom overheal judgement unaffected by bucket.
-- **Unit** (`scripts/lib/rollup.test.ts` or equivalent): a fight with `hasSwiftmend: false` is excluded from `swiftmendWastefulPctPooled`; a mixed set of eligible/ineligible fights pools only the eligible ones.
 - **Component**: `OverhealTableCard`'s and `useManaEconomySummary`'s existing tests updated for the new `useArchetypeBucket` dependency (mock it the same way `SwiftmendAuditCard`'s tests already do).
-- **Integration/fixture**: `docs/testing.md`'s `bKRZ68XqgwYkxtzm` report (already documented as a real Swiftmend-ineligible druid) is the natural real-data case for 907's pooling-exclusion behavior.
+- **907's rollup fix**: `scripts/lib/rollup.ts` and `scripts/lib/calibrateReport.ts` have no unit-test precedent in this repo today (verified — no test files exist under `scripts/`); Tier 0 typecheck is their existing safety net, per `CLAUDE.md`. Verification here is a live `npm run calibrate` run against `docs/testing.md`'s already-documented `F7aL6x13zVq8kTRt` report (druid Nebd, Restoration 13 — below both Swiftmend's 30 and Nature's Swiftness's 20 thresholds), confirming `naturesSwiftnessAvailableWindowsTotal`/`naturesSwiftnessCastsTotal` in the resulting rollup no longer include his fights.
 
 ## Docs
 
