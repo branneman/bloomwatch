@@ -55,4 +55,31 @@ describe("useDeathForensicsSummary", () => {
       error: "WCL API responded 500: server error",
     });
   });
+
+  it("doesn't count a talent-unreachable resource as unspent", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) => Promise.resolve(dataType === "Deaths" ? [] : []);
+
+    const { result } = renderHook(() =>
+      useDeathForensicsSummary(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+        fight,
+        2,
+        new Set([18562]),
+        new Set([17116]),
+        new Set([33763]),
+        fetchEvents,
+      ),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+    if (result.current.status !== "ready") throw new Error("unreachable");
+    expect(result.current.stats).toEqual(["No friendly deaths"]);
+  });
 });

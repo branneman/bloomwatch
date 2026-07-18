@@ -46,6 +46,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -105,6 +107,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -165,6 +169,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -186,6 +192,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -229,6 +237,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -263,6 +273,8 @@ describe("computeDeathForensics", () => {
         SWIFTMEND_IDS,
         NS_IDS,
         LB_IDS,
+        true,
+        true,
         0,
         200000,
       );
@@ -297,6 +309,8 @@ describe("computeDeathForensics", () => {
         SWIFTMEND_IDS,
         NS_IDS,
         LB_IDS,
+        true,
+        true,
         0,
         400000,
       );
@@ -329,6 +343,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       200000,
     );
@@ -361,6 +377,8 @@ describe("computeDeathForensics", () => {
         SWIFTMEND_IDS,
         NS_IDS,
         LB_IDS,
+        true,
+        true,
         0,
         200000,
       );
@@ -430,6 +448,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -449,6 +469,8 @@ describe("computeDeathForensics", () => {
       SWIFTMEND_IDS,
       NS_IDS,
       LB_IDS,
+      true,
+      true,
       0,
       100000,
     );
@@ -458,5 +480,79 @@ describe("computeDeathForensics", () => {
       flaggedCount: 0,
       judgement: "green",
     });
+  });
+
+  it("swiftmendReady is false when hasSwiftmend is false, even with no prior Swiftmend cast recorded", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+    ];
+    const deathEvents = [aDeathEvent({ timestamp: 90000, targetID: 50 })];
+
+    const result = computeDeathForensics(
+      deathEvents,
+      [],
+      buffEvents,
+      DRUID_ID,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      false,
+      true,
+      0,
+      100000,
+    );
+
+    expect(result.deaths[0].swiftmendReady).toBe(false);
+    expect(result.deaths[0].nsReady).toBe(true);
+    expect(result.deaths[0].unspentCount).toBe(2);
+  });
+
+  it("nsReady is false when hasNaturesSwiftness is false, even with no prior Nature's Swiftness cast recorded", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+    ];
+    const deathEvents = [aDeathEvent({ timestamp: 90000, targetID: 50 })];
+
+    const result = computeDeathForensics(
+      deathEvents,
+      [],
+      buffEvents,
+      DRUID_ID,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      false,
+      0,
+      100000,
+    );
+
+    expect(result.deaths[0].swiftmendReady).toBe(true);
+    expect(result.deaths[0].nsReady).toBe(false);
+    expect(result.deaths[0].unspentCount).toBe(2);
   });
 });

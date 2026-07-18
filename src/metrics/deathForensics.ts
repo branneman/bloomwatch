@@ -89,6 +89,8 @@ export function computeDeathForensics(
   swiftmendAbilityIds: Set<number>,
   naturesSwiftnessAbilityIds: Set<number>,
   lifebloomAbilityIds: Set<number>,
+  hasSwiftmend: boolean,
+  hasNaturesSwiftness: boolean,
   fightStart: number,
   fightEnd: number,
 ): DeathForensicsResult {
@@ -143,16 +145,12 @@ export function computeDeathForensics(
           timestampMs >= interval.start && timestampMs <= interval.end,
       );
 
-    const swiftmendReady = isReady(
-      swiftmendCasts,
-      timestampMs,
-      SWIFTMEND_COOLDOWN_MS,
-    );
-    const nsReady = isReady(
-      nsCasts,
-      timestampMs,
-      NATURES_SWIFTNESS_COOLDOWN_MS,
-    );
+    const swiftmendReady =
+      hasSwiftmend &&
+      isReady(swiftmendCasts, timestampMs, SWIFTMEND_COOLDOWN_MS);
+    const nsReady =
+      hasNaturesSwiftness &&
+      isReady(nsCasts, timestampMs, NATURES_SWIFTNESS_COOLDOWN_MS);
     const idlePreceding = wasIdlePreceding(
       castIntervals,
       timestampMs,

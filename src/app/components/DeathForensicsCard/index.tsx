@@ -12,6 +12,11 @@ import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
 import { DeathCard } from "../ui/DeathCard";
 import { Alert } from "../ui/Alert";
+import {
+  parseTalentPoints,
+  SWIFTMEND_MIN_RESTORATION,
+  NATURES_SWIFTNESS_MIN_RESTORATION,
+} from "../../../report/archetypeDetection";
 
 export interface DeathForensicsCardProps {
   accessToken: string;
@@ -66,9 +71,12 @@ export function DeathForensicsCard({
       fetchEvents(accessToken, reportCode, fightArg, "Deaths"),
       fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
+      fetchEvents(accessToken, reportCode, fightArg, "CombatantInfo"),
     ])
-      .then(([deathEvents, castEvents, buffEvents]) => {
+      .then(([deathEvents, castEvents, buffEvents, combatantInfoEvents]) => {
         try {
+          const talents = parseTalentPoints(combatantInfoEvents, druidId);
+          const restoration = talents === null ? 0 : talents[2];
           const computed = computeDeathForensics(
             deathEvents,
             castEvents,
@@ -77,6 +85,8 @@ export function DeathForensicsCard({
             swiftmendAbilityIds,
             naturesSwiftnessAbilityIds,
             lifebloomAbilityIds,
+            restoration >= SWIFTMEND_MIN_RESTORATION,
+            restoration >= NATURES_SWIFTNESS_MIN_RESTORATION,
             fight.startTime,
             fight.endTime,
           );

@@ -11,6 +11,7 @@ import { buildFightRows } from "../../src/report/fightRows";
 import {
   parseTalentPoints,
   SWIFTMEND_MIN_RESTORATION,
+  NATURES_SWIFTNESS_MIN_RESTORATION,
 } from "../../src/report/archetypeDetection";
 import {
   resolveAbilities,
@@ -207,6 +208,7 @@ export async function computeFightResult(
   const talents = parseTalentPoints(combatantInfoEvents, druidId);
   const restoration = talents === null ? 0 : talents[2];
   const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
+  const hasNaturesSwiftness = restoration >= NATURES_SWIFTNESS_MIN_RESTORATION;
 
   const gcdEconomy = toEpicResult<GcdEconomyMetrics>(() => {
     const gcdUtilization = computeGcdUtilization(
@@ -350,6 +352,8 @@ export async function computeFightResult(
       ctx.swiftmendAbilityIds,
       ctx.naturesSwiftnessAbilityIds,
       ctx.lifebloomAbilityIds,
+      hasSwiftmend,
+      hasNaturesSwiftness,
       fight.startTime,
       fight.endTime,
     );
