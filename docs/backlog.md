@@ -556,6 +556,21 @@ Depends on 903c. I want `scripts/lib/rollup.ts`'s whole-report pooling (used by 
 - `scripts/lib/rollup.ts`'s `SpellDisciplineRollup` pooling excludes a fight's Swiftmend audit judgement/stats from the whole-report numeric rollup when that fight's druid can't reach Swiftmend's talent threshold (903c's threshold constant, reused not redefined), and similarly for Nature's Swiftness.
 - Confirmed against a real report already known to include a Swiftmend-ineligible druid (e.g. `docs/testing.md`'s `bKRZ68XqgwYkxtzm` entry).
 
+### 908 — Recalibrate GCD economy thresholds against exemplars ✅ Done
+
+I want GCD economy's two thresholds (story 101/102) reviewed against real exemplar data before accepting story 904's finding that "the threshold values aren't the problem, the aggregation is" at face value for this epic specifically — 904's 33/27/39 per-fight split was pooled across the whole, non-archetype-filtered corpus, not validated deep-resto exemplars.
+
+**Findings**, from the same 22-report story-901 `classic.warcraftlogs.com` exemplar corpus 902 used (167 real kill-fights, duration > 30s, Karazhan's non-boss "Chess Event" excluded, computed via `scripts/calibrate.ts`):
+
+- **GCD utilization (green ≥85%/orange 70-85%/red <70%): no change.** 81% green/11% orange/7% red, median 98.3% — strong real validation of the current bands.
+- **Idle-gap dead time (green <5%/orange 5-15%/red >15%): green boundary revised to <7%.** The old 5% line sat almost exactly on the sample's median (4.0%), so only 56% of genuinely elite pulls landed green; moving only the green boundary (red ceiling unchanged) shifts the sample to 64% green/20% orange/16% red.
+
+**Acceptance criteria**
+
+- `src/metrics/idleGaps.ts`'s `GREEN_MAX_PCT` constant updated from 5 to 7, with its sourcing comment citing both story 102 and this revision.
+- `src/metrics/gcdUtilization.ts` unchanged (its thresholds were validated as-is).
+- `docs/thresholds.md` updated with the new idle-gap default and a dated calibration-review paragraph recording both findings.
+
 ### 903d — Onboarding notice on supported playstyles ✅ Done
 
 Depends on 903a. I want the onboarding screen (705) and/or a new in-app notice to make explicit which playstyles the tool judges well (deep resto, and Dreamstate to a lesser extent) versus which it doesn't yet support meaningfully (Regrowth-spec, Restokin, Balance druids playing a healer-style role) — so a user in an unsupported archetype gets an honest "this tool isn't built for your build yet" rather than a silently wrong scorecard.
