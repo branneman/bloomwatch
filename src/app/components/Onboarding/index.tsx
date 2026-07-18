@@ -61,8 +61,8 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         — deep resto gets the most precise read, and Dreamstate hybrids are
         reasonably covered too. A Regrowth-only resto build, a Restokin
         (Balance/healer hybrid), or a Balance druid playing an off-spec healer
-        role don&apos;t have enough process data behind them yet, so their
-        scorecards may not be a fair judgement of that play. Once you load a
+        role doesn&apos;t have enough process data behind it yet, so its
+        scorecard may not be a fair judgement of that play. Once you load a
         report, the fight screen will flag it directly if your detected build
         falls outside what&apos;s well-supported today.
       </p>
