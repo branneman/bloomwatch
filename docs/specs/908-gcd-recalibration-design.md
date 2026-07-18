@@ -8,20 +8,20 @@ Story 904 observed that GCD economy looked harsh at the whole-report rollup (0% 
 
 ## Method
 
-`calibration-data/classic/*.json` (22 reports, the same story-901-validated deep-resto exemplar corpus 902 used — every druid confirmed Restoration ≥ 41 via `CombatantInfo.talents`, see `docs/testing.md`'s "Known real 2021-2022 TBC Classic reports" table) already has `gcdEconomy` fully computed per fight by `scripts/calibrate.ts` — no new WCL calls needed. Filtered to kills with `durationMs > 30000` (excludes wipes and near-instant pulls, e.g. a "Chess Event" scripted encounter that reads 0% GCD utilization across every log — not a real healing check, would otherwise skew the sample toward false reds). 169 fight-rows survive the filter.
+`calibration-data/classic/*.json` (22 reports, the same story-901-validated deep-resto exemplar corpus 902 used — every druid confirmed Restoration ≥ 41 via `CombatantInfo.talents`, see `docs/testing.md`'s "Known real 2021-2022 TBC Classic reports" table) already has `gcdEconomy` fully computed per fight by `scripts/calibrate.ts` — no new WCL calls needed. Filtered to kills with `durationMs > 30000` (excludes wipes and near-instant pulls), and explicitly excludes Karazhan's "Chess Event" fights — a scripted minigame, not a real healing check, that read a false 0% GCD utilization on every occurrence and was long enough (251.6s) that the duration filter alone didn't catch it. (This is also fixed app-wide as its own small change: `buildFightRows`, `src/report/fightRows.ts`, now excludes WCL encounterID 660 the same way trash pulls are excluded, so this contamination can't recur in the live app or future calibration runs.) 167 fight-rows survive.
 
 ## Findings
 
 **GCD utilization** (`src/metrics/gcdUtilization.ts`, current: green ≥85% / orange 70-85% / red <70%):
 
-- 80% green / 11% orange / 8% red across the 169-row sample. Median 97.7%, p25 89.2%.
+- 81% green / 11% orange / 7% red across the 167-row sample. Median 98.3%.
 - This is strong, real validation — known-good deep-resto play lands mostly green under the current bands, the same character of finding 902 made for refresh cadence. **No change.**
 
 **Idle-gap dead time** (`src/metrics/idleGaps.ts`, current: green <5% / orange 5-15% / red >15%):
 
-- 57% green / 28% orange / 15% red. Median 4.0% — sitting almost exactly on the green/orange boundary, meaning roughly half of genuinely elite pulls land on either side of that line by a hair.
+- 56% green / 28% orange / 16% red. Median 4.0% — sitting almost exactly on the green/orange boundary, meaning roughly half of genuinely elite pulls land on either side of that line by a hair.
 - Percentile curve: p60 ≈ 5.9%, p70 ≈ 9.5%, p80 ≈ 13.5%, p90 ≈ 17.9%.
-- Moving only the green boundary from 5% to 7% (red ceiling unchanged at 15%) shifts the sample to 64% green / 20% orange / 15% red — a real improvement in fit without touching what counts as genuinely bad idle time. **Adjust `GREEN_MAX_PCT` 5 → 7.**
+- Moving only the green boundary from 5% to 7% (red ceiling unchanged at 15%) shifts the sample to 64% green / 20% orange / 16% red — a real improvement in fit without touching what counts as genuinely bad idle time. **Adjust `GREEN_MAX_PCT` 5 → 7.**
 
 ## Changes
 
