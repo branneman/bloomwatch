@@ -2,7 +2,12 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ReportDashboard } from "./index";
-import { aFight } from "../../../testUtils/factories";
+import {
+  aCastEvent,
+  aDeathEvent,
+  aFight,
+  anApplyBuffEvent,
+} from "../../../testUtils/factories";
 import type { DruidCandidate } from "../../../report/druidDetection";
 
 const druid: DruidCandidate = {
@@ -24,7 +29,9 @@ const baseProps = {
   regrowthAbilityIds: new Set<number>([26980]),
   swiftmendAbilityIds: new Set<number>([18562]),
   naturesSwiftnessAbilityIds: new Set<number>([17116]),
-  resolvedAbilities: new Map(),
+  resolvedAbilities: new Map([
+    [33763, { kind: "spell" as const, spell: "Lifebloom" as const, rank: 1 }],
+  ]),
   targetNames: new Map(),
   actorClasses: new Map(),
   openFightId: null as number | null,
@@ -117,7 +124,33 @@ describe("ReportDashboard", () => {
 
   it("shows each fight's own worst-of judgement once its six epics resolve", async () => {
     const fights = [aFight({ id: 1, name: "Lady Vashj", kill: true })];
-    const fetchEvents = () => Promise.resolve([]);
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) =>
+      Promise.resolve(
+        dataType === "Casts"
+          ? [
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 1000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 2000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 3000,
+              }),
+            ]
+          : [],
+      );
 
     render(
       <ReportDashboard
@@ -181,7 +214,33 @@ describe("ReportDashboard", () => {
 
   it("shows six aggregated epic chips that resolve once every fight's data is in", async () => {
     const fights = [aFight({ id: 1, name: "Lady Vashj", kill: true })];
-    const fetchEvents = () => Promise.resolve([]);
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) =>
+      Promise.resolve(
+        dataType === "Casts"
+          ? [
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 1000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 2000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 3000,
+              }),
+            ]
+          : [],
+      );
 
     render(
       <ReportDashboard
@@ -205,5 +264,134 @@ describe("ReportDashboard", () => {
     await waitFor(() =>
       expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
     );
+  });
+
+  it("excludes an off-role fight's judgements from the aggregate strip and labels its row", async () => {
+    const onRoleFight = aFight({ id: 1, name: "Lady Vashj", kill: true });
+    const offRoleFight = aFight({
+      id: 2,
+      name: "Hydross the Unstable",
+      kill: true,
+    });
+    // The off-role fight (id 2) gets its own maintained-Lifebloom death with
+    // both cooldowns unspent, which computeDeathForensics (src/metrics/
+    // deathForensics.ts) resolves to a "red" Death forensics judgement. The
+    // on-role fight (id 1) has zero death events, which resolves to "green"
+    // (worstJudgement of an empty array). This divergence is what lets the
+    // assertion below actually detect leakage: if the off-role fight's
+    // summary were wrongly pooled into the aggregate, "Death forensics"
+    // would flip from green to red once it's added.
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      fight: { id: number },
+      dataType: string,
+    ) => {
+      if (dataType === "Casts") {
+        if (fight.id !== 1) return Promise.resolve([]);
+        return Promise.resolve([
+          aCastEvent({
+            sourceID: 101,
+            abilityGameID: 33763,
+            timestamp: 1000,
+          }),
+          aCastEvent({
+            sourceID: 101,
+            abilityGameID: 33763,
+            timestamp: 2000,
+          }),
+          aCastEvent({
+            sourceID: 101,
+            abilityGameID: 33763,
+            timestamp: 3000,
+          }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "Buffs") {
+        // Lifebloom applied at fight start and never removed -> 100% uptime
+        // on target 55, comfortably over the 30% "maintained" threshold.
+        return Promise.resolve([
+          anApplyBuffEvent({
+            sourceID: 101,
+            targetID: 55,
+            abilityGameID: 33763,
+            timestamp: offRoleFight.startTime,
+          }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "Deaths") {
+        // No prior druid casts at all (Casts returns [] for fight 2), so
+        // both Swiftmend and Nature's Swiftness read as "ready" (unspent) —
+        // 2 unspent resources on a maintained target is a "red" death.
+        return Promise.resolve([
+          aDeathEvent({
+            targetID: 55,
+            timestamp: offRoleFight.startTime + 10000,
+          }),
+        ]);
+      }
+      return Promise.resolve([]);
+    };
+
+    const EPIC_LABELS = [
+      "GCD economy",
+      "Lifebloom discipline",
+      "Spell discipline",
+      "Mana economy",
+      "Death forensics",
+      "Prep hygiene",
+    ];
+
+    // Render the on-role fight alone first, and capture what the aggregate
+    // strip settles on. This is the baseline the combined render (below)
+    // must match exactly — if the off-role fight's judgements leaked into
+    // the pool, at least one chip would read differently once it's added,
+    // since the two fights' underlying event data differs (3 Lifebloom
+    // casts vs. none at all).
+    const solo = render(
+      <ReportDashboard
+        {...baseProps}
+        fights={[onRoleFight]}
+        fetchEvents={fetchEvents}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
+    );
+    const soloChipText = EPIC_LABELS.map(
+      (label) => screen.getByText(label).parentElement?.textContent,
+    );
+    solo.unmount();
+
+    render(
+      <ReportDashboard
+        {...baseProps}
+        fights={[onRoleFight, offRoleFight]}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Hydross the Unstable/ }),
+      ).toHaveTextContent("Not healing this fight"),
+    );
+    expect(
+      screen.queryByRole("button", {
+        name: /Hydross the Unstable/,
+      }),
+    ).not.toHaveTextContent(/Good|Fair|Bad/);
+
+    await waitFor(() =>
+      expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
+    );
+    const comboChipText = EPIC_LABELS.map(
+      (label) => screen.getByText(label).parentElement?.textContent,
+    );
+
+    // The aggregate strip must be byte-for-byte identical whether or not
+    // the off-role fight is present — proving its judgements were excluded
+    // from the pool, not merely that its own row shows a different label.
+    expect(comboChipText).toEqual(soloChipText);
   });
 });

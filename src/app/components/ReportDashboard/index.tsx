@@ -17,6 +17,7 @@ import {
   type FightEpicSummaries,
   type EpicId,
 } from "../Scorecard/useFightEpicSummaries";
+import { useHealingRoleThisFight } from "../Scorecard/useHealingRoleThisFight";
 import { Scorecard } from "../Scorecard";
 import { Badge } from "../ui/Badge";
 import { JudgementChip } from "../ui/JudgementChip";
@@ -72,6 +73,7 @@ interface FightRowProps {
   pullNumber: number | null;
   onOpen: (fightId: number) => void;
   onSummaries: (fightId: number, summaries: FightEpicSummaries) => void;
+  onHealingRole: (fightId: number, isHealingThisFight: boolean) => void;
   accessToken: string;
   reportCode: string;
   druidId: number;
@@ -90,6 +92,7 @@ function FightRow({
   pullNumber,
   onOpen,
   onSummaries,
+  onHealingRole,
   accessToken,
   reportCode,
   druidId,
@@ -116,6 +119,14 @@ function FightRow({
     actorClasses,
     fetchEvents,
   );
+  const healingRole = useHealingRoleThisFight(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    resolvedAbilities,
+    fetchEvents,
+  );
 
   // Reports to the parent whenever any epic's resolved status actually
   // changes, collapsed to short keys so the effect doesn't refire on
@@ -127,6 +138,11 @@ function FightRow({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- summaryDeps flattens `summaries` into stable string keys; `summaries` itself is a fresh object every render and would refire this effect every render if listed directly
   }, [fight.id, onSummaries, ...summaryDeps]);
 
+  useEffect(() => {
+    if (healingRole.status !== "ready") return;
+    onHealingRole(fight.id, healingRole.isHealingThisFight);
+  }, [fight.id, onHealingRole, healingRole]);
+
   const overall = combineFightEpicStatus(
     EPIC_META.map(({ id }) => summaries[id]),
   );
@@ -134,10 +150,13 @@ function FightRow({
     pullNumber === null ? fight.name : `Pull ${pullNumber} — ${fight.name}`;
   const duration = formatDuration(fight.endTime - fight.startTime);
 
+  const isOffRole =
+    healingRole.status === "ready" && !healingRole.isHealingThisFight;
+
   return (
     <button
       type="button"
-      className={styles.row}
+      className={isOffRole ? `${styles.row} ${styles.offRole}` : styles.row}
       onClick={() => onOpen(fight.id)}
     >
       <span className={styles.rowLabel}>{label}</span>
@@ -147,7 +166,9 @@ function FightRow({
         <Badge tone="wipe">{`Wipe (${Math.round(fight.bossPercentage ?? 0)}%)`}</Badge>
       ) : null}
       <span className={styles.duration}>{duration}</span>
-      {overall.status === "ready" ? (
+      {isOffRole ? (
+        <span className={styles.offRoleLabel}>Not healing this fight</span>
+      ) : overall.status === "ready" ? (
         <JudgementChip judgement={overall.judgement} />
       ) : overall.status === "error" ? (
         <span className={styles.calculating}>{overall.error}</span>
@@ -185,12 +206,25 @@ export function ReportDashboard({
   const [summariesByFight, setSummariesByFight] = useState<
     Map<number, FightEpicSummaries>
   >(new Map());
+  const [healingRoleByFight, setHealingRoleByFight] = useState<
+    Map<number, boolean>
+  >(new Map());
 
   const handleSummaries = useCallback(
     (fightId: number, summaries: FightEpicSummaries) => {
       setSummariesByFight((prev) => {
         const next = new Map(prev);
         next.set(fightId, summaries);
+        return next;
+      });
+    },
+    [],
+  );
+  const handleHealingRole = useCallback(
+    (fightId: number, isHealingThisFight: boolean) => {
+      setHealingRoleByFight((prev) => {
+        const next = new Map(prev);
+        next.set(fightId, isHealingThisFight);
         return next;
       });
     },
@@ -226,7 +260,12 @@ export function ReportDashboard({
     );
   }
 
-  const allSummaries = Array.from(summariesByFight.values());
+  const onRoleRows = rows.filter(
+    (row) => healingRoleByFight.get(row.fight.id) !== false,
+  );
+  const allSummaries = onRoleRows
+    .map((row) => summariesByFight.get(row.fight.id))
+    .filter((s): s is FightEpicSummaries => s !== undefined);
   const druidLabel = druid.isRestoSpec
     ? `${druid.name} — Restoration`
     : druid.name;
@@ -268,6 +307,7 @@ export function ReportDashboard({
             pullNumber={pullNumber}
             onOpen={onOpenFight}
             onSummaries={handleSummaries}
+            onHealingRole={handleHealingRole}
             accessToken={accessToken}
             reportCode={reportCode}
             druidId={druidId}
