@@ -546,15 +546,16 @@ Depends on 903a. I want metric cards gated behind a talent the fight's actual Re
 - Story 302's Swiftmend-availability note is resolved as a side effect of hiding the whole card — no separate fix needed.
 - Story 501's Death Forensics `unspentCount` inflation (flagged during story 011, `docs/backlog.md`'s existing note) is fixed now that real talent data exists: `swiftmendReady`/`nsReady` are only `true` when the druid's build can actually reach that talent, not merely "no prior cast recorded."
 
-### 907 — Talent-aware pooling for the calibration CLI tool 🔲 Todo
+### 907 — Talent-aware pooling for the calibration CLI tool ✅ Done
 
-Depends on 903c. I want `scripts/lib/rollup.ts`'s whole-report pooling (used by `scripts/calibrate.ts`) to exclude a fight's Swiftmend/Nature's Swiftness metrics from a druid's numeric rollup when 903a's per-fight talent data shows the build can't reach that talent, so the CLI tool's own calibration output doesn't suffer the same fake-green/fake-availability distortion 903c fixes in the live app.
+Depends on 903c. I want `scripts/lib/rollup.ts`'s whole-report pooling (used by `scripts/calibrate.ts`) to exclude a fight's Swiftmend/Nature's Swiftness metrics from a druid's numeric rollup when 903a's per-fight talent data shows the build can't reach that talent, so the CLI tool's own calibration output doesn't suffer the same fake-green/fake-availability distortion 903c fixes in the live app. Implemented alongside story 905, whose archetype-bucket plumbing this reuses. Investigating this against the real code (not just the story's original hunch) found the described Swiftmend distortion doesn't actually reproduce: `computeSwiftmendAudit` already returns `wastefulPct: 0` with `weight: 0` (zero real casts) for an ineligible fight, and a zero-weight entry is mathematically neutral in `scripts/lib/rollup.ts`'s `countWeightedAverage` — confirmed against real corpus output (`swiftmendWastefulPctPooled: null`, not a fake number, for a talent-confirmed Swiftmend-ineligible druid). The real live bug was in `InformationalRollup.naturesSwiftnessAvailableWindowsTotal`, a plain `sum()` with no such protection, silently accumulating a fictitious cooldown-based "available windows" count from Nature's-Swiftness-ineligible fights.
 
 **Acceptance criteria**
 
-- `scripts/calibrate.ts`'s fight-context building fetches `CombatantInfo` per fight (reusing 903a's `parseTalentPoints`) and threads the resulting Restoration point count into its metrics pipeline.
-- `scripts/lib/rollup.ts`'s `SpellDisciplineRollup` pooling excludes a fight's Swiftmend audit judgement/stats from the whole-report numeric rollup when that fight's druid can't reach Swiftmend's talent threshold (903c's threshold constant, reused not redefined), and similarly for Nature's Swiftness.
-- Confirmed against a real report already known to include a Swiftmend-ineligible druid (e.g. `docs/testing.md`'s `bKRZ68XqgwYkxtzm` entry).
+- `scripts/lib/calibrateReport.ts`'s fight-context building already fetches `CombatantInfo` per fight and computes `hasNaturesSwiftness` (predates this story) — it now also exposes `hasNaturesSwiftness` on the returned `FightResult`.
+- `scripts/lib/rollup.ts`'s informational pooling excludes a fight's Nature's Swiftness `castCount`/`availableWindows` from `naturesSwiftnessCastsTotal`/`naturesSwiftnessAvailableWindowsTotal` when that fight's druid can't reach Nature's Swiftness's talent threshold.
+- Swiftmend's own `swiftmendWastefulPctPooled` needed no change — verified safe by the corpus check above, documented here rather than silently left unexamined.
+- Confirmed against a real report already known to include a Nature's-Swiftness-ineligible druid (`docs/testing.md`'s `F7aL6x13zVq8kTRt` entry, druid Nebd, Restoration 13).
 
 ### 908 — Recalibrate GCD economy thresholds against exemplars ✅ Done
 
@@ -590,13 +591,16 @@ I want the whole-report dashboard's per-epic judgement to stop being a strict wo
 - Whatever mechanism is chosen still lets a user drill into which specific fight(s) drove a bad result — this story must not lose the diagnostic value the current (harsh) worst-of policy at least provides honestly.
 - The per-fight scorecard (701) is unaffected — this story is scoped to 702's whole-report rollup and `scripts/lib/rollup.ts`'s judgement pooling, not single-fight judging.
 
-### 905 — Recalibrate mana economy thresholds 🔲 Todo
+### 905 — Recalibrate mana economy thresholds ✅ Done
 
-I want mana economy's thresholds reviewed against real data, so that judgements reflect real play rather than an artifact of overheal thresholds tuned for a different gear/content-progression assumption. Real corpus data showed mana economy driven almost entirely by the overheal sub-metric (204/393 fight-rows red — mana curve, consumables, and Innervate were all reasonably distributed on their own). Scope and approach are not yet decided — parked pending the outcome of stories 900-903, since overheal patterns likely split by talent archetype too (a Balance-hybrid healer's overheal profile may look nothing like a deep-resto one's).
+I want mana economy's thresholds reviewed against real data, so that judgements reflect real play rather than an artifact of overheal thresholds tuned for a different gear/content-progression assumption. Real corpus data showed mana economy driven almost entirely by the overheal sub-metric (204/393 fight-rows red — mana curve, consumables, and Innervate were all reasonably distributed on their own). Pooling the corpus by story 900/903a's archetype buckets found two distinct problems: Bloom overheal was miscalibrated for every archetype alike (both deep-resto and dreamstate exemplars cluster at ~72-74% median overheal against an old 70% red line), while Regrowth-direct overheal genuinely differs by archetype (deep-resto median 31% vs. dreamstate median 50%, p75 84%) — Healing Touch and Swiftmend overheal, by contrast, already fit the existing threshold well in both archetypes and needed no change. See `docs/thresholds.md`'s story 905 calibration-review paragraph for the full numeric findings, including the explicit caveat that dreamstate's Regrowth-direct number is provisional (calibrated against the broader talent-tagged corpus, not a behaviorally-validated exemplar set — no dreamstate equivalent of story 901 exists yet).
 
 **Acceptance criteria**
 
-- TBD — revisit once stories 900-903 land and the corpus can be split by archetype; recalibrating overheal against an un-archetyped corpus risks repeating story 802's original mistake (judging a mixed population against one playstyle's thresholds).
+- Bloom overheal's threshold is recalibrated as a single value, unchanged across archetypes (`src/metrics/overhealTable.ts`'s `judgeBloomOverheal`).
+- Regrowth-direct overheal gets its own threshold per archetype bucket, computed by `computeOverhealTable`'s new `archetypeBucket` parameter (default `"deep-resto"`) and consumed by `OverhealTableCard`, `useManaEconomySummary`, and `scripts/lib/calibrateReport.ts` alike, each sourcing the bucket from 903a's existing `useArchetypeBucket`/`classifyBucket`.
+- Healing Touch and Swiftmend overheal are left unchanged.
+- `docs/thresholds.md` is updated with the new values and a dated calibration-review paragraph.
 
 ### 906 — Fix locale-dependent ability-name matching 🔲 Todo
 
