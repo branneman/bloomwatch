@@ -361,4 +361,43 @@ describe("SwiftmendAuditCard", () => {
       screen.queryByText(/this fight's build has/),
     ).not.toBeInTheDocument();
   });
+
+  it("shows an 'unknown' placeholder (not a full audit) when talent-archetype detection errors", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> =>
+      dataType === "CombatantInfo"
+        ? Promise.reject(new Error("WCL API responded 500: server error"))
+        : Promise.resolve([]);
+
+    render(
+      <SwiftmendAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          /this fight's talent data couldn't be read, so eligibility for Swiftmend/,
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText("No Swiftmends cast this fight."),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -164,6 +164,22 @@ export function SwiftmendAuditCard({
     );
   }
 
+  if (archetypeStatus.status === "error") {
+    return (
+      <MetricCard
+        icon={ICON}
+        title="Swiftmend quality audit"
+        threshold={THRESHOLD}
+      >
+        <p>
+          Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+          eligibility for Swiftmend (needs {SWIFTMEND_MIN_RESTORATION}+
+          Restoration points) can&apos;t be confirmed.
+        </p>
+      </MetricCard>
+    );
+  }
+
   if (
     archetypeStatus.status === "ready" &&
     archetypeStatus.restoration < SWIFTMEND_MIN_RESTORATION

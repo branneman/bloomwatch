@@ -164,6 +164,24 @@ export function NaturesSwiftnessCard({
     );
   }
 
+  if (archetypeStatus.status === "error") {
+    return (
+      <MetricCard
+        icon={ICON}
+        title="Nature's Swiftness audit"
+        note="Informational — no judgement"
+        threshold={THRESHOLD}
+      >
+        <p>
+          Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+          eligibility for Nature&apos;s Swiftness (needs{" "}
+          {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points) can&apos;t be
+          confirmed.
+        </p>
+      </MetricCard>
+    );
+  }
+
   if (
     archetypeStatus.status === "ready" &&
     archetypeStatus.restoration < NATURES_SWIFTNESS_MIN_RESTORATION
