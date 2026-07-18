@@ -384,6 +384,7 @@ export async function computeFightResult(
     bossPercentage: fight.bossPercentage,
     pullNumber,
     durationMs,
+    hasNaturesSwiftness,
     epics: {
       gcdEconomy,
       lifebloomDiscipline,

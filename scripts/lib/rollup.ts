@@ -338,11 +338,20 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
               (f) => f.informational.concurrentLb3Targets.peakConcurrent,
             ),
           ),
+    // Story 907: a fight where this druid's build can't reach Nature's Swiftness's
+    // 20-Restoration requirement has no real availability -- computeNaturesSwiftnessAudit's
+    // cooldown-based availableWindows estimate is fictitious there (the player could
+    // never actually cast it), so both totals below exclude those fights the same way
+    // story 903c already excludes them from the live app's NaturesSwiftnessCard.
     naturesSwiftnessCastsTotal: sum(
-      fights.map((f) => f.informational.naturesSwiftnessAudit.castCount),
+      fights
+        .filter((f) => f.hasNaturesSwiftness)
+        .map((f) => f.informational.naturesSwiftnessAudit.castCount),
     ),
     naturesSwiftnessAvailableWindowsTotal: sum(
-      fights.map((f) => f.informational.naturesSwiftnessAudit.availableWindows),
+      fights
+        .filter((f) => f.hasNaturesSwiftness)
+        .map((f) => f.informational.naturesSwiftnessAudit.availableWindows),
     ),
   };
 

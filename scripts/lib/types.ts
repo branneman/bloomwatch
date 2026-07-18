@@ -56,6 +56,7 @@ export interface FightResult {
   bossPercentage: number | null;
   pullNumber: number | null;
   durationMs: number;
+  hasNaturesSwiftness: boolean;
   epics: {
     gcdEconomy: EpicResult<GcdEconomyMetrics>;
     lifebloomDiscipline: EpicResult<LifebloomDisciplineMetrics>;
