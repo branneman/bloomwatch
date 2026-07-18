@@ -3,6 +3,13 @@ import { loadAccessToken } from "./lib/env";
 import { detectDruids } from "../src/report/druidDetection";
 import { buildFightRows } from "../src/report/fightRows";
 import type { Fight, CastTableEntry } from "../src/wcl/client";
+import type { WclEvent } from "../src/wcl/events";
+import {
+  classifyBucket,
+  BUCKET_DEFINITIONS,
+  parseTalentPoints,
+  type TalentBucket,
+} from "../src/report/archetypeDetection";
 
 // This script has its own small host-parameterized fetch layer rather than
 // reusing src/wcl/client.ts (hardcoded to www.warcraftlogs.com) or
@@ -78,14 +85,6 @@ async function fetchCastsTable(
   return data.reportData.report.table.data.entries;
 }
 
-interface TalentEntry {
-  id: number;
-}
-interface CombatantInfoEvent {
-  sourceID?: number;
-  talents?: TalentEntry[];
-}
-
 async function fetchTalents(
   accessToken: string,
   host: HostKey,
@@ -98,58 +97,10 @@ async function fetchTalents(
     host,
     `query { reportData { report(code: "${reportCode}") { events(fightIDs: [${fight.id}], startTime: ${fight.startTime}, endTime: ${fight.endTime}, dataType: CombatantInfo) { data } } } }`,
   )) as {
-    reportData: { report: { events: { data: CombatantInfoEvent[] } } };
+    reportData: { report: { events: { data: WclEvent[] } } };
   };
-  const events = data.reportData.report.events.data;
-  const ci = events.find((e) => e.sourceID === druidId && e.talents);
-  if (!ci?.talents || ci.talents.length !== 3) return null;
-  const [balance, feral, restoration] = ci.talents.map((t) => t.id);
-  return [balance, feral, restoration];
+  return parseTalentPoints(data.reportData.report.events.data, druidId);
 }
-
-type Bucket =
-  | "deep-resto"
-  | "likely-dreamstate-full"
-  | "likely-dreamstate-partial"
-  | "mostly-resto"
-  | "mostly-balance"
-  | "restokin-shaped"
-  | "other-unclassified"
-  | "unknown-no-talent-data";
-
-// Order matters: deep-resto and the two dreamstate tiers are specific
-// signatures checked first; "mostly-resto" vs "mostly-balance" is a
-// same-priority fallback comparison between whichever tree actually has
-// more points, not two independent thresholds — a 21/0/40 split has to land
-// in "mostly-resto" (resto dominates) even though balance alone is >= 20.
-// Feral is checked too: a 0/46/15 split isn't "mostly-resto" just because
-// restoration > balance — Feral dominates both, so it falls through to
-// "other-unclassified" (not a target archetype for this app at all) rather
-// than being mislabeled as leaning Restoration.
-function classifyBucket(
-  balance: number,
-  feral: number,
-  restoration: number,
-): Bucket {
-  if (restoration >= 41) return "deep-resto";
-  if (balance >= 33) return "likely-dreamstate-full";
-  if (balance >= 31) return "likely-dreamstate-partial";
-  if (restoration > balance && restoration > feral) return "mostly-resto";
-  if (balance >= 20 && balance > feral) return "mostly-balance";
-  return "other-unclassified";
-}
-
-const BUCKET_DEFINITIONS: Record<Bucket, string> = {
-  "deep-resto": "Restoration >= 41 (Tree of Life-eligible)",
-  "likely-dreamstate-full": "Balance >= 33 (full 3/3 Dreamstate-eligible)",
-  "likely-dreamstate-partial": "Balance >= 31 (>=1 point Dreamstate-eligible)",
-  "mostly-resto":
-    "Restoration > Balance, but below deep-resto's 41-point cutoff and below Dreamstate's 31-point Balance threshold",
-  "mostly-balance": "Balance >= Restoration and Balance >= 20",
-  "restokin-shaped": "signature not yet determined — see story 900",
-  "other-unclassified": "doesn't fit any bucket above",
-  "unknown-no-talent-data": "talent read failed or unavailable",
-};
 
 interface ArchetypeEntry {
   druidId: number;
@@ -158,11 +109,11 @@ interface ArchetypeEntry {
   balance: number | null;
   feral: number | null;
   restoration: number | null;
-  bucket: Bucket;
+  bucket: TalentBucket;
 }
 
 interface ArchetypeFile {
-  bucketDefinitions: Record<Bucket, string>;
+  bucketDefinitions: Record<TalentBucket, string>;
   reports: Record<string, ArchetypeEntry>;
 }
 
@@ -225,7 +176,7 @@ async function main() {
       candidate.id,
     );
     const [balance, feral, restoration] = talents ?? [null, null, null];
-    const bucket: Bucket =
+    const bucket: TalentBucket =
       talents === null
         ? "unknown-no-talent-data"
         : classifyBucket(
