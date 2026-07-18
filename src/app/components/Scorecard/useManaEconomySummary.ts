@@ -12,6 +12,7 @@ import {
 } from "../../../metrics/innervateAudit";
 import { summarizeManaEconomy } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
+import { useArchetypeBucket } from "./useArchetypeBucket";
 
 type TaggedState = { accessToken: string; summary: EpicSummaryStatus };
 
@@ -31,6 +32,16 @@ export function useManaEconomySummary(
   ) => Promise<WclEvent[]>,
 ): EpicSummaryStatus {
   const [state, setState] = useState<TaggedState | null>(null);
+
+  const archetypeStatus = useArchetypeBucket(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
+  const archetypeBucket =
+    archetypeStatus.status === "ready" ? archetypeStatus.bucket : undefined;
 
   useEffect(() => {
     const fightArg = {
@@ -59,6 +70,7 @@ export function useManaEconomySummary(
           healingEvents,
           druidId,
           resolvedAbilities,
+          archetypeBucket,
         );
         const innervateAudit = computeInnervateAudit(
           castEvents,
@@ -103,6 +115,7 @@ export function useManaEconomySummary(
     druidId,
     resolvedAbilities,
     actorClasses,
+    archetypeBucket,
     fetchEvents,
   ]);
 

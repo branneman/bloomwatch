@@ -4,7 +4,12 @@ import { useManaEconomySummary } from "./useManaEconomySummary";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
-import { aCastEvent, aFight, aHealEvent } from "../../../testUtils/factories";
+import {
+  aCastEvent,
+  aCombatantInfoEvent,
+  aFight,
+  aHealEvent,
+} from "../../../testUtils/factories";
 
 function makeFetchEvents(castEvents: WclEvent[], healingEvents: WclEvent[]) {
   return (
@@ -128,6 +133,67 @@ describe("useManaEconomySummary", () => {
     expect(result.current).toEqual({
       status: "error",
       error: "WCL API responded 500: server error",
+    });
+  });
+
+  it("uses the detected archetype's Regrowth-direct band when pooling the overheal table", async () => {
+    const fight = aFight({
+      id: 6,
+      kill: false,
+      startTime: 0,
+      endTime: 120_000,
+    });
+    const castEvents = [
+      aCastEvent({
+        timestamp: 1000,
+        sourceID: 2,
+        resourceActor: 1,
+        classResources: [{ amount: 10000, max: 0, type: 9000, cost: 0 }],
+      }),
+    ];
+    const healingEvents = [
+      aHealEvent({ abilityGameID: 26980, amount: 30, overheal: 70 }), // Regrowth direct, 70% overheal
+    ];
+    const resolvedAbilities = new Map<number, ResolvedAbility>([
+      [26980, { kind: "spell", spell: "Regrowth", rank: 10 }],
+    ]);
+    const fetchEvents = (
+      _accessToken: string,
+      _reportCode: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> => {
+      if (dataType === "Healing") return Promise.resolve(healingEvents);
+      if (dataType === "CombatantInfo") {
+        return Promise.resolve([
+          aCombatantInfoEvent({
+            sourceID: 2,
+            talents: [{ id: 35 }, { id: 0 }, { id: 13 }],
+          }),
+        ]);
+      }
+      return Promise.resolve(castEvents);
+    };
+
+    const { result } = renderHook(() =>
+      useManaEconomySummary(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+        fight,
+        2,
+        resolvedAbilities,
+        new Map(),
+        fetchEvents,
+      ),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+    // 70% overheal is red under deep-resto's Regrowth-direct band (>60%) but only
+    // orange under dreamstate's (60-85%). This druid's talents (35/0/13) classify as
+    // likely-dreamstate-full, so the pooled judgement must be orange, not red.
+    expect(result.current).toMatchObject({
+      status: "ready",
+      judgement: "orange",
     });
   });
 });
