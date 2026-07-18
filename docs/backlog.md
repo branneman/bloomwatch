@@ -515,7 +515,7 @@ I want LB3-uptime and refresh-cadence thresholds reviewed against story 901's ex
 
 I want the app to detect a druid's talent archetype and actual per-fight healing role, and adjust which metrics it shows and how it judges them accordingly, so that a Dreamstate or Balance-hybrid druid isn't silently judged against deep-resto assumptions they were never trying to meet. A real talent scan this session found only 3 of 45 druids pulled from top-competing guilds were even talent-eligible for deep resto — the other 42 clustered into `35/0/26`, `37/0/24`, and `48/0/13` splits (Restoration below Swiftmend's 30-point requirement in every case), meaning the majority of real top players can't even take Swiftmend, which today's tool judges them on anyway. Split into four sub-stories (903a-903d) since the combined scope was too large for one implementation plan/session — each is independently implementable, with 903c and 903d depending on 903a's detection work landing first.
 
-### 903a — Per-fight talent-archetype detection 🔲 Todo
+### 903a — Per-fight talent-archetype detection ✅ Done
 
 I want per-fight talent-archetype detection (story 900's bucket definitions) computed for the report's selected druid and surfaced in the UI, so that 903c's card-hiding and 903d's onboarding notice have real per-fight data to consume instead of the offline-only classification story 900 produced.
 
