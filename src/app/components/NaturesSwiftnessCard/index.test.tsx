@@ -249,4 +249,40 @@ describe("NaturesSwiftnessCard", () => {
       screen.queryByText("Nature's Swiftness was not cast this fight."),
     ).not.toBeInTheDocument();
   });
+
+  it("shows an 'unknown' placeholder (not a false confirmed 0) when talent data couldn't be read", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 400000 });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> =>
+      dataType === "CombatantInfo" ? Promise.resolve([]) : Promise.resolve([]);
+
+    render(
+      <NaturesSwiftnessCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        resolvedAbilities={RESOLVED}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          /this fight's talent data couldn't be read, so eligibility for Nature's Swiftness/,
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText(/this fight's build has/),
+    ).not.toBeInTheDocument();
+  });
 });

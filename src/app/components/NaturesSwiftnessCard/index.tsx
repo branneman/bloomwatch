@@ -175,11 +175,20 @@ export function NaturesSwiftnessCard({
         note="Informational — no judgement"
         threshold={THRESHOLD}
       >
-        <p>
-          Not shown — this build can&apos;t take Nature&apos;s Swiftness (needs{" "}
-          {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points; this
-          fight&apos;s build has {archetypeStatus.restoration}).
-        </p>
+        {archetypeStatus.bucket === "unknown-no-talent-data" ? (
+          <p>
+            Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+            eligibility for Nature&apos;s Swiftness (needs{" "}
+            {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points) can&apos;t
+            be confirmed.
+          </p>
+        ) : (
+          <p>
+            Not shown — this build can&apos;t take Nature&apos;s Swiftness
+            (needs {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points; this
+            fight&apos;s build has {archetypeStatus.restoration}).
+          </p>
+        )}
       </MetricCard>
     );
   }
