@@ -55,6 +55,15 @@ export const BUCKET_DEFINITIONS: Record<TalentBucket, string> = {
   "unknown-no-talent-data": "talent read failed or unavailable",
 };
 
+// Story 903d: buckets the onboarding notice calls out as not well-supported —
+// Regrowth-spec resto, Balance-as-healer, and the unclassified catch-all.
+// Dreamstate stays unflagged per docs/backlog.md 903d ("supported to a lesser
+// extent"), even though it's talent-indistinguishable from Restokin (see this
+// file's restokin-shaped comment above and docs/backlog.md line 475).
+export const UNSUPPORTED_ARCHETYPE_BUCKETS: ReadonlySet<TalentBucket> = new Set(
+  ["mostly-resto", "mostly-balance", "other-unclassified", "restokin-shaped"],
+);
+
 interface CombatantTalentEntry {
   id: number;
 }

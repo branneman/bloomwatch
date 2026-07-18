@@ -19,6 +19,7 @@ import { useArchetypeBucket } from "./useArchetypeBucket";
 import { useHealingRoleThisFight } from "./useHealingRoleThisFight";
 import {
   BUCKET_DEFINITIONS,
+  UNSUPPORTED_ARCHETYPE_BUCKETS,
   type TalentBucket,
 } from "../../../report/archetypeDetection";
 import { Widget } from "../ui/Widget";
@@ -163,6 +164,15 @@ export function Scorecard({
           </span>
         )}
       </p>
+      {archetypeStatus.status === "ready" &&
+        UNSUPPORTED_ARCHETYPE_BUCKETS.has(archetypeStatus.bucket) && (
+          <Alert tone="warning">
+            This fight&apos;s detected build (
+            {ARCHETYPE_LABELS[archetypeStatus.bucket]}) isn&apos;t one
+            Bloomwatch judges well yet — the process judgements below may not be
+            a fair read on this playstyle.
+          </Alert>
+        )}
       {healingRoleStatus.status === "ready" &&
         !healingRoleStatus.isHealingThisFight && (
           <Alert tone="warning">

@@ -3,7 +3,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Scorecard } from "./index";
-import { aCastEvent, aFight } from "../../../testUtils/factories";
+import {
+  aCastEvent,
+  aCombatantInfoEvent,
+  aFight,
+} from "../../../testUtils/factories";
 import type { DruidCandidate } from "../../../report/druidDetection";
 
 const druid: DruidCandidate = {
@@ -226,5 +230,83 @@ describe("Scorecard", () => {
     expect(
       screen.getByText(/cast 0 healing spells this fight/),
     ).toBeInTheDocument();
+  });
+
+  it("shows an unsupported-build Alert when the detected archetype isn't well-supported", async () => {
+    const fight = aFight({
+      id: 6,
+      name: "Lady Vashj",
+      kill: true,
+      startTime: 0,
+      endTime: 341000,
+    });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) =>
+      Promise.resolve(
+        dataType === "CombatantInfo"
+          ? [
+              aCombatantInfoEvent({
+                sourceID: 101,
+                talents: [{ id: 25 }, { id: 0 }, { id: 10 }],
+              }),
+            ]
+          : [],
+      );
+
+    render(
+      <Scorecard {...baseProps} fight={fight} fetchEvents={fetchEvents} />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Talent archetype:/)).toHaveTextContent(
+        "Talent archetype: Mostly Balance",
+      ),
+    );
+    expect(
+      screen.getByText(/isn't one Bloomwatch judges well yet/),
+    ).toBeInTheDocument();
+  });
+
+  it("doesn't show the unsupported-build Alert for a deep-resto archetype", async () => {
+    const fight = aFight({
+      id: 6,
+      name: "Lady Vashj",
+      kill: true,
+      startTime: 0,
+      endTime: 341000,
+    });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) =>
+      Promise.resolve(
+        dataType === "CombatantInfo"
+          ? [
+              aCombatantInfoEvent({
+                sourceID: 101,
+                talents: [{ id: 0 }, { id: 0 }, { id: 41 }],
+              }),
+            ]
+          : [],
+      );
+
+    render(
+      <Scorecard {...baseProps} fight={fight} fetchEvents={fetchEvents} />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Talent archetype:/)).toHaveTextContent(
+        "Talent archetype: Deep resto",
+      ),
+    );
+    expect(
+      screen.queryByText(/isn't one Bloomwatch judges well yet/),
+    ).not.toBeInTheDocument();
   });
 });
