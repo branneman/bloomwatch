@@ -7,6 +7,10 @@ import { computeHotClipDetection } from "../../../metrics/hotClipDetection";
 import { computeSwiftmendAudit } from "../../../metrics/swiftmendAudit";
 import { computeDownrankingDiscipline } from "../../../metrics/downrankingDiscipline";
 import { summarizeSpellDiscipline } from "../../../metrics/epicSummary";
+import {
+  parseTalentPoints,
+  SWIFTMEND_MIN_RESTORATION,
+} from "../../../report/archetypeDetection";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
 type TaggedState = { accessToken: string; summary: EpicSummaryStatus };
@@ -40,8 +44,12 @@ export function useSpellDisciplineSummary(
       fetchEvents(accessToken, reportCode, fightArg, "Buffs"),
       fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
       fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
+      fetchEvents(accessToken, reportCode, fightArg, "CombatantInfo"),
     ])
-      .then(([buffEvents, castEvents, healingEvents]) => {
+      .then(([buffEvents, castEvents, healingEvents, combatantInfoEvents]) => {
+        const talents = parseTalentPoints(combatantInfoEvents, druidId);
+        const restoration = talents === null ? 0 : talents[2];
+        const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
         const hotClips = computeHotClipDetection(
           buffEvents,
           castEvents,
@@ -69,7 +77,12 @@ export function useSpellDisciplineSummary(
           accessToken,
           summary: {
             status: "ready",
-            ...summarizeSpellDiscipline(hotClips, swiftmendAudit, downranking),
+            ...summarizeSpellDiscipline(
+              hotClips,
+              swiftmendAudit,
+              downranking,
+              hasSwiftmend,
+            ),
           },
         });
       })

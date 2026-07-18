@@ -9,6 +9,10 @@ import { detectDruids } from "../../src/report/druidDetection";
 import type { DruidCandidate } from "../../src/report/druidDetection";
 import { buildFightRows } from "../../src/report/fightRows";
 import {
+  parseTalentPoints,
+  SWIFTMEND_MIN_RESTORATION,
+} from "../../src/report/archetypeDetection";
+import {
   resolveAbilities,
   resolveSpellAbilityIds,
 } from "../../src/abilities/resolveAbilities";
@@ -200,6 +204,10 @@ export async function computeFightResult(
     ),
   ]);
 
+  const talents = parseTalentPoints(combatantInfoEvents, druidId);
+  const restoration = talents === null ? 0 : talents[2];
+  const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
+
   const gcdEconomy = toEpicResult<GcdEconomyMetrics>(() => {
     const gcdUtilization = computeGcdUtilization(
       castEvents,
@@ -285,6 +293,7 @@ export async function computeFightResult(
         hotClipDetection,
         swiftmendAudit,
         downrankingDiscipline,
+        hasSwiftmend,
       ),
       metrics: { hotClipDetection, swiftmendAudit, downrankingDiscipline },
     };

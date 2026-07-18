@@ -210,7 +210,12 @@ describe("summarizeSpellDiscipline", () => {
     };
 
     expect(
-      summarizeSpellDiscipline(hotClips, swiftmendAudit, GREEN_DOWNRANKING),
+      summarizeSpellDiscipline(
+        hotClips,
+        swiftmendAudit,
+        GREEN_DOWNRANKING,
+        true,
+      ),
     ).toEqual({
       judgement: "orange",
       stats: ["Rejuvenation clips: 6.3%", "Swiftmend wasteful: 0.0%"],
@@ -244,8 +249,12 @@ describe("summarizeSpellDiscipline", () => {
     };
 
     expect(
-      summarizeSpellDiscipline(hotClips, swiftmendAudit, GREEN_DOWNRANKING)
-        .judgement,
+      summarizeSpellDiscipline(
+        hotClips,
+        swiftmendAudit,
+        GREEN_DOWNRANKING,
+        true,
+      ).judgement,
     ).toBe("green");
   });
 
@@ -276,8 +285,12 @@ describe("summarizeSpellDiscipline", () => {
     };
 
     expect(
-      summarizeSpellDiscipline(hotClips, swiftmendAudit, GREEN_DOWNRANKING)
-        .judgement,
+      summarizeSpellDiscipline(
+        hotClips,
+        swiftmendAudit,
+        GREEN_DOWNRANKING,
+        true,
+      ).judgement,
     ).toBe("red");
   });
 
@@ -326,6 +339,7 @@ describe("summarizeSpellDiscipline", () => {
       hotClips,
       swiftmendAudit,
       downranking,
+      true,
     );
 
     expect(result.judgement).toBe("orange");
@@ -333,6 +347,43 @@ describe("summarizeSpellDiscipline", () => {
       "Rejuvenation clips: 1.0%",
       "Swiftmend wasteful: 0.0%",
     ]);
+  });
+
+  it("excludes Swiftmend's judgement and stat line when hasSwiftmend is false", () => {
+    const hotClips: HotClipDetectionResult = {
+      rejuvenation: {
+        spell: "Rejuvenation",
+        castCount: 100,
+        clipCount: 1,
+        clipPct: 1,
+        judgement: "green",
+      },
+      regrowth: {
+        spell: "Regrowth",
+        castCount: 30,
+        clipCount: 0,
+        clipPct: 0,
+      },
+      clipEvents: [],
+    };
+    const swiftmendAudit: SwiftmendAuditResult = {
+      casts: [],
+      swiftmendCastCount: 0,
+      wastefulCount: 0,
+      wastefulPct: 0,
+      judgement: "red",
+      availableWindows: 22,
+    };
+
+    const result = summarizeSpellDiscipline(
+      hotClips,
+      swiftmendAudit,
+      GREEN_DOWNRANKING,
+      false,
+    );
+
+    expect(result.judgement).toBe("green");
+    expect(result.stats).toEqual(["Rejuvenation clips: 1.0%"]);
   });
 });
 

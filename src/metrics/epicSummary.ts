@@ -69,22 +69,27 @@ export function summarizeSpellDiscipline(
   hotClips: HotClipDetectionResult,
   swiftmendAudit: SwiftmendAuditResult,
   downranking: DownrankingDisciplineResult,
+  hasSwiftmend: boolean,
 ): EpicSummary {
   // Regrowth clipping has no judgement of its own (informational only —
   // see docs/backlog.md story 301), so it can't move this verdict; the
   // widget's two stat lines show the two metrics that do carry a
   // judgement. Downranking's judgement also joins the worst-of calc (per
   // docs/backlog.md story 303) but doesn't get its own stat line — story
-  // 701 caps a dashboard widget at 1-2 stats.
+  // 701 caps a dashboard widget at 1-2 stats. Swiftmend's judgement/stat
+  // line are excluded entirely (not scored, not shown as a spurious green)
+  // when the druid's build can't reach Swiftmend's talent — story 903c.
   return {
     judgement: worstJudgement([
       hotClips.rejuvenation.judgement,
-      swiftmendAudit.judgement,
+      ...(hasSwiftmend ? [swiftmendAudit.judgement] : []),
       downranking.judgement,
     ]),
     stats: [
       `Rejuvenation clips: ${hotClips.rejuvenation.clipPct.toFixed(1)}%`,
-      `Swiftmend wasteful: ${swiftmendAudit.wastefulPct.toFixed(1)}%`,
+      ...(hasSwiftmend
+        ? [`Swiftmend wasteful: ${swiftmendAudit.wastefulPct.toFixed(1)}%`]
+        : []),
     ],
   };
 }
