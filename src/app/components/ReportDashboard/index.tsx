@@ -10,8 +10,9 @@ import type { Host } from "../../../report/parseReportInput";
 import { buildFightRows, formatDuration } from "../../../report/fightRows";
 import {
   combineFightEpicStatus,
-  worstReadyJudgement,
+  rollupEpicJudgement,
 } from "../../../metrics/reportAggregation";
+import type { Judgement } from "../../../metrics/judgement";
 import {
   useFightEpicSummaries,
   type FightEpicSummaries,
@@ -66,6 +67,16 @@ const EPIC_META: { id: keyof FightEpicSummaries; label: string }[] = [
 
 function epicKey(s: FightEpicSummaries[keyof FightEpicSummaries]): string {
   return s.status === "ready" ? `ready:${s.judgement}` : s.status;
+}
+
+function formatJudgementBreakdown(
+  breakdown: Record<Judgement, number>,
+): string {
+  const parts: string[] = [];
+  if (breakdown.green > 0) parts.push(`${breakdown.green} green`);
+  if (breakdown.orange > 0) parts.push(`${breakdown.orange} orange`);
+  if (breakdown.red > 0) parts.push(`${breakdown.red} red`);
+  return parts.join(" · ");
 }
 
 interface FightRowProps {
@@ -263,9 +274,17 @@ export function ReportDashboard({
   const onRoleRows = rows.filter(
     (row) => healingRoleByFight.get(row.fight.id) !== false,
   );
-  const allSummaries = onRoleRows
-    .map((row) => summariesByFight.get(row.fight.id))
-    .filter((s): s is FightEpicSummaries => s !== undefined);
+  const onRoleEntries = onRoleRows
+    .map((row) => {
+      const summaries = summariesByFight.get(row.fight.id);
+      return summaries === undefined
+        ? undefined
+        : { fight: row.fight, summaries };
+    })
+    .filter(
+      (e): e is { fight: Fight; summaries: FightEpicSummaries } =>
+        e !== undefined,
+    );
   const druidLabel = druid.isRestoSpec
     ? `${druid.name} — Restoration`
     : druid.name;
@@ -281,14 +300,26 @@ export function ReportDashboard({
 
       <div className={styles.chipStrip}>
         {EPIC_META.map(({ id, label }) => {
-          const judgement = worstReadyJudgement(allSummaries.map((s) => s[id]));
+          const rollup = rollupEpicJudgement(
+            onRoleEntries.map((e) => ({
+              status: e.summaries[id],
+              weightMs: e.fight.endTime - e.fight.startTime,
+            })),
+          );
           return (
             <div key={id} className={styles.chip}>
-              <span className={styles.chipLabel}>{label}</span>
-              {judgement === null ? (
+              <div className={styles.chipInfo}>
+                <span className={styles.chipLabel}>{label}</span>
+                {rollup !== null && (
+                  <span className={styles.chipBreakdown}>
+                    {formatJudgementBreakdown(rollup.breakdown)}
+                  </span>
+                )}
+              </div>
+              {rollup === null ? (
                 <span className={styles.calculating}>Calculating…</span>
               ) : (
-                <JudgementChip judgement={judgement} />
+                <JudgementChip judgement={rollup.judgement} />
               )}
             </div>
           );

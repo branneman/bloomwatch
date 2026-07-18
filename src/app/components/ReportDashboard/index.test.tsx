@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ReportDashboard } from "./index";
 import {
   aCastEvent,
+  aCombatantInfoEvent,
   aDeathEvent,
   aFight,
   anApplyBuffEvent,
@@ -359,7 +360,8 @@ describe("ReportDashboard", () => {
       expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
     );
     const soloChipText = EPIC_LABELS.map(
-      (label) => screen.getByText(label).parentElement?.textContent,
+      (label) =>
+        screen.getByText(label).parentElement?.parentElement?.textContent,
     );
     solo.unmount();
 
@@ -386,12 +388,91 @@ describe("ReportDashboard", () => {
       expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
     );
     const comboChipText = EPIC_LABELS.map(
-      (label) => screen.getByText(label).parentElement?.textContent,
+      (label) =>
+        screen.getByText(label).parentElement?.parentElement?.textContent,
     );
 
     // The aggregate strip must be byte-for-byte identical whether or not
     // the off-role fight is present — proving its judgements were excluded
     // from the pool, not merely that its own row shows a different label.
     expect(comboChipText).toEqual(soloChipText);
+  });
+
+  it("shows a fight-count breakdown next to each aggregate chip once every fight resolves", async () => {
+    const cleanFight = aFight({ id: 1, name: "Lady Vashj", kill: true });
+    const deadlyFight = aFight({
+      id: 2,
+      name: "Leotheras the Blind",
+      kill: true,
+    });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      fight: { id: number },
+      dataType: string,
+    ) => {
+      // Both fights need >= MIN_HEALING_CASTS_FOR_DETECTION (3) healing
+      // casts here so neither is excluded as off-role from the aggregate
+      // rollup (src/report/druidDetection.ts) — an empty Casts response
+      // for every fight would leave onRoleEntries empty and the chip
+      // strip stuck on "Calculating…" forever.
+      if (dataType === "Casts") {
+        return Promise.resolve([
+          aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 1000 }),
+          aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 2000 }),
+          aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 3000 }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "Buffs") {
+        return Promise.resolve([
+          anApplyBuffEvent({
+            sourceID: 101,
+            targetID: 55,
+            abilityGameID: 33763,
+            timestamp: deadlyFight.startTime,
+          }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "Deaths") {
+        return Promise.resolve([
+          aDeathEvent({
+            targetID: 55,
+            timestamp: deadlyFight.startTime + 10000,
+          }),
+        ]);
+      }
+      // Restoration 45 clears both Swiftmend's (30) and Nature's
+      // Swiftness's (20) minimums (src/report/archetypeDetection.ts), so
+      // both read as unspent cooldowns on the maintained-target death
+      // above -> deadlyFight's death judges "red" (>= 2 unspent), matching
+      // this test's assertion below.
+      if (fight.id === 2 && dataType === "CombatantInfo") {
+        return Promise.resolve([
+          aCombatantInfoEvent({
+            sourceID: 101,
+            talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
+          }),
+        ]);
+      }
+      return Promise.resolve([]);
+    };
+
+    render(
+      <ReportDashboard
+        {...baseProps}
+        fights={[cleanFight, deadlyFight]}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
+    );
+
+    const deathChipText =
+      screen.getByText("Death forensics").parentElement?.parentElement
+        ?.textContent;
+    expect(deathChipText).toContain("1 green");
+    expect(deathChipText).toContain("1 red");
   });
 });
