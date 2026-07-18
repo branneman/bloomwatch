@@ -32,6 +32,14 @@ describe("buildFightRows", () => {
     expect(rows.map((r) => r.pullNumber)).toEqual([1, 1, 2, 2]);
   });
 
+  it("marks Karazhan's Chess Event as trash even though it has a real encounterID", () => {
+    const fights = [aFight({ id: 1, encounterID: 660 })];
+    const rows = buildFightRows(fights);
+    expect(rows).toEqual([
+      { fight: fights[0], isTrash: true, pullNumber: null },
+    ]);
+  });
+
   it("marks every fight as trash and pull-number-less for an all-trash report", () => {
     const fights = [
       aFight({ id: 1, encounterID: 0 }),
