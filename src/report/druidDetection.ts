@@ -1,4 +1,6 @@
 import type { CastTableEntry } from "../wcl/client";
+import type { WclEvent } from "../wcl/events";
+import type { ResolvedAbility } from "../abilities/resolveAbilities";
 
 export const HEALING_SPELL_NAMES = [
   "Rejuvenation",
@@ -41,4 +43,29 @@ export function detectDruids(entries: CastTableEntry[]): DruidCandidate[] {
       if (a.isRestoSpec !== b.isRestoSpec) return a.isRestoSpec ? -1 : 1;
       return b.healingCastCount - a.healingCastCount;
     });
+}
+
+export interface HealingRoleThisFight {
+  healingCastCount: number;
+  isHealingThisFight: boolean;
+}
+
+export function detectHealingRoleThisFight(
+  events: WclEvent[],
+  druidId: number,
+  resolvedAbilities: Map<number, ResolvedAbility>,
+): HealingRoleThisFight {
+  const healingCastCount = events.filter((event) => {
+    if (event.sourceID !== druidId) return false;
+    if (event.type !== "cast") return false;
+    if (event.abilityGameID === undefined) return false;
+    const resolved = resolvedAbilities.get(event.abilityGameID);
+    return (
+      resolved?.kind === "spell" && HEALING_SPELL_NAMES.includes(resolved.spell)
+    );
+  }).length;
+  return {
+    healingCastCount,
+    isHealingThisFight: healingCastCount >= MIN_HEALING_CASTS_FOR_DETECTION,
+  };
 }

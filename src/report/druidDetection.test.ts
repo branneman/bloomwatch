@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   detectDruids,
+  detectHealingRoleThisFight,
   MIN_HEALING_CASTS_FOR_DETECTION,
 } from "./druidDetection";
-import { aCastTableEntry } from "../testUtils/factories";
+import { aCastTableEntry, aCastEvent } from "../testUtils/factories";
+import type { ResolvedAbility } from "../abilities/resolveAbilities";
 
 describe("detectDruids", () => {
   it("includes a druid with healing casts above the threshold", () => {
@@ -139,5 +141,72 @@ describe("detectDruids", () => {
     });
     const result = detectDruids([dreamstateHighCasts, restoLowCasts]);
     expect(result.map((c) => c.name)).toEqual(["Dassz", "Neepzendruid"]);
+  });
+});
+
+describe("detectHealingRoleThisFight", () => {
+  const resolvedAbilities = new Map<number, ResolvedAbility>([
+    [33763, { kind: "spell", spell: "Lifebloom", rank: 1 }],
+    [17116, { kind: "spell", spell: "Nature's Swiftness", rank: null }],
+  ]);
+
+  it("counts healing casts and clears the threshold at 3", () => {
+    const events = [
+      aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 1000 }),
+      aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 2000 }),
+      aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 3000 }),
+    ];
+    const result = detectHealingRoleThisFight(events, 101, resolvedAbilities);
+    expect(result).toEqual({ healingCastCount: 3, isHealingThisFight: true });
+  });
+
+  it("stays below the threshold at 2 healing casts", () => {
+    const events = [
+      aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 1000 }),
+      aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 2000 }),
+    ];
+    const result = detectHealingRoleThisFight(events, 101, resolvedAbilities);
+    expect(result).toEqual({ healingCastCount: 2, isHealingThisFight: false });
+  });
+
+  it("does not count a cast resolving to a non-healing spell (e.g. Nature's Swiftness)", () => {
+    const events = [
+      aCastEvent({ sourceID: 101, abilityGameID: 17116, timestamp: 1000 }),
+      aCastEvent({ sourceID: 101, abilityGameID: 17116, timestamp: 2000 }),
+      aCastEvent({ sourceID: 101, abilityGameID: 17116, timestamp: 3000 }),
+    ];
+    const result = detectHealingRoleThisFight(events, 101, resolvedAbilities);
+    expect(result).toEqual({ healingCastCount: 0, isHealingThisFight: false });
+  });
+
+  it("does not count a cast whose abilityGameID has no resolution", () => {
+    const events = [
+      aCastEvent({ sourceID: 101, abilityGameID: 99999, timestamp: 1000 }),
+    ];
+    const result = detectHealingRoleThisFight(events, 101, resolvedAbilities);
+    expect(result).toEqual({ healingCastCount: 0, isHealingThisFight: false });
+  });
+
+  it("ignores casts from a different sourceID", () => {
+    const events = [
+      aCastEvent({ sourceID: 999, abilityGameID: 33763, timestamp: 1000 }),
+      aCastEvent({ sourceID: 999, abilityGameID: 33763, timestamp: 2000 }),
+      aCastEvent({ sourceID: 999, abilityGameID: 33763, timestamp: 3000 }),
+    ];
+    const result = detectHealingRoleThisFight(events, 101, resolvedAbilities);
+    expect(result).toEqual({ healingCastCount: 0, isHealingThisFight: false });
+  });
+
+  it("ignores non-cast event types (e.g. begincast)", () => {
+    const events = [
+      aCastEvent({
+        sourceID: 101,
+        abilityGameID: 33763,
+        timestamp: 1000,
+        type: "begincast",
+      }),
+    ];
+    const result = detectHealingRoleThisFight(events, 101, resolvedAbilities);
+    expect(result).toEqual({ healingCastCount: 0, isHealingThisFight: false });
   });
 });
