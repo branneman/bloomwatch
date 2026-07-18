@@ -9,6 +9,7 @@ import { detectDruids } from "../../src/report/druidDetection";
 import type { DruidCandidate } from "../../src/report/druidDetection";
 import { buildFightRows } from "../../src/report/fightRows";
 import {
+  classifyBucket,
   parseTalentPoints,
   SWIFTMEND_MIN_RESTORATION,
   NATURES_SWIFTNESS_MIN_RESTORATION,
@@ -209,6 +210,10 @@ export async function computeFightResult(
   const restoration = talents === null ? 0 : talents[2];
   const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
   const hasNaturesSwiftness = restoration >= NATURES_SWIFTNESS_MIN_RESTORATION;
+  const archetypeBucket =
+    talents === null
+      ? "unknown-no-talent-data"
+      : classifyBucket(talents[0], talents[1], talents[2]);
 
   const gcdEconomy = toEpicResult<GcdEconomyMetrics>(() => {
     const gcdUtilization = computeGcdUtilization(
@@ -318,6 +323,7 @@ export async function computeFightResult(
       healingEvents,
       druidId,
       ctx.resolvedAbilities,
+      archetypeBucket,
     );
     const innervateAudit = computeInnervateAudit(
       castEvents,
