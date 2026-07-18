@@ -240,17 +240,21 @@ describe("SwiftmendAuditCard", () => {
 
   it("requests Healing events with includeResources: true", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
-    const fetchEvents = vi.fn((...args: unknown[]) => {
-      const dataType = args[3] as WclEventDataType;
-      return dataType === "CombatantInfo"
-        ? Promise.resolve([
-            aCombatantInfoEvent({
-              sourceID: 2,
-              talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
-            }),
-          ])
-        : Promise.resolve([]);
-    });
+    const fetchEvents = vi.fn(
+      (
+        ...args: [string, string, EventFetcherFight, WclEventDataType, boolean?]
+      ) => {
+        const dataType = args[3];
+        return dataType === "CombatantInfo"
+          ? Promise.resolve([
+              aCombatantInfoEvent({
+                sourceID: 2,
+                talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
+              }),
+            ])
+          : Promise.resolve([]);
+      },
+    );
 
     render(
       <SwiftmendAuditCard
