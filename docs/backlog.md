@@ -528,7 +528,7 @@ I want healing-role detection refined to work per fight instead of once per repo
 - Confirmed against a real report with this exact scenario (see `docs/testing.md`'s `F7aL6x13zVq8kTRt` entry — a druid respecs to DPS for some bosses, back to Resto for others, within one report; flagged during story 802's calibration-tooling work).
 - Story 709 is retired once this ships (per this repo's "a story isn't done until its paperwork is retired" convention) — its off-role-fight exclusion becomes a special case of per-fight role detection, not a separate mechanism.
 
-### 903c — Hide metrics whose prerequisite talent is unreachable (app) 🔲 Todo
+### 903c — Hide metrics whose prerequisite talent is unreachable (app) ✅ Done
 
 Depends on 903a. I want metric cards gated behind a talent the fight's actual Restoration point count can't reach to stop rendering a misleading judgement — e.g. the Swiftmend quality audit card doesn't render at all below 30 Restoration points, rather than defaulting to a fake "green" from 0 wasteful casts out of 0 total. Scoped to what a live user actually sees (cards, the Scorecard overview widget, and 702's whole-report rollup); the CLI calibration tool's own separate pooling is out of scope here — see the new story this investigation filed for that.
 
