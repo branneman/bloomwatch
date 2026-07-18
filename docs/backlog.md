@@ -511,17 +511,51 @@ I want LB3-uptime and refresh-cadence thresholds reviewed against story 901's ex
 - Any threshold that misjudges known-good exemplar play is adjusted, with the change and reasoning recorded here per story 802's own acceptance criteria — refresh cadence's current band is a candidate for "no change needed" given the findings above, pending final review against the full exemplar set.
 - `docs/thresholds.md` is updated to reflect the recalibration and cite the exemplar evidence backing it.
 
-### 903 — Spec/archetype-aware judgement 🔲 Todo
+### 903 — Spec/archetype-aware judgement
 
-I want the app to detect a druid's talent archetype and actual per-fight healing role, and adjust which metrics it shows and how it judges them accordingly, so that a Dreamstate or Balance-hybrid druid isn't silently judged against deep-resto assumptions they were never trying to meet. A real talent scan this session found only 3 of 45 druids pulled from top-competing guilds were even talent-eligible for deep resto — the other 42 clustered into `35/0/26`, `37/0/24`, and `48/0/13` splits (Restoration below Swiftmend's 30-point requirement in every case), meaning the majority of real top players can't even take Swiftmend, which today's tool judges them on anyway.
+I want the app to detect a druid's talent archetype and actual per-fight healing role, and adjust which metrics it shows and how it judges them accordingly, so that a Dreamstate or Balance-hybrid druid isn't silently judged against deep-resto assumptions they were never trying to meet. A real talent scan this session found only 3 of 45 druids pulled from top-competing guilds were even talent-eligible for deep resto — the other 42 clustered into `35/0/26`, `37/0/24`, and `48/0/13` splits (Restoration below Swiftmend's 30-point requirement in every case), meaning the majority of real top players can't even take Swiftmend, which today's tool judges them on anyway. Split into four sub-stories (903a-903d) since the combined scope was too large for one implementation plan/session — each is independently implementable, with 903c and 903d depending on 903a's detection work landing first.
+
+### 903a — Per-fight talent-archetype detection 🔲 Todo
+
+I want per-fight talent-archetype detection (story 900's bucket definitions) computed for the report's selected druid and surfaced in the UI, so that 903c's card-hiding and 903d's onboarding notice have real per-fight data to consume instead of the offline-only classification story 900 produced.
 
 **Acceptance criteria**
 
-- Per-fight talent buckets (story 900's definitions) are computed and available to every metric card, not just as an offline analysis artifact.
-- Per-fight healing-role detection is refined to work per fight, not once per report — today's detection (story 005) sums healing casts across the whole report and reuses one druid identity for every fight, which misjudges a Restokin-style druid who legitimately swaps between healing and DPS per pull with no respec (see story 709, which this supersedes/absorbs).
-- Metrics whose prerequisite talent is unreachable for the detected bucket are hidden, not shown as a misleading judgement — e.g. the Swiftmend quality audit card doesn't render at all below 30 Restoration points, rather than defaulting to a fake "green" from 0 wasteful casts out of 0 total.
-- The onboarding screen (705) and/or a new in-app notice makes explicit which playstyles the tool judges well (deep resto, and Dreamstate to a lesser extent) versus which it doesn't yet support meaningfully (Regrowth-spec, Restokin, Balance druids playing a healer-style role) — so a user in an unsupported archetype gets an honest "this tool isn't built for your build yet" rather than a silently wrong scorecard.
-- Story 709 is retired once its scope is covered here (per this repo's "a story isn't done until its paperwork is retired" convention) — its off-role-fight exclusion becomes a special case of per-fight role detection, not a separate mechanism.
+- Talent-bucket classification logic (currently only in `scripts/tagArchetypes.ts`, story 900) is extracted into a shared `src/` module so both the CLI tool and the app use the same classifier — no duplicated bucket logic.
+- The bucket is computed per fight (not once per report) by reading the `CombatantInfo` event's `talents` field for the selected druid — the same event/field story 900's script already reads — fetched via the app's existing `fetchEvents`/event-cache layer (already used for other `CombatantInfo` consumers, e.g. Prep hygiene, story 601).
+- The detected bucket (or an explicit "unknown — talent read failed" state when the event is missing/malformed) is surfaced somewhere visible in the Scorecard UI (e.g. next to the druid name/label), so this story has a verifiable, user-visible outcome rather than shipping as dead plumbing with no consumer yet.
+- Out of scope: card-hiding behavior (903c) and any change to healing-role detection (903b) — this story is detection + display only.
+
+### 903b — Per-fight healing-role detection 🔲 Todo
+
+I want healing-role detection refined to work per fight instead of once per report, so that a Restokin-style druid who legitimately swaps between healing and DPS across pulls (no respec) is judged per-fight rather than by one whole-report identity. Absorbs/supersedes story 709.
+
+**Acceptance criteria**
+
+- Today's detection (story 005) sums healing casts across the whole report and reuses one druid identity for every fight; this is refined to detect per fight instead.
+- A fight where the selected druid's healing-cast count in that fight falls below story 005's `MIN_HEALING_CASTS_FOR_DETECTION` threshold is excluded from that druid's aggregation in 702's whole-report dashboard and doesn't contribute to any epic's worst-of judgement.
+- The excluded fight is still visible in the fight list (e.g. labeled "not healing this fight" or similar), not silently dropped, so a user isn't confused about a missing pull.
+- Confirmed against a real report with this exact scenario (see `docs/testing.md`'s `F7aL6x13zVq8kTRt` entry — a druid respecs to DPS for some bosses, back to Resto for others, within one report; flagged during story 802's calibration-tooling work).
+- Story 709 is retired once this ships (per this repo's "a story isn't done until its paperwork is retired" convention) — its off-role-fight exclusion becomes a special case of per-fight role detection, not a separate mechanism.
+
+### 903c — Hide metrics whose prerequisite talent is unreachable 🔲 Todo
+
+Depends on 903a. I want metric cards gated behind a talent the detected archetype bucket can't reach to stop rendering a misleading judgement — e.g. the Swiftmend quality audit card doesn't render at all below 30 Restoration points, rather than defaulting to a fake "green" from 0 wasteful casts out of 0 total.
+
+**Acceptance criteria**
+
+- An inventory of which metric cards require which talent thresholds is documented (at minimum: Swiftmend quality audit needs Restoration ≥ 30; review the Nature's Swiftness and Innervate audit cards, and any others, for a similar talent prerequisite).
+- Each identified card is hidden — not rendered, not silently scored "green" — for a fight where 903a's detected bucket doesn't meet that card's prerequisite; a short explanatory note replaces it (e.g. "Not shown — this build can't take Swiftmend").
+- Whole-report/epic rollup logic (`scripts/lib/rollup.ts` and the Scorecard epic summaries) treats a hidden card's absence as "not applicable," not as a missing or failing data point.
+
+### 903d — Onboarding notice on supported playstyles 🔲 Todo
+
+Depends on 903a. I want the onboarding screen (705) and/or a new in-app notice to make explicit which playstyles the tool judges well (deep resto, and Dreamstate to a lesser extent) versus which it doesn't yet support meaningfully (Regrowth-spec, Restokin, Balance druids playing a healer-style role) — so a user in an unsupported archetype gets an honest "this tool isn't built for your build yet" rather than a silently wrong scorecard.
+
+**Acceptance criteria**
+
+- The onboarding screen and/or an in-app notice states plainly, in generic terms, which playstyles are well-supported vs. not.
+- Where practical, the notice is contextualized to the actually-detected archetype (903a) once a report/druid is loaded, not just generic static text on the onboarding screen.
 
 ### 904 — Overhaul whole-report rollup policy 🔲 Todo
 
