@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   combineFightEpicStatus,
-  worstReadyJudgement,
+  rollupEpicJudgement,
 } from "./reportAggregation";
 import type { EpicSummaryStatus } from "../app/components/Scorecard/epicSummaryStatus";
 
@@ -48,16 +48,40 @@ describe("combineFightEpicStatus", () => {
   });
 });
 
-describe("worstReadyJudgement", () => {
+describe("rollupEpicJudgement", () => {
   it("returns null when nothing has resolved yet", () => {
-    expect(worstReadyJudgement([loading, loading])).toBeNull();
+    expect(
+      rollupEpicJudgement([
+        { status: loading, weightMs: 1000 },
+        { status: loading, weightMs: 1000 },
+      ]),
+    ).toBeNull();
   });
 
-  it("ignores not-yet-ready entries and reports the worst of the rest", () => {
-    expect(worstReadyJudgement([green, loading, red])).toBe("red");
+  it("ignores not-yet-ready and errored entries, aggregating only the ready ones", () => {
+    expect(
+      rollupEpicJudgement([
+        { status: green, weightMs: 9000 },
+        { status: loading, weightMs: 9000 },
+        { status: errored, weightMs: 9000 },
+        { status: red, weightMs: 1000 },
+      ]),
+    ).toEqual({
+      judgement: "green",
+      breakdown: { green: 1, orange: 0, red: 1 },
+    });
   });
 
-  it("ignores errored entries the same as loading ones", () => {
-    expect(worstReadyJudgement([green, errored])).toBe("green");
+  it("reports a duration-weighted median, not a worst-of, across ready fights", () => {
+    expect(
+      rollupEpicJudgement([
+        { status: green, weightMs: 8000 },
+        { status: green, weightMs: 8000 },
+        { status: red, weightMs: 1000 },
+      ]),
+    ).toEqual({
+      judgement: "green",
+      breakdown: { green: 2, orange: 0, red: 1 },
+    });
   });
 });
