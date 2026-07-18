@@ -581,9 +581,11 @@ Depends on 903a. I want the onboarding screen (705) and/or a new in-app notice t
 - The onboarding screen and/or an in-app notice states plainly, in generic terms, which playstyles are well-supported vs. not.
 - Where practical, the notice is contextualized to the actually-detected archetype (903a) once a report/druid is loaded, not just generic static text on the onboarding screen.
 
-### 904 — Overhaul whole-report rollup policy 🔲 Todo
+### 904 — Overhaul whole-report rollup policy ✅ Done
 
 I want the whole-report dashboard's per-epic judgement to stop being a strict worst-of across every fight, so that one rough pull in an otherwise-clean 10-13-fight raid night doesn't single-handedly crush the whole night's verdict to red. Real corpus data showed this starkly: GCD economy was 33% green/27% orange/39% red _per fight_, but 0% green/9% orange/91% red at the worst-of rollup; spell discipline was 70% green per-fight but only 35% green at rollup. The threshold values aren't the problem here — the aggregation is.
+
+Implemented as a duration-weighted median (`weightedMedianJudgement`) plus a fight-count breakdown (`judgementBreakdown`), both new pure functions in `src/metrics/judgement.ts`, shared by the app's `ReportDashboard` chip strip (`rollupEpicJudgement` in `src/metrics/reportAggregation.ts`) and `scripts/lib/rollup.ts`'s CLI rollup — one policy, not two. Chosen over a percentage-band cutoff scheme specifically to avoid needing new arbitrary sourced constants (a median needs none); chosen over a per-metric numeric-pool-and-rejudge approach because several metrics (accidental blooms, restack tax, downranking flags) are judged as raw per-fight event counts that can't be meaningfully pooled and re-judged against a single-fight threshold. See `docs/thresholds.md`'s revised compounding-factors bullet for the full mechanism.
 
 **Acceptance criteria**
 
