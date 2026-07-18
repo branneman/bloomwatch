@@ -11,7 +11,7 @@ import {
 export type ArchetypeBucketStatus =
   | { status: "loading" }
   | { status: "error"; error: string }
-  | { status: "ready"; bucket: TalentBucket };
+  | { status: "ready"; bucket: TalentBucket; restoration: number };
 
 type TaggedState = { accessToken: string; summary: ArchetypeBucketStatus };
 
@@ -43,7 +43,11 @@ export function useArchetypeBucket(
           talents === null
             ? "unknown-no-talent-data"
             : classifyBucket(talents[0], talents[1], talents[2]);
-        setState({ accessToken, summary: { status: "ready", bucket } });
+        const restoration = talents === null ? 0 : talents[2];
+        setState({
+          accessToken,
+          summary: { status: "ready", bucket, restoration },
+        });
       })
       .catch((err: unknown) =>
         setState({

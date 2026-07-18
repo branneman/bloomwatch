@@ -36,7 +36,11 @@ describe("useArchetypeBucket", () => {
     expect(result.current).toEqual({ status: "loading" });
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
-    expect(result.current).toEqual({ status: "ready", bucket: "deep-resto" });
+    expect(result.current).toEqual({
+      status: "ready",
+      bucket: "deep-resto",
+      restoration: 41,
+    });
   });
 
   it("reports unknown-no-talent-data as a ready bucket, not an error, when talents can't be read", async () => {
@@ -57,6 +61,7 @@ describe("useArchetypeBucket", () => {
     expect(result.current).toEqual({
       status: "ready",
       bucket: "unknown-no-talent-data",
+      restoration: 0,
     });
   });
 
