@@ -212,6 +212,72 @@ describe("fetchCastsTable", () => {
     expect(requestBody?.query).toContain("dataType: Casts");
     expect(requestBody?.query).toContain("fightIDs: [6, 9]");
   });
+
+  // Live-reported gap in postGraphQL's single retry: WCL returned "You must
+  // either provide fightIDs, or provide startTime and endTime, or both." for
+  // this exact table() query on an archived report (mtRh3kJ9YMLazyvQ) that
+  // hadn't finished re-warming its analysis cache — the same class of bug
+  // documented on fetchMasterDataAbilities below, just surfacing as a
+  // GraphQL error instead of a null field. One retry (1s later) wasn't
+  // enough; a manual page refresh (more elapsed time) was.
+  it("retries twice and succeeds when WCL returns a GraphQL errors response twice in a row", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(USER_API_URL, () => {
+        callCount++;
+        if (callCount <= 2) {
+          return HttpResponse.json({
+            data: { reportData: { report: null } },
+            errors: [
+              {
+                message:
+                  "You must either provide fightIDs, or provide startTime and endTime, or both.",
+              },
+            ],
+          });
+        }
+        return HttpResponse.json(castsTableFixture);
+      }),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6]);
+      await vi.advanceTimersByTimeAsync(5000);
+      const result = await promise;
+
+      expect(callCount).toBe(3);
+      expect(result).toHaveLength(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("throws a readable WclGraphQLError if every retry is exhausted", async () => {
+    server.use(
+      http.post(USER_API_URL, () =>
+        HttpResponse.json({
+          data: { reportData: { report: null } },
+          errors: [
+            {
+              message:
+                "You must either provide fightIDs, or provide startTime and endTime, or both.",
+            },
+          ],
+        }),
+      ),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6]);
+      const rejects = expect(promise).rejects.toThrow(WclGraphQLError);
+      await vi.advanceTimersByTimeAsync(5000);
+      await rejects;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("fetchMasterDataAbilities", () => {

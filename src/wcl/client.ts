@@ -62,6 +62,12 @@ export async function fetchWithTimeout(
 }
 
 const GRAPHQL_RETRY_DELAY_MS = 1000;
+// Initial attempt + 2 retries. A single retry (the original mirror of a
+// manual page refresh) wasn't always enough for a report whose analysis
+// cache needs longer to warm — e.g. an archived report re-accessed after a
+// long dormancy (reported live on mtRh3kJ9YMLazyvQ's table() query; see
+// fetchCastsTable's test for the reproduction).
+const GRAPHQL_MAX_ATTEMPTS = 3;
 
 async function postGraphQLOnce(
   accessToken: string,
@@ -92,21 +98,29 @@ async function postGraphQLOnce(
   return parsed.data;
 }
 
-// One retry mirrors what a manual page refresh already does when WCL
-// returns a transient GraphQL error (see WclGraphQLError above) — without
-// making the user do it by hand. Not applied to plain HTTP failures (4xx/5xx
-// via WclApiError), only to this specific "200 OK but partial" shape.
+// Retrying mirrors what a manual page refresh already does when WCL returns
+// a transient GraphQL error (see WclGraphQLError above) — without making the
+// user do it by hand. Not applied to plain HTTP failures (4xx/5xx via
+// WclApiError), only to this specific "200 OK but partial" shape.
 export async function postGraphQL(
   accessToken: string,
   query: string,
   signal?: AbortSignal,
 ) {
-  try {
-    return await postGraphQLOnce(accessToken, query, signal);
-  } catch (err) {
-    if (!(err instanceof WclGraphQLError)) throw err;
-    await new Promise((resolve) => setTimeout(resolve, GRAPHQL_RETRY_DELAY_MS));
-    return postGraphQLOnce(accessToken, query, signal);
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await postGraphQLOnce(accessToken, query, signal);
+    } catch (err) {
+      if (
+        !(err instanceof WclGraphQLError) ||
+        attempt >= GRAPHQL_MAX_ATTEMPTS
+      ) {
+        throw err;
+      }
+      await new Promise((resolve) =>
+        setTimeout(resolve, GRAPHQL_RETRY_DELAY_MS),
+      );
+    }
   }
 }
 
