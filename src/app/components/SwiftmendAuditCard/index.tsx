@@ -13,6 +13,8 @@ import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
 import { DataTable } from "../ui/DataTable";
 import { ClassTag } from "../ui/ClassTag";
+import { useArchetypeBucket } from "../Scorecard/useArchetypeBucket";
+import { SWIFTMEND_MIN_RESTORATION } from "../../../report/archetypeDetection";
 
 export interface SwiftmendAuditCardProps {
   accessToken: string;
@@ -62,6 +64,14 @@ export function SwiftmendAuditCard({
   fetchEvents,
 }: SwiftmendAuditCardProps) {
   const [result, setResult] = useState<FetchResult | null>(null);
+
+  const archetypeStatus = useArchetypeBucket(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
 
   useEffect(() => {
     const fightArg = {
@@ -138,6 +148,37 @@ export function SwiftmendAuditCard({
         threshold={THRESHOLD}
       >
         <p role="alert">{result.error}</p>
+      </MetricCard>
+    );
+  }
+
+  if (archetypeStatus.status === "loading") {
+    return (
+      <MetricCard
+        icon={ICON}
+        title="Swiftmend quality audit"
+        threshold={THRESHOLD}
+      >
+        <p>Calculating…</p>
+      </MetricCard>
+    );
+  }
+
+  if (
+    archetypeStatus.status === "ready" &&
+    archetypeStatus.restoration < SWIFTMEND_MIN_RESTORATION
+  ) {
+    return (
+      <MetricCard
+        icon={ICON}
+        title="Swiftmend quality audit"
+        threshold={THRESHOLD}
+      >
+        <p>
+          Not shown — this build can&apos;t take Swiftmend (needs{" "}
+          {SWIFTMEND_MIN_RESTORATION}+ Restoration points; this fight&apos;s
+          build has {archetypeStatus.restoration}).
+        </p>
       </MetricCard>
     );
   }

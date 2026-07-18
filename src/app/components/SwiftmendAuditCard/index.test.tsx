@@ -7,6 +7,7 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import {
   aFight,
   aCastEvent,
+  aCombatantInfoEvent,
   anApplyBuffEvent,
   aRemoveBuffEvent,
   aHealEvent,
@@ -25,6 +26,14 @@ function makeFetchEvents(
   ): Promise<WclEvent[]> => {
     if (dataType === "Casts") return Promise.resolve(castEvents);
     if (dataType === "Healing") return Promise.resolve(healingEvents);
+    if (dataType === "CombatantInfo") {
+      return Promise.resolve([
+        aCombatantInfoEvent({
+          sourceID: 2,
+          talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
+        }),
+      ]);
+    }
     return Promise.resolve(buffEvents);
   };
 }
@@ -231,7 +240,17 @@ describe("SwiftmendAuditCard", () => {
 
   it("requests Healing events with includeResources: true", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
-    const fetchEvents = vi.fn().mockResolvedValue([]);
+    const fetchEvents = vi.fn((...args: unknown[]) => {
+      const dataType = args[3] as WclEventDataType;
+      return dataType === "CombatantInfo"
+        ? Promise.resolve([
+            aCombatantInfoEvent({
+              sourceID: 2,
+              talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
+            }),
+          ])
+        : Promise.resolve([]);
+    });
 
     render(
       <SwiftmendAuditCard
@@ -258,5 +277,47 @@ describe("SwiftmendAuditCard", () => {
       (call) => call[3] === "Healing",
     );
     expect(healingCall?.[4]).toBe(true);
+  });
+
+  it("shows a placeholder instead of real content when Restoration is below Swiftmend's threshold", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> =>
+      dataType === "CombatantInfo"
+        ? Promise.resolve([
+            aCombatantInfoEvent({
+              sourceID: 2,
+              talents: [{ id: 0 }, { id: 0 }, { id: 29 }],
+            }),
+          ])
+        : Promise.resolve([]);
+
+    render(
+      <SwiftmendAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Not shown — this build can't take Swiftmend/),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText("No Swiftmends cast this fight."),
+    ).not.toBeInTheDocument();
   });
 });
