@@ -556,7 +556,7 @@ Depends on 903c. I want `scripts/lib/rollup.ts`'s whole-report pooling (used by 
 - `scripts/lib/rollup.ts`'s `SpellDisciplineRollup` pooling excludes a fight's Swiftmend audit judgement/stats from the whole-report numeric rollup when that fight's druid can't reach Swiftmend's talent threshold (903c's threshold constant, reused not redefined), and similarly for Nature's Swiftness.
 - Confirmed against a real report already known to include a Swiftmend-ineligible druid (e.g. `docs/testing.md`'s `bKRZ68XqgwYkxtzm` entry).
 
-### 903d — Onboarding notice on supported playstyles 🔲 Todo
+### 903d — Onboarding notice on supported playstyles ✅ Done
 
 Depends on 903a. I want the onboarding screen (705) and/or a new in-app notice to make explicit which playstyles the tool judges well (deep resto, and Dreamstate to a lesser extent) versus which it doesn't yet support meaningfully (Regrowth-spec, Restokin, Balance druids playing a healer-style role) — so a user in an unsupported archetype gets an honest "this tool isn't built for your build yet" rather than a silently wrong scorecard.
 
