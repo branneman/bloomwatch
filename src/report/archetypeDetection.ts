@@ -11,6 +11,16 @@ export type TalentBucket =
   | "other-unclassified"
   | "unknown-no-talent-data";
 
+// Sourced from TBC's universal 5-points-per-talent-tier rule (tier N
+// unlocks at 5*(N-1) points spent, uniform across every class/tree) applied
+// to Nature's Swiftness's tier-5 placement — cross-validated against this
+// file's own already-verified figures: Swiftmend (tier 7 -> 30 points) and
+// Tree of Life (tier 9 -> 40 points to unlock the tier + 1 spent on the
+// capstone itself = 41) both match this repo's existing, live-data-confirmed
+// thresholds exactly (see docs/backlog.md).
+export const NATURES_SWIFTNESS_MIN_RESTORATION = 20;
+export const SWIFTMEND_MIN_RESTORATION = 30;
+
 // Order matters: deep-resto and the two dreamstate tiers are specific
 // signatures checked first; "mostly-resto" vs "mostly-balance" is a
 // same-priority fallback comparison between whichever tree actually has
