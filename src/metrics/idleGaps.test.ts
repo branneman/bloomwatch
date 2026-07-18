@@ -83,6 +83,16 @@ describe("computeIdleGaps", () => {
     expect(computeIdleGaps(redEvents, 2, 0, 100000).judgement).toBe("red");
   });
 
+  it("judges 6% dead time green after story 908's recalibration (was orange under the old 5% boundary)", () => {
+    const events = [
+      aCastEvent({ timestamp: 0, sourceID: 2, abilityGameID: 33763 }),
+      aCastEvent({ timestamp: 7500, sourceID: 2, abilityGameID: 33763 }),
+    ];
+    const result = computeIdleGaps(events, 2, 0, 100000);
+    expect(result.deadTimePct).toBeCloseTo(6);
+    expect(result.judgement).toBe("green");
+  });
+
   it("ignores casts from other actors", () => {
     const events = [
       aCastEvent({ timestamp: 0, sourceID: 99, abilityGameID: 33763 }),

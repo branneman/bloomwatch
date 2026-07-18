@@ -5,8 +5,12 @@ import { judgeThresholdBelow, type Judgement } from "./judgement";
 // Backlog story 102: gaps > 1.7s between casts are flagged as idle time.
 export const IDLE_GAP_THRESHOLD_MS = 1700;
 
-// R/O/G thresholds per docs/backlog.md story 102: green < 5%, orange 5-15%, red > 15%.
-const GREEN_MAX_PCT = 5;
+// R/O/G thresholds per docs/backlog.md story 102: green < 7%, orange 7-15%, red > 15%.
+// Green boundary revised 5% -> 7% by story 908's exemplar recalibration
+// (167 real deep-resto kill-fights: median dead time 4.0%, but only 56%
+// landed green under the old 5% line; 7% better matches real elite play
+// without loosening what counts as genuinely bad idle time).
+const GREEN_MAX_PCT = 7;
 const ORANGE_MAX_PCT = 15;
 
 export interface IdleGap {
