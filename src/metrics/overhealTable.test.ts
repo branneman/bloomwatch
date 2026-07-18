@@ -154,12 +154,12 @@ describe("computeOverhealTable", () => {
   });
 
   it.each([
-    { overhealPct: 39, expected: "green" },
-    { overhealPct: 40, expected: "orange" },
-    { overhealPct: 70, expected: "orange" },
-    { overhealPct: 71, expected: "red" },
+    { overhealPct: 79, expected: "green" },
+    { overhealPct: 80, expected: "orange" },
+    { overhealPct: 90, expected: "orange" },
+    { overhealPct: 91, expected: "red" },
   ])(
-    "judges a Bloom row at $overhealPct% overheal as $expected",
+    "judges a Bloom row at $overhealPct% overheal as $expected (recalibrated, story 905)",
     ({ overhealPct, expected }) => {
       const healingEvents = [
         aHealEvent({
@@ -178,6 +178,78 @@ describe("computeOverhealTable", () => {
       expect(result.rows[0].judgement).toBe(expected);
     },
   );
+
+  it.each([
+    { bucket: "deep-resto" as const, overhealPct: 37, expected: "green" },
+    { bucket: "deep-resto" as const, overhealPct: 38, expected: "orange" },
+    { bucket: "deep-resto" as const, overhealPct: 60, expected: "orange" },
+    { bucket: "deep-resto" as const, overhealPct: 61, expected: "red" },
+    {
+      bucket: "likely-dreamstate-full" as const,
+      overhealPct: 59,
+      expected: "green",
+    },
+    {
+      bucket: "likely-dreamstate-full" as const,
+      overhealPct: 60,
+      expected: "orange",
+    },
+    {
+      bucket: "likely-dreamstate-full" as const,
+      overhealPct: 85,
+      expected: "orange",
+    },
+    {
+      bucket: "likely-dreamstate-full" as const,
+      overhealPct: 86,
+      expected: "red",
+    },
+    {
+      bucket: "likely-dreamstate-partial" as const,
+      overhealPct: 70,
+      expected: "orange",
+    },
+    { bucket: "mostly-resto" as const, overhealPct: 61, expected: "red" },
+    {
+      bucket: "unknown-no-talent-data" as const,
+      overhealPct: 61,
+      expected: "red",
+    },
+  ])(
+    "judges a Regrowth-direct row for $bucket at $overhealPct% overheal as $expected (story 905)",
+    ({ bucket, overhealPct, expected }) => {
+      const healingEvents = [
+        aHealEvent({
+          abilityGameID: 26980,
+          amount: 100 - overhealPct,
+          overheal: overhealPct,
+        }),
+      ];
+
+      const result = computeOverhealTable(
+        healingEvents,
+        DRUID_ID,
+        RESOLVED_ABILITIES,
+        bucket,
+      );
+
+      expect(result.rows[0].judgement).toBe(expected);
+    },
+  );
+
+  it("defaults Regrowth-direct to the deep-resto band when no archetype bucket is passed", () => {
+    const healingEvents = [
+      aHealEvent({ abilityGameID: 26980, amount: 39, overheal: 61 }),
+    ];
+
+    const result = computeOverhealTable(
+      healingEvents,
+      DRUID_ID,
+      RESOLVED_ABILITIES,
+    );
+
+    expect(result.rows[0].judgement).toBe("red");
+  });
 
   it.each([
     { overhealPct: 29, expected: "green" },

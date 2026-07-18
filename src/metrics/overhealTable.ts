@@ -2,6 +2,7 @@ import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
 import { judgeThresholdBelow, worstJudgement } from "./judgement";
 import type { ResolvedAbility } from "../abilities/resolveAbilities";
+import type { TalentBucket } from "../report/archetypeDetection";
 
 export type OverhealCategory = "hot-tick" | "bloom" | "direct";
 
@@ -19,14 +20,41 @@ export interface OverhealTableResult {
   judgement: Judgement;
 }
 
-// Bloom overheal per docs/backlog.md story 404: green < 40%, orange 40-70%, red > 70%.
+// Bloom overheal per docs/backlog.md story 905 (recalibrated from story 404's original
+// 40/70 against real exemplar data -- see docs/thresholds.md): green < 80%, orange
+// 80-90%, red > 90%. Archetype-invariant: deep-resto and dreamstate exemplars showed
+// nearly identical Bloom overheal distributions, so this threshold isn't split by
+// bucket, unlike Regrowth-direct below.
 function judgeBloomOverheal(overhealPct: number): Judgement {
-  return judgeThresholdBelow(overhealPct, { greenMax: 40, orangeMax: 70 });
+  return judgeThresholdBelow(overhealPct, { greenMax: 80, orangeMax: 90 });
 }
 
-// Direct heal overheal per docs/backlog.md story 404: green < 30%, orange 30-50%, red > 50%.
+// Direct heal overheal for Healing Touch and Swiftmend, per docs/backlog.md story 404:
+// green < 30%, orange 30-50%, red > 50%. Story 905's exemplar review found both spells
+// already fit this threshold well in every archetype bucket, so it's unchanged.
 function judgeDirectOverheal(overhealPct: number): Judgement {
   return judgeThresholdBelow(overhealPct, { greenMax: 30, orangeMax: 50 });
+}
+
+// Regrowth-direct overheal per docs/backlog.md story 905 (split from the shared
+// "direct" threshold above because real exemplar data showed a genuine archetype
+// divergence -- see docs/thresholds.md): deep-resto green < 38%, orange 38-60%, red
+// > 60%; dreamstate (full or partial) green < 60%, orange 60-85%, red > 85%. Every
+// other bucket (mostly-resto, mostly-balance, restokin-shaped, other-unclassified,
+// unknown-no-talent-data) falls back to deep-resto's band -- those builds aren't
+// well-supported by this tool yet (story 903d), so this story doesn't manufacture a
+// new precision claim about them.
+function judgeRegrowthDirectOverheal(
+  overhealPct: number,
+  bucket: TalentBucket,
+): Judgement {
+  if (
+    bucket === "likely-dreamstate-full" ||
+    bucket === "likely-dreamstate-partial"
+  ) {
+    return judgeThresholdBelow(overhealPct, { greenMax: 60, orangeMax: 85 });
+  }
+  return judgeThresholdBelow(overhealPct, { greenMax: 38, orangeMax: 60 });
 }
 
 // Fixed row identity: which category a spell/portion belongs to, its display label, and
@@ -37,7 +65,7 @@ function judgeDirectOverheal(overhealPct: number): Judgement {
 interface RowSpec {
   category: OverhealCategory;
   spell: string;
-  judge: ((overhealPct: number) => Judgement) | null;
+  judge: ((overhealPct: number, bucket: TalentBucket) => Judgement) | null;
 }
 
 const REJUVENATION_TICK: RowSpec = {
@@ -58,7 +86,7 @@ const LIFEBLOOM_BLOOM: RowSpec = {
 const REGROWTH_DIRECT: RowSpec = {
   category: "direct",
   spell: "Regrowth (direct)",
-  judge: judgeDirectOverheal,
+  judge: judgeRegrowthDirectOverheal,
 };
 const HEALING_TOUCH: RowSpec = {
   category: "direct",
@@ -115,6 +143,7 @@ export function computeOverhealTable(
   healingEvents: WclEvent[],
   druidId: number,
   resolvedAbilities: Map<number, ResolvedAbility>,
+  archetypeBucket: TalentBucket = "deep-resto",
 ): OverhealTableResult {
   const totals = new Map<RowSpec, Accumulator>();
 
@@ -152,7 +181,10 @@ export function computeOverhealTable(
       amount: totalsForRow.amount,
       overheal: totalsForRow.overheal,
       overhealPct,
-      judgement: rowSpec.judge === null ? null : rowSpec.judge(overhealPct),
+      judgement:
+        rowSpec.judge === null
+          ? null
+          : rowSpec.judge(overhealPct, archetypeBucket),
     });
   }
 
