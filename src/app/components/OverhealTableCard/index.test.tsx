@@ -5,7 +5,11 @@ import * as overhealTableModule from "../../../metrics/overhealTable";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
-import { aFight, aHealEvent } from "../../../testUtils/factories";
+import {
+  aCombatantInfoEvent,
+  aFight,
+  aHealEvent,
+} from "../../../testUtils/factories";
 
 const RESOLVED_ABILITIES = new Map<number, ResolvedAbility>([
   [33763, { kind: "spell", spell: "Lifebloom", rank: 1 }],
@@ -211,5 +215,52 @@ describe("OverhealTableCard", () => {
       (call) => call[3] === "Healing",
     );
     expect(healingCall?.[4]).toBe(true);
+  });
+
+  it("judges Regrowth-direct overheal against the detected archetype's threshold band", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
+    const resolvedAbilities = new Map<number, ResolvedAbility>([
+      [26980, { kind: "spell", spell: "Regrowth", rank: 10 }],
+    ]);
+    const healingEvents = [
+      aHealEvent({ abilityGameID: 26980, amount: 30, overheal: 70 }), // 70% overheal, direct (not tick)
+    ];
+    const fetchEvents = (
+      _accessToken: string,
+      _reportCode: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> => {
+      if (dataType === "Healing") return Promise.resolve(healingEvents);
+      if (dataType === "CombatantInfo") {
+        return Promise.resolve([
+          aCombatantInfoEvent({
+            sourceID: 2,
+            talents: [{ id: 35 }, { id: 0 }, { id: 13 }],
+          }),
+        ]);
+      }
+      return Promise.resolve([]);
+    };
+
+    render(
+      <OverhealTableCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        resolvedAbilities={resolvedAbilities}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("Regrowth (direct)")).toBeInTheDocument(),
+    );
+    // 70% overheal is red under deep-resto's band (>60%) but only orange under
+    // dreamstate's wider band (60-85%). This druid's talents (35/0/13) classify as
+    // likely-dreamstate-full, so it must land orange ("Fair"), not red ("Bad").
+    expect(screen.queryAllByText("Fair").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Bad")).not.toBeInTheDocument();
   });
 });

@@ -11,6 +11,7 @@ import {
 import { MetricCard } from "../ui/MetricCard";
 import { DataTable } from "../ui/DataTable";
 import { JudgementChip } from "../ui/JudgementChip";
+import { useArchetypeBucket } from "../Scorecard/useArchetypeBucket";
 
 export interface OverhealTableCardProps {
   accessToken: string;
@@ -35,7 +36,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightningoverload.jpg";
 
 const THRESHOLD =
-  "Separate thresholds by heal type. Bloom overheal (Lifebloom): green < 40%, orange 40-70%, red > 70%. Direct heal overheal (Regrowth direct, Healing Touch, Swiftmend): green < 30%, orange 30-50%, red > 50%. HoT tick overheal (Rejuvenation, Regrowth's HoT portion) is shown for context only, with no judgement of its own — high overheal is inherent to HoTs whose ticks often land on a target other healers are also topping off.";
+  "Separate thresholds by heal type. Bloom overheal (Lifebloom): green < 80%, orange 80-90%, red > 90%. Regrowth-direct overheal varies by detected talent archetype: deep-resto green < 38%, orange 38-60%, red > 60%; Dreamstate green < 60%, orange 60-85%, red > 85% (other/undetected archetypes use the deep-resto band). Healing Touch and Swiftmend overheal: green < 30%, orange 30-50%, red > 50%. HoT tick overheal (Rejuvenation, Regrowth's HoT portion) is shown for context only, with no judgement of its own — high overheal is inherent to HoTs whose ticks often land on a target other healers are also topping off.";
 
 const CATEGORY_LABEL: Record<OverhealCategory, string> = {
   "hot-tick": "HoT tick (informational)",
@@ -52,6 +53,15 @@ export function OverhealTableCard({
   fetchEvents,
 }: OverhealTableCardProps) {
   const [result, setResult] = useState<FetchResult | null>(null);
+  const archetypeStatus = useArchetypeBucket(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
+  const archetypeBucket =
+    archetypeStatus.status === "ready" ? archetypeStatus.bucket : undefined;
 
   useEffect(() => {
     fetchEvents(
@@ -67,6 +77,7 @@ export function OverhealTableCard({
             healingEvents,
             druidId,
             resolvedAbilities,
+            archetypeBucket,
           );
           setResult({ accessToken, result: computed });
         } catch (err) {
@@ -93,6 +104,7 @@ export function OverhealTableCard({
     fight.endTime,
     druidId,
     resolvedAbilities,
+    archetypeBucket,
     fetchEvents,
   ]);
 
