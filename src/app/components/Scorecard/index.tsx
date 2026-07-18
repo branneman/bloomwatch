@@ -15,6 +15,11 @@ import { ManaEconomyContent } from "../ManaEconomyContent";
 import { DeathForensicsContent } from "../DeathForensicsContent";
 import { PrepHygieneContent } from "../PrepHygieneContent";
 import { useFightEpicSummaries, type EpicId } from "./useFightEpicSummaries";
+import { useArchetypeBucket } from "./useArchetypeBucket";
+import {
+  BUCKET_DEFINITIONS,
+  type TalentBucket,
+} from "../../../report/archetypeDetection";
 import { Widget } from "../ui/Widget";
 import { JudgementChip } from "../ui/JudgementChip";
 import { SpellIcon } from "../ui/SpellIcon";
@@ -61,6 +66,17 @@ const DEATH_FORENSICS_ICON =
 const PREP_HYGIENE_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg";
 
+const ARCHETYPE_LABELS: Record<TalentBucket, string> = {
+  "deep-resto": "Deep resto",
+  "likely-dreamstate-full": "Likely Dreamstate (full)",
+  "likely-dreamstate-partial": "Likely Dreamstate (partial)",
+  "mostly-resto": "Mostly Restoration",
+  "mostly-balance": "Mostly Balance",
+  "restokin-shaped": "Restokin-shaped",
+  "other-unclassified": "Other/unclassified",
+  "unknown-no-talent-data": "Unknown (talent read unavailable)",
+};
+
 export function Scorecard({
   accessToken,
   reportCode,
@@ -103,6 +119,13 @@ export function Scorecard({
     actorClasses,
     fetchEvents,
   );
+  const archetypeStatus = useArchetypeBucket(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
 
   const outcome =
     fight.kill === true
@@ -121,6 +144,16 @@ export function Scorecard({
         {fight.name} ({outcome}, {duration})
       </h2>
       <p className={styles.druidLine}>{druidLabel}</p>
+      <p className={styles.archetypeLine}>
+        Talent archetype:{" "}
+        {archetypeStatus.status === "loading" && "Calculating…"}
+        {archetypeStatus.status === "error" && "unavailable"}
+        {archetypeStatus.status === "ready" && (
+          <span title={BUCKET_DEFINITIONS[archetypeStatus.bucket]}>
+            {ARCHETYPE_LABELS[archetypeStatus.bucket]}
+          </span>
+        )}
+      </p>
       <p className={styles.reportLine}>
         Report <code>{reportCode}</code>{" "}
         <a

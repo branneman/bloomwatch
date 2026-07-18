@@ -60,6 +60,11 @@ describe("Scorecard", () => {
       screen.getByRole("heading", { name: /Lady Vashj \(Kill, 5:41\)/ }),
     ).toBeInTheDocument();
     expect(screen.getByText("Fernwhisper — Restoration")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText(/Talent archetype:/)).toHaveTextContent(
+        "Talent archetype: Unknown (talent read unavailable)",
+      ),
+    );
 
     expect(
       screen.getByRole("button", { name: /GCD economy/ }),

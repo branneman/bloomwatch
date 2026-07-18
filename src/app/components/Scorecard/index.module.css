@@ -6,6 +6,11 @@
   color: var(--text);
   margin-bottom: var(--space-1);
 }
+.archetypeLine {
+  font-size: var(--text-small-size);
+  color: var(--text);
+  margin-bottom: var(--space-1);
+}
 .reportLine {
   font-size: var(--text-small-size);
   color: var(--text);
