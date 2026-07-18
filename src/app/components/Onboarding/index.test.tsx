@@ -14,6 +14,9 @@ describe("Onboarding", () => {
       screen.getByRole("heading", { name: "Who it's for" }),
     ).toBeInTheDocument();
     expect(
+      screen.getByRole("heading", { name: "Which builds this fits" }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("heading", {
         name: "Why not just look at the healing meter?",
       }),
@@ -21,6 +24,9 @@ describe("Onboarding", () => {
     expect(screen.getByText(/Primary/)).toBeInTheDocument();
     expect(screen.getByText(/Secondary/)).toBeInTheDocument();
     expect(screen.getByText(/Tertiary/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/deep resto gets the most precise read/),
+    ).toBeInTheDocument();
   });
 
   it("links to the TBC Resto Druid Rotation Game", () => {

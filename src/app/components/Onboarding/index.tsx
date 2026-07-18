@@ -55,6 +55,18 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         </li>
       </ul>
 
+      <h2>Which builds this fits</h2>
+      <p className={styles.section}>
+        Bloomwatch&apos;s judgements are tuned for a Restoration-focused healer
+        — deep resto gets the most precise read, and Dreamstate hybrids are
+        reasonably covered too. A Regrowth-only resto build, a Restokin
+        (Balance/healer hybrid), or a Balance druid playing an off-spec healer
+        role don&apos;t have enough process data behind them yet, so their
+        scorecards may not be a fair judgement of that play. Once you load a
+        report, the fight screen will flag it directly if your detected build
+        falls outside what&apos;s well-supported today.
+      </p>
+
       <h2>Why not just look at the healing meter?</h2>
       <p className={styles.section}>
         Healing is zero-sum. Every hitpoint you heal can&apos;t be healed by
