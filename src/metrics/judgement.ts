@@ -93,7 +93,6 @@ export function judgementBreakdown(
 // handful of equal-weight sibling metrics, majority-by-count would also
 // flip fair-only mixes with no bad present (e.g. 2 good + 1 fair) from
 // "fair" to "good", a behavior change beyond the one actually requested.
-// See docs/specs/epic-mixed-judgement-design.md.
 export function mixedJudgement(judgements: (Judgement | null)[]): Judgement {
   const present = judgements.filter((j): j is Judgement => j !== null);
   if (present.includes("good") && present.includes("bad")) return "fair";

@@ -76,11 +76,13 @@ export function summarizeSpellDiscipline(
   // see docs/backlog.md story 301), so it can't move this verdict; the
   // widget's two stat lines show the two metrics that do carry a
   // judgement. Downranking's judgement also joins the mixedJudgement calc
-  // (per docs/backlog.md story 303 and docs/specs/epic-mixed-judgement-
-  // design.md) but doesn't get its own stat line — story 701 caps a
-  // dashboard widget at 1-2 stats. Swiftmend's judgement/stat line are
-  // excluded entirely (not scored, not shown as a spurious good) when the
-  // druid's build can't reach Swiftmend's talent — story 903c.
+  // (per docs/backlog.md story 303 — see docs/thresholds.md's
+  // compounding-factors section for the full rationale, formerly its own
+  // design doc, retired once this shipped) but doesn't get its own stat
+  // line — story 701 caps a dashboard widget at 1-2 stats. Swiftmend's
+  // judgement/stat line are excluded entirely (not scored, not shown as a
+  // spurious good) when the druid's build can't reach Swiftmend's talent —
+  // story 903c.
   return {
     judgement: mixedJudgement([
       hotClips.rejuvenation.judgement,
@@ -113,11 +115,12 @@ export function summarizeManaEconomy(
 
   return {
     // overhealTable's and innervateAudit's judgements both join the
-    // mixedJudgement calc (per docs/backlog.md stories 404 and 403, and
-    // docs/specs/epic-mixed-judgement-design.md) but neither gets its own
-    // stat line — story 701 caps a dashboard widget at 1-2 stats, same
-    // precedent as Downranking Discipline joining Spell Discipline's calc
-    // silently.
+    // mixedJudgement calc (per docs/backlog.md stories 404 and 403 — see
+    // docs/thresholds.md's compounding-factors section for the full
+    // rationale, formerly its own design doc, retired once this shipped)
+    // but neither gets its own stat line — story 701 caps a dashboard
+    // widget at 1-2 stats, same precedent as Downranking Discipline
+    // joining Spell Discipline's calc silently.
     judgement: mixedJudgement([
       manaCurve.judgement,
       consumableThroughput.judgement,

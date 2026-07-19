@@ -183,7 +183,7 @@ describe("mixedJudgement", () => {
   it("falls back to strict worst-of when no bad is present, even with fair mixed in", () => {
     // This is the case a full weightedMedianJudgement reuse would have
     // gotten wrong (majority-by-count would read this as "good" since
-    // 2 of 3 entries are good) — see docs/specs/epic-mixed-judgement-design.md.
+    // 2 of 3 entries are good).
     expect(mixedJudgement(["good", "good", "fair"])).toBe("fair");
   });
 
