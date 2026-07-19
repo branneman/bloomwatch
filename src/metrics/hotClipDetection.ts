@@ -46,10 +46,10 @@ export interface HotClipDetectionResult {
   clipEvents: HotClipEvent[];
 }
 
-// Green < 5%, orange 5-15%, red > 15% of that spell's casts, per
+// Good < 5%, fair 5-15%, bad > 15% of that spell's casts, per
 // docs/backlog.md story 301.
 function judgeClipPct(clipPct: number): Judgement {
-  return judgeThresholdBelow(clipPct, { greenMax: 5, orangeMax: 15 });
+  return judgeThresholdBelow(clipPct, { goodMax: 5, fairMax: 15 });
 }
 
 function computeSpellResult(

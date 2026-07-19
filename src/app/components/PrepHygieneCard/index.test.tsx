@@ -25,7 +25,7 @@ describe("PrepHygieneCard", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows a green judgement and both rows present when fully prepped", async () => {
+  it("shows a good judgement and both rows present when fully prepped", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
 
     render(
@@ -43,7 +43,7 @@ describe("PrepHygieneCard", () => {
     ).toBeInTheDocument();
     // Two "Good" chips render once loaded: the card's own overall judgement
     // (MetricCard's header chip) and the flask/elixir row's own chip, which
-    // happen to match here since both are green in this fully-prepped case.
+    // happen to match here since both are good in this fully-prepped case.
     await waitFor(() => expect(screen.getAllByText("Good")).toHaveLength(2));
     expect(
       screen.getByText("Battle + guardian elixir active"),
@@ -51,7 +51,7 @@ describe("PrepHygieneCard", () => {
     expect(screen.getAllByText("Present")).toHaveLength(2);
   });
 
-  it("flags missing food and oil as Missing rows and a red judgement", async () => {
+  it("flags missing food and oil as Missing rows and a bad judgement", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
     const combatant = aCombatantInfoEvent({
       auras: [],
@@ -68,9 +68,9 @@ describe("PrepHygieneCard", () => {
       />,
     );
 
-    // Two "Bad" chips render here too, for the same reason as the green
+    // Two "Bad" chips render here too, for the same reason as the good
     // case above: the card's overall judgement and the flask/elixir row's
-    // own judgement are both red in this fully-unprepped case.
+    // own judgement are both bad in this fully-unprepped case.
     await waitFor(() => expect(screen.getAllByText("Bad")).toHaveLength(2));
     expect(screen.getByText("No flask or elixir active")).toBeInTheDocument();
     expect(screen.getAllByText("Missing")).toHaveLength(2);

@@ -132,15 +132,13 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     { value: number; weightMs: number }[]
   >();
   const refreshMedians: { value: number; weight: number }[] = [];
-  const bucketTotals: Record<
-    "redEarly" | "orange" | "green" | "redLate",
-    number
-  > = {
-    redEarly: 0,
-    orange: 0,
-    green: 0,
-    redLate: 0,
-  };
+  const bucketTotals: Record<"badEarly" | "fair" | "good" | "badLate", number> =
+    {
+      badEarly: 0,
+      fair: 0,
+      good: 0,
+      badLate: 0,
+    };
   let accidentalBloomsTotal = 0;
   let restackTaxCastsTotal = 0;
   let restackTaxEstimatedManaTotal = 0;
@@ -164,12 +162,12 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     restackTaxEstimatedManaTotal += entry.metrics.restackTax.estimatedMana;
   }
   const bucketCountTotal =
-    bucketTotals.redEarly +
-    bucketTotals.orange +
-    bucketTotals.green +
-    bucketTotals.redLate;
+    bucketTotals.badEarly +
+    bucketTotals.fair +
+    bucketTotals.good +
+    bucketTotals.badLate;
   const refreshCadenceBuckets: RefreshCadenceBucketRollup[] = (
-    ["redEarly", "orange", "green", "redLate"] as const
+    ["badEarly", "fair", "good", "badLate"] as const
   ).map((label) => ({
     label,
     count: bucketTotals[label],
@@ -319,7 +317,7 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
   let fightsWithFood = 0;
   let fightsWithOil = 0;
   for (const entry of prepReady) {
-    if (entry.metrics.prepHygiene.flaskOrElixir.judgement === "green")
+    if (entry.metrics.prepHygiene.flaskOrElixir.judgement === "good")
       fightsWithFlaskOrElixir += 1;
     if (entry.metrics.prepHygiene.foodBuffPresent) fightsWithFood += 1;
     if (entry.metrics.prepHygiene.weaponOilPresent) fightsWithOil += 1;

@@ -56,17 +56,17 @@ describe("useManaEconomySummary", () => {
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
     // Mana at 20% is below the 70% threshold, so consumables are judged: floor =
-    // 120_000/120_000 = 1, 0 potions and 0 runes used -> both rows orange (one below
-    // floor), which is the worst-of against the mana curve's own "green" and the (empty,
-    // green-default) overheal table.
+    // 120_000/120_000 = 1, 0 potions and 0 runes used -> both rows fair (one below
+    // floor), which is the worst-of against the mana curve's own "good" and the (empty,
+    // good-default) overheal table.
     expect(result.current).toEqual({
       status: "ready",
-      judgement: "orange",
+      judgement: "fair",
       stats: ["Ending mana: 20%", "Potions: 0/1, Runes: 0/1"],
     });
   });
 
-  it("folds a red overheal-table judgement into the worst-of", async () => {
+  it("folds a bad overheal-table judgement into the worst-of", async () => {
     // kill: false keeps the mana curve's own judgement null (informational only,
     // regardless of ending mana), isolating the overheal table as the only judged
     // signal besides consumables.
@@ -108,8 +108,8 @@ describe("useManaEconomySummary", () => {
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
     // Mana curve judgement is null (not a kill) and consumables are exempt (null) -- the
-    // overheal table's Swiftmend row at 60% overheal is red, which must win the worst-of.
-    expect(result.current).toMatchObject({ status: "ready", judgement: "red" });
+    // overheal table's Swiftmend row at 60% overheal is bad, which must win the worst-of.
+    expect(result.current).toMatchObject({ status: "ready", judgement: "bad" });
   });
 
   it("reports an error status when the fetch rejects", async () => {
@@ -188,12 +188,12 @@ describe("useManaEconomySummary", () => {
     );
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
-    // 70% overheal is red under deep-resto's Regrowth-direct band (>60%) but only
-    // orange under dreamstate's (60-85%). This druid's talents (35/0/13) classify as
-    // likely-dreamstate-full, so the pooled judgement must be orange, not red.
+    // 70% overheal is bad under deep-resto's Regrowth-direct band (>60%) but only
+    // fair under dreamstate's (60-85%). This druid's talents (35/0/13) classify as
+    // likely-dreamstate-full, so the pooled judgement must be fair, not bad.
     expect(result.current).toMatchObject({
       status: "ready",
-      judgement: "orange",
+      judgement: "fair",
     });
   });
 });

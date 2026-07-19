@@ -8,50 +8,36 @@ import {
 } from "./judgement";
 
 describe("judgeThreshold", () => {
-  it("returns green at or above greenMin", () => {
-    expect(judgeThreshold(85, { greenMin: 85, orangeMin: 70 })).toBe("green");
-    expect(judgeThreshold(100, { greenMin: 85, orangeMin: 70 })).toBe("green");
+  it("returns good at or above goodMin", () => {
+    expect(judgeThreshold(85, { goodMin: 85, fairMin: 70 })).toBe("good");
+    expect(judgeThreshold(100, { goodMin: 85, fairMin: 70 })).toBe("good");
   });
 
-  it("returns orange between orangeMin (inclusive) and greenMin (exclusive)", () => {
-    expect(judgeThreshold(70, { greenMin: 85, orangeMin: 70 })).toBe("orange");
-    expect(judgeThreshold(84.9, { greenMin: 85, orangeMin: 70 })).toBe(
-      "orange",
-    );
+  it("returns fair between fairMin (inclusive) and goodMin (exclusive)", () => {
+    expect(judgeThreshold(70, { goodMin: 85, fairMin: 70 })).toBe("fair");
+    expect(judgeThreshold(84.9, { goodMin: 85, fairMin: 70 })).toBe("fair");
   });
 
-  it("returns red below orangeMin", () => {
-    expect(judgeThreshold(69.9, { greenMin: 85, orangeMin: 70 })).toBe("red");
-    expect(judgeThreshold(0, { greenMin: 85, orangeMin: 70 })).toBe("red");
+  it("returns bad below fairMin", () => {
+    expect(judgeThreshold(69.9, { goodMin: 85, fairMin: 70 })).toBe("bad");
+    expect(judgeThreshold(0, { goodMin: 85, fairMin: 70 })).toBe("bad");
   });
 });
 
 describe("judgeThresholdBelow", () => {
-  it("returns green below greenMax", () => {
-    expect(judgeThresholdBelow(4.9, { greenMax: 5, orangeMax: 15 })).toBe(
-      "green",
-    );
-    expect(judgeThresholdBelow(0, { greenMax: 5, orangeMax: 15 })).toBe(
-      "green",
-    );
+  it("returns good below goodMax", () => {
+    expect(judgeThresholdBelow(4.9, { goodMax: 5, fairMax: 15 })).toBe("good");
+    expect(judgeThresholdBelow(0, { goodMax: 5, fairMax: 15 })).toBe("good");
   });
 
-  it("returns orange between greenMax (inclusive) and orangeMax (inclusive)", () => {
-    expect(judgeThresholdBelow(5, { greenMax: 5, orangeMax: 15 })).toBe(
-      "orange",
-    );
-    expect(judgeThresholdBelow(15, { greenMax: 5, orangeMax: 15 })).toBe(
-      "orange",
-    );
+  it("returns fair between goodMax (inclusive) and fairMax (inclusive)", () => {
+    expect(judgeThresholdBelow(5, { goodMax: 5, fairMax: 15 })).toBe("fair");
+    expect(judgeThresholdBelow(15, { goodMax: 5, fairMax: 15 })).toBe("fair");
   });
 
-  it("returns red above orangeMax", () => {
-    expect(judgeThresholdBelow(15.1, { greenMax: 5, orangeMax: 15 })).toBe(
-      "red",
-    );
-    expect(judgeThresholdBelow(100, { greenMax: 5, orangeMax: 15 })).toBe(
-      "red",
-    );
+  it("returns bad above fairMax", () => {
+    expect(judgeThresholdBelow(15.1, { goodMax: 5, fairMax: 15 })).toBe("bad");
+    expect(judgeThresholdBelow(100, { goodMax: 5, fairMax: 15 })).toBe("bad");
   });
 });
 
@@ -63,78 +49,101 @@ describe("weightedMedianJudgement", () => {
   it("returns null when every entry has zero weight", () => {
     expect(
       weightedMedianJudgement([
-        { judgement: "red", weightMs: 0 },
-        { judgement: "green", weightMs: 0 },
+        { judgement: "bad", weightMs: 0 },
+        { judgement: "good", weightMs: 0 },
       ]),
     ).toBeNull();
   });
 
-  it("returns green when green fights account for most of the duration", () => {
+  it("returns fair whenever both good and bad fights are present, regardless of which dominates by duration", () => {
+    // Requested directly: a bad-dominant mix (8 bad vs. 1 good, 2 fair)
+    // used to read as a flat "bad" under the median alone, burying the
+    // fact a fight actually went well.
     expect(
       weightedMedianJudgement([
-        { judgement: "green", weightMs: 8000 },
-        { judgement: "red", weightMs: 1000 },
+        { judgement: "good", weightMs: 1000 },
+        { judgement: "fair", weightMs: 2000 },
+        { judgement: "bad", weightMs: 8000 },
       ]),
-    ).toBe("green");
-  });
-
-  it("returns orange when orange-or-worse crosses half the duration but red alone doesn't", () => {
+    ).toBe("fair");
+    // Symmetric case: good-dominant with a single bad fight also caps at
+    // "fair" rather than "good" — the override doesn't care which side
+    // dominates, only that both extremes are present at all.
     expect(
       weightedMedianJudgement([
-        { judgement: "green", weightMs: 4000 },
-        { judgement: "orange", weightMs: 4000 },
-        { judgement: "red", weightMs: 2000 },
+        { judgement: "good", weightMs: 8000 },
+        { judgement: "bad", weightMs: 1000 },
       ]),
-    ).toBe("orange");
+    ).toBe("fair");
   });
 
-  it("returns red when red alone accounts for more than half the duration", () => {
+  it("returns good when only good and fair fights are present and fair doesn't cross half", () => {
     expect(
       weightedMedianJudgement([
-        { judgement: "green", weightMs: 3000 },
-        { judgement: "red", weightMs: 7000 },
+        { judgement: "good", weightMs: 8000 },
+        { judgement: "fair", weightMs: 2000 },
       ]),
-    ).toBe("red");
+    ).toBe("good");
   });
 
-  it("rounds an exact green/red boundary tie toward red", () => {
+  it("returns bad when bad alone crosses half the duration and no good fights are present", () => {
     expect(
       weightedMedianJudgement([
-        { judgement: "green", weightMs: 5000 },
-        { judgement: "red", weightMs: 5000 },
+        { judgement: "fair", weightMs: 3000 },
+        { judgement: "bad", weightMs: 7000 },
       ]),
-    ).toBe("red");
+    ).toBe("bad");
   });
 
-  it("rounds an exact green/orange boundary tie toward orange", () => {
+  it("returns fair when fair-or-worse crosses half but bad alone doesn't, and no good fights are present", () => {
     expect(
       weightedMedianJudgement([
-        { judgement: "green", weightMs: 5000 },
-        { judgement: "orange", weightMs: 5000 },
+        { judgement: "fair", weightMs: 6000 },
+        { judgement: "bad", weightMs: 4000 },
       ]),
-    ).toBe("orange");
+    ).toBe("fair");
   });
 
-  it("reproduces story 904's cited GCD economy split without red dominating", () => {
+  it("rounds an exact fair/bad boundary tie toward bad", () => {
+    expect(
+      weightedMedianJudgement([
+        { judgement: "fair", weightMs: 5000 },
+        { judgement: "bad", weightMs: 5000 },
+      ]),
+    ).toBe("bad");
+  });
+
+  it("rounds an exact good/fair boundary tie toward fair", () => {
+    expect(
+      weightedMedianJudgement([
+        { judgement: "good", weightMs: 5000 },
+        { judgement: "fair", weightMs: 5000 },
+      ]),
+    ).toBe("fair");
+  });
+
+  it("reproduces story 904's cited GCD economy split without bad dominating", () => {
     // docs/backlog.md story 904: a real corpus's GCD economy fights split
-    // 33% green / 27% orange / 39% red by fight, but worst-of rollup reads
-    // 0% green / 9% orange / 91% red. Modeled here as equal-duration
-    // fights so the weighting is uniform and the split is exact.
+    // 33% good / 27% fair / 39% bad by fight, but worst-of rollup reads
+    // 0% good / 9% fair / 91% bad. Modeled here as equal-duration fights
+    // so the weighting is uniform and the split is exact. Since both good
+    // and bad fights are present, this now resolves via the fair-override
+    // rather than the median calculation, but the answer is unchanged.
     const entries: { judgement: Judgement; weightMs: number }[] = [
       ...Array.from({ length: 33 }, () => ({
-        judgement: "green" as const,
+        judgement: "good" as const,
         weightMs: 1000,
       })),
       ...Array.from({ length: 27 }, () => ({
-        judgement: "orange" as const,
+        judgement: "fair" as const,
         weightMs: 1000,
       })),
       ...Array.from({ length: 39 }, () => ({
-        judgement: "red" as const,
+        judgement: "bad" as const,
         weightMs: 1000,
       })),
     ];
-    expect(weightedMedianJudgement(entries)).toBe("orange");
+    expect(weightedMedianJudgement(entries)).toBe("fair");
   });
 });
 
@@ -142,15 +151,15 @@ describe("judgementBreakdown", () => {
   it("counts fights per judgement bucket", () => {
     expect(
       judgementBreakdown([
-        { judgement: "green" },
-        { judgement: "green" },
-        { judgement: "orange" },
-        { judgement: "red" },
+        { judgement: "good" },
+        { judgement: "good" },
+        { judgement: "fair" },
+        { judgement: "bad" },
       ]),
-    ).toEqual({ green: 2, orange: 1, red: 1 });
+    ).toEqual({ good: 2, fair: 1, bad: 1 });
   });
 
   it("returns all-zero counts for an empty list", () => {
-    expect(judgementBreakdown([])).toEqual({ green: 0, orange: 0, red: 0 });
+    expect(judgementBreakdown([])).toEqual({ good: 0, fair: 0, bad: 0 });
   });
 });

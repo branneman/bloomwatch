@@ -21,25 +21,25 @@ export interface OverhealTableResult {
 }
 
 // Bloom overheal per docs/backlog.md story 905 (recalibrated from story 404's original
-// 40/70 against real exemplar data -- see docs/thresholds.md): green < 80%, orange
-// 80-90%, red > 90%. Archetype-invariant: deep-resto and dreamstate exemplars showed
+// 40/70 against real exemplar data -- see docs/thresholds.md): good < 80%, fair
+// 80-90%, bad > 90%. Archetype-invariant: deep-resto and dreamstate exemplars showed
 // nearly identical Bloom overheal distributions, so this threshold isn't split by
 // bucket, unlike Regrowth-direct below.
 function judgeBloomOverheal(overhealPct: number): Judgement {
-  return judgeThresholdBelow(overhealPct, { greenMax: 80, orangeMax: 90 });
+  return judgeThresholdBelow(overhealPct, { goodMax: 80, fairMax: 90 });
 }
 
 // Direct heal overheal for Healing Touch and Swiftmend, per docs/backlog.md story 404:
-// green < 30%, orange 30-50%, red > 50%. Story 905's exemplar review found both spells
+// good < 30%, fair 30-50%, bad > 50%. Story 905's exemplar review found both spells
 // already fit this threshold well in every archetype bucket, so it's unchanged.
 function judgeDirectOverheal(overhealPct: number): Judgement {
-  return judgeThresholdBelow(overhealPct, { greenMax: 30, orangeMax: 50 });
+  return judgeThresholdBelow(overhealPct, { goodMax: 30, fairMax: 50 });
 }
 
 // Regrowth-direct overheal per docs/backlog.md story 905 (split from the shared
 // "direct" threshold above because real exemplar data showed a genuine archetype
-// divergence -- see docs/thresholds.md): deep-resto green < 38%, orange 38-60%, red
-// > 60%; dreamstate (full or partial) green < 60%, orange 60-85%, red > 85%. Every
+// divergence -- see docs/thresholds.md): deep-resto good < 38%, fair 38-60%, bad
+// > 60%; dreamstate (full or partial) good < 60%, fair 60-85%, bad > 85%. Every
 // other bucket (mostly-resto, mostly-balance, restokin-shaped, other-unclassified,
 // unknown-no-talent-data) falls back to deep-resto's band -- those builds aren't
 // well-supported by this tool yet (story 903d), so this story doesn't manufacture a
@@ -52,9 +52,9 @@ function judgeRegrowthDirectOverheal(
     bucket === "likely-dreamstate-full" ||
     bucket === "likely-dreamstate-partial"
   ) {
-    return judgeThresholdBelow(overhealPct, { greenMax: 60, orangeMax: 85 });
+    return judgeThresholdBelow(overhealPct, { goodMax: 60, fairMax: 85 });
   }
-  return judgeThresholdBelow(overhealPct, { greenMax: 38, orangeMax: 60 });
+  return judgeThresholdBelow(overhealPct, { goodMax: 38, fairMax: 60 });
 }
 
 // Fixed row identity: which category a spell/portion belongs to, its display label, and

@@ -6,12 +6,12 @@ const DRUID_ID = 2;
 const LIFEBLOOM_IDS = new Set([33763]);
 
 describe("computeAccidentalBlooms", () => {
-  it("returns zero accidental blooms and green judgement with no events", () => {
+  it("returns zero accidental blooms and good judgement with no events", () => {
     const result = computeAccidentalBlooms([], [], DRUID_ID, LIFEBLOOM_IDS);
     expect(result).toEqual({
       accidentalBlooms: [],
       count: 0,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
@@ -63,7 +63,7 @@ describe("computeAccidentalBlooms", () => {
     expect(result.accidentalBlooms).toEqual([
       { timestampMs: 100000, targetId: 42 },
     ]);
-    expect(result.judgement).toBe("orange");
+    expect(result.judgement).toBe("fair");
   });
 
   it("does not count a re-application 1ms past the 3s boundary", () => {
@@ -78,7 +78,7 @@ describe("computeAccidentalBlooms", () => {
     expect(result.count).toBe(0);
   });
 
-  it("judges 1-2 accidental blooms orange and 3+ red", () => {
+  it("judges 1-2 accidental blooms fair and 3+ bad", () => {
     const healEvents = [
       aHealEvent({ timestamp: 100000, targetID: 1 }),
       aHealEvent({ timestamp: 200000, targetID: 2 }),
@@ -97,7 +97,7 @@ describe("computeAccidentalBlooms", () => {
       LIFEBLOOM_IDS,
     );
     expect(twoBlooms.count).toBe(2);
-    expect(twoBlooms.judgement).toBe("orange");
+    expect(twoBlooms.judgement).toBe("fair");
 
     const threeBlooms = computeAccidentalBlooms(
       buffEvents,
@@ -106,7 +106,7 @@ describe("computeAccidentalBlooms", () => {
       LIFEBLOOM_IDS,
     );
     expect(threeBlooms.count).toBe(3);
-    expect(threeBlooms.judgement).toBe("red");
+    expect(threeBlooms.judgement).toBe("bad");
   });
 
   it("ignores heals and re-applications from a different source", () => {

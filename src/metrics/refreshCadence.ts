@@ -3,17 +3,17 @@ import type { Judgement } from "./judgement";
 import { reconstructLifebloomTimelines } from "./lifebloomStacks";
 
 // Bucket boundaries per docs/backlog.md story 202. The per-interval
-// histogram buckets share the same bands as the median R/O/G judgement
-// below: red < 5s, orange 5-6s, green 6-7s, red > 7s. A late interval
-// correlates with near-bloom timing and is judged as severely as
+// histogram buckets share the same bands as the median Good/Fair/Bad
+// judgement below: bad < 5s, fair 5-6s, good 6-7s, bad > 7s. A late
+// interval correlates with near-bloom timing and is judged as severely as
 // refreshing too eagerly. Actual blooms are counted separately by
 // story 203's accidental-bloom counter.
-const GREEN_MIN_MS = 6000;
-const GREEN_MAX_MS = 7000;
-const ORANGE_MIN_MS = 5000;
+const GOOD_MIN_MS = 6000;
+const GOOD_MAX_MS = 7000;
+const FAIR_MIN_MS = 5000;
 
 export type RefreshCadenceBucketLabel =
-  "redEarly" | "orange" | "green" | "redLate";
+  "badEarly" | "fair" | "good" | "badLate";
 
 export interface RefreshCadenceBucket {
   label: RefreshCadenceBucketLabel;
@@ -29,10 +29,10 @@ export interface RefreshCadenceResult {
 }
 
 function judgeMedianCadence(medianMs: number): Judgement {
-  if (medianMs > GREEN_MAX_MS) return "red";
-  if (medianMs >= GREEN_MIN_MS) return "green";
-  if (medianMs >= ORANGE_MIN_MS) return "orange";
-  return "red";
+  if (medianMs > GOOD_MAX_MS) return "bad";
+  if (medianMs >= GOOD_MIN_MS) return "good";
+  if (medianMs >= FAIR_MIN_MS) return "fair";
+  return "bad";
 }
 
 function median(sortedValues: number[]): number {
@@ -90,27 +90,27 @@ export function computeRefreshCadence(
   }
 
   const bucketCounts: Record<RefreshCadenceBucketLabel, number> = {
-    redEarly: 0,
-    orange: 0,
-    green: 0,
-    redLate: 0,
+    badEarly: 0,
+    fair: 0,
+    good: 0,
+    badLate: 0,
   };
 
   for (const intervalMs of intervalsMs) {
-    if (intervalMs < ORANGE_MIN_MS) {
-      bucketCounts.redEarly += 1;
-    } else if (intervalMs < GREEN_MIN_MS) {
-      bucketCounts.orange += 1;
-    } else if (intervalMs <= GREEN_MAX_MS) {
-      bucketCounts.green += 1;
+    if (intervalMs < FAIR_MIN_MS) {
+      bucketCounts.badEarly += 1;
+    } else if (intervalMs < GOOD_MIN_MS) {
+      bucketCounts.fair += 1;
+    } else if (intervalMs <= GOOD_MAX_MS) {
+      bucketCounts.good += 1;
     } else {
-      bucketCounts.redLate += 1;
+      bucketCounts.badLate += 1;
     }
   }
 
   const intervalCount = intervalsMs.length;
   const buckets: RefreshCadenceBucket[] = (
-    ["redEarly", "orange", "green", "redLate"] as const
+    ["badEarly", "fair", "good", "badLate"] as const
   ).map((label) => ({
     label,
     count: bucketCounts[label],

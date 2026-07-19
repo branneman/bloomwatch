@@ -16,12 +16,12 @@
   flex-shrink: 0;
 }
 .present {
-  color: var(--judgement-green);
-  background: var(--judgement-green-bg);
+  color: var(--judgement-good);
+  background: var(--judgement-good-bg);
 }
 .missing {
-  color: var(--judgement-red);
-  background: var(--judgement-red-bg);
+  color: var(--judgement-bad);
+  background: var(--judgement-bad-bg);
 }
 .label {
   color: var(--text-h);

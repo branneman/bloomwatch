@@ -15,7 +15,7 @@ describe("CrisisCard", () => {
         swiftmendReady={true}
         nsReady={false}
         idlePreceding={true}
-        judgement="orange"
+        judgement="fair"
       />,
     );
 
@@ -56,7 +56,7 @@ describe("CrisisCard", () => {
         swiftmendReady={false}
         nsReady={false}
         idlePreceding={false}
-        judgement="green"
+        judgement="good"
       />,
     );
 

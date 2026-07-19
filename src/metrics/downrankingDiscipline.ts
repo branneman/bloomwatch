@@ -66,11 +66,11 @@ export interface DownrankingDisciplineResult {
   judgement: Judgement;
 }
 
-// Green when no flags, orange otherwise. Max possible flagged groups is 2
-// (Regrowth + Healing Touch, one max-rank group each) — red is
+// Good when no flags, fair otherwise. Max possible flagged groups is 2
+// (Regrowth + Healing Touch, one max-rank group each) — bad is
 // unreachable by design, per docs/backlog.md story 303.
 function judgeFlaggedCount(flaggedCount: number): Judgement {
-  return flaggedCount === 0 ? "green" : "orange";
+  return flaggedCount === 0 ? "good" : "fair";
 }
 
 function findDirectHeal(

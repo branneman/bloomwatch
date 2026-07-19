@@ -4,7 +4,7 @@ import { ProgressBar } from "./index";
 
 describe("ProgressBar", () => {
   it("exposes pct as aria-valuenow", () => {
-    render(<ProgressBar pct={87} judgement="green" />);
+    render(<ProgressBar pct={87} judgement="good" />);
     expect(screen.getByRole("progressbar")).toHaveAttribute(
       "aria-valuenow",
       "87",
@@ -20,7 +20,7 @@ describe("ProgressBar", () => {
   });
 
   it("clamps negative values up to 0", () => {
-    render(<ProgressBar pct={-5} judgement="red" />);
+    render(<ProgressBar pct={-5} judgement="bad" />);
     expect(screen.getByRole("progressbar")).toHaveAttribute(
       "aria-valuenow",
       "0",

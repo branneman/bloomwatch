@@ -98,7 +98,7 @@ describe("computeConsumableThroughput", () => {
     expect(result.rows).toHaveLength(2); // Mana Potion + Rune, never 3
   });
 
-  it("judges green when used meets or exceeds the floor", () => {
+  it("judges good when used meets or exceeds the floor", () => {
     const events = [
       LOW_MANA_SAMPLE,
       aConsumableCastEvent(1000, MANA_POTION_ID),
@@ -115,11 +115,11 @@ describe("computeConsumableThroughput", () => {
       label: "Mana Potion",
       used: 3,
       expectedFloor: 3,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
-  it("judges orange when used is exactly one below the floor", () => {
+  it("judges fair when used is exactly one below the floor", () => {
     const events = [
       LOW_MANA_SAMPLE,
       aConsumableCastEvent(1000, MANA_POTION_ID),
@@ -133,10 +133,10 @@ describe("computeConsumableThroughput", () => {
     );
     expect(
       result.rows.find((row) => row.label === "Mana Potion")?.judgement,
-    ).toBe("orange");
+    ).toBe("fair");
   });
 
-  it("judges red when used is two or more below the floor", () => {
+  it("judges bad when used is two or more below the floor", () => {
     const result = computeConsumableThroughput(
       [LOW_MANA_SAMPLE],
       DRUID_ID,
@@ -145,9 +145,9 @@ describe("computeConsumableThroughput", () => {
     );
     expect(
       result.rows.find((row) => row.label === "Mana Potion")?.judgement,
-    ).toBe("red");
+    ).toBe("bad");
     expect(result.rows.find((row) => row.label === "Rune")?.judgement).toBe(
-      "red",
+      "bad",
     );
   });
 
@@ -157,21 +157,21 @@ describe("computeConsumableThroughput", () => {
       aConsumableCastEvent(1000, MANA_POTION_ID),
       aConsumableCastEvent(2000, MANA_POTION_ID),
       aConsumableCastEvent(3000, MANA_POTION_ID),
-    ]; // potions green (3/3), runes red (0/3)
+    ]; // potions good (3/3), runes bad (0/3)
     const result = computeConsumableThroughput(
       events,
       DRUID_ID,
       RESOLVED_ABILITIES,
       360_000,
     );
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
   });
 
   it("judges normally on what would be a wipe — there is no kill restriction", () => {
     // The function takes no kill/outcome flag at all, unlike computeManaCurve — this
     // test documents that omission is deliberate (docs/backlog.md story 402 has no
     // kill restriction, unlike 401's). Meeting the floor on both consumables still
-    // yields a real green judgement, not an informational/null one.
+    // yields a real good judgement, not an informational/null one.
     const result = computeConsumableThroughput(
       [
         LOW_MANA_SAMPLE,
@@ -186,7 +186,7 @@ describe("computeConsumableThroughput", () => {
       RESOLVED_ABILITIES,
       360_000,
     );
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
   it("ignores casts from other players and non-consumable abilities", () => {

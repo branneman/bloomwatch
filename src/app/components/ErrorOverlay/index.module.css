@@ -1,6 +1,6 @@
 .panel {
-  border: 1px solid var(--judgement-red);
-  background: var(--judgement-red-bg);
+  border: 1px solid var(--judgement-bad);
+  background: var(--judgement-bad-bg);
   border-radius: var(--radius-md);
   padding: var(--space-5);
   display: flex;

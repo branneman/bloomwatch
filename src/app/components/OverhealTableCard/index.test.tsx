@@ -97,7 +97,7 @@ describe("OverhealTableCard", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
-  it("shows a message and green judgement when there are no heals to report", async () => {
+  it("shows a message and good judgement when there are no heals to report", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 200000 });
 
     render(
@@ -258,15 +258,15 @@ describe("OverhealTableCard", () => {
     // (this component's own effect) resolve from two independent fetches,
     // and the healing-events effect re-fires once the bucket arrives — so
     // "Regrowth (direct)" is present in an intermediate render that still
-    // used the default deep-resto band (red/"Bad") before the dreamstate
+    // used the default deep-resto band (bad/"Bad") before the dreamstate
     // band ("Fair") settles. All three assertions must live inside waitFor
     // so it retries until the real settled state holds, not just the first
     // render where the label happens to exist.
     await waitFor(() => {
       expect(screen.getByText("Regrowth (direct)")).toBeInTheDocument();
-      // 70% overheal is red under deep-resto's band (>60%) but only orange under
+      // 70% overheal is bad under deep-resto's band (>60%) but only fair under
       // dreamstate's wider band (60-85%). This druid's talents (35/0/13) classify as
-      // likely-dreamstate-full, so it must land orange ("Fair"), not red ("Bad").
+      // likely-dreamstate-full, so it must land fair ("Fair"), not bad ("Bad").
       expect(screen.queryAllByText("Fair").length).toBeGreaterThan(0);
       expect(screen.queryByText("Bad")).not.toBeInTheDocument();
     });

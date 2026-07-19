@@ -13,7 +13,7 @@ describe("DeathCard", () => {
         swiftmendReady={true}
         nsReady={true}
         idlePreceding={true}
-        judgement="red"
+        judgement="bad"
       />,
     );
 

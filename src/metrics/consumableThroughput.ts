@@ -27,11 +27,11 @@ export interface ConsumableThroughputResult {
   judgement: Judgement | null; // null when exempt
 }
 
-// Green >= floor, orange = floor - 1, red <= floor - 2, per docs/backlog.md story 402.
+// Good >= floor, fair = floor - 1, bad <= floor - 2, per docs/backlog.md story 402.
 function judgeAgainstFloor(used: number, floor: number): Judgement {
-  if (used >= floor) return "green";
-  if (used === floor - 1) return "orange";
-  return "red";
+  if (used >= floor) return "good";
+  if (used === floor - 1) return "fair";
+  return "bad";
 }
 
 export function computeConsumableThroughput(

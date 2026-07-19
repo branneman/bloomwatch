@@ -6,7 +6,7 @@ _Keep your Lifeblooms rolling. A process-quality analyzer for TBC Resto Druids, 
 
 Healing parses are structurally broken: healing is zero-sum, so effective-healing rankings measure your co-healers' behaviour as much as your own. This tool takes the opposite approach — it measures **process, not output**. Inputs are not zero-sum: nobody can steal your GCD utilization, your Lifebloom refresh cadence, or your mana-potion cooldown usage.
 
-You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8`), pick a boss fight — or a whole raid zone like SSC — and get a scorecard: every metric turned into a number with a red / orange / green judgement, so a resto druid can answer _"did I play well?"_ independent of the healing meter.
+You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/reports/4GYHZRdtL3bvhpc8`), pick a boss fight — or a whole raid zone like SSC — and get a scorecard: every metric turned into a number with a Good/Fair/Bad judgement, so a resto druid can answer _"did I play well?"_ independent of the healing meter.
 
 ## Who is this for
 
@@ -17,7 +17,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 ## Product principles
 
 1. **Process over output.** No HPS rankings, no parse percentiles. Only metrics the player fully controls.
-2. **Judgement, not just data.** Every metric gets a red/orange/green verdict against documented default thresholds. Thresholds are visible and periodically recalibrated by the maintainers against real logs (802) — not user-configurable — but the tool always shows its work.
+2. **Judgement, not just data.** Every metric gets a Good/Fair/Bad verdict against documented default thresholds. Thresholds are visible and periodically recalibrated by the maintainers against real logs (802) — not user-configurable — but the tool always shows its work.
 3. **No backend.** Pure static SPA on GitHub Pages. All WCL API calls happen client-side. No server, no database, no accounts, no cost.
 4. **FOSS.** Public repo, permissive license, reproducible builds.
 5. **Honest about limits.** The report explicitly states what logs cannot judge: target selection quality, assignment adherence, positioning. These are out of scope by design.
@@ -45,7 +45,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 - URL input → report parsing → druid picker → fight picker (single-select, drill-down; flow order changed after initial ship — see backlog 003/005/702).
 - **GCD economy:** active time, GCD utilization, idle-gap detection.
 - **Lifebloom discipline:** LB3 uptime per target, refresh cadence, accidental blooms, re-stack tax, concurrent targets.
-- Scorecard UI with red/orange/green per metric, per single fight.
+- Scorecard UI with Good/Fair/Bad per metric, per single fight.
 - **Exit criterion:** paste link → pick fight → get a judged scorecard for groups 1–2.
 
 ### Phase 2 — Mana economy & spell discipline
@@ -67,7 +67,7 @@ You paste a Warcraft Logs report link (e.g. `https://fresh.warcraftlogs.com/repo
 
 ### Phase 5 — Polish & calibration
 
-- Maintainer threshold-calibration pass: review every R/O/G threshold against a corpus of well-regarded druid logs, once all metrics exist (802). An internal engineering pass, not user-facing configuration.
+- Maintainer threshold-calibration pass: review every Good/Fair/Bad threshold against a corpus of well-regarded druid logs, once all metrics exist (802). An internal engineering pass, not user-facing configuration.
 
 ## Explicitly out of scope
 

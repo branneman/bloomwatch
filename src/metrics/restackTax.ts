@@ -23,18 +23,18 @@ export interface RestackTaxResult {
   judgement: Judgement;
 }
 
-// R/O/G scales with fight length per docs/backlog.md story 204: one
-// green-tier tax cast is allowed per 2 minutes elapsed, one orange-tier
+// Good/Fair/Bad scales with fight length per docs/backlog.md story 204: one
+// good-tier tax cast is allowed per 2 minutes elapsed, one fair-tier
 // cast per minute elapsed. Reproduces the card mockup's worked example:
-// a 5:41 fight allows green 0-2, orange 3-5, red 6+.
+// a 5:41 fight allows good 0-2, fair 3-5, bad 6+.
 function judgeRestackTax(
   castCount: number,
   fightDurationMs: number,
 ): Judgement {
   const fightMinutes = fightDurationMs / 60000;
-  const greenMax = Math.floor(fightMinutes / 2) + 1;
-  const orangeMax = Math.floor(fightMinutes);
-  return judgeThresholdBelow(castCount, { greenMax, orangeMax });
+  const goodMax = Math.floor(fightMinutes / 2) + 1;
+  const fairMax = Math.floor(fightMinutes);
+  return judgeThresholdBelow(castCount, { goodMax, fairMax });
 }
 
 type MergedEvent =

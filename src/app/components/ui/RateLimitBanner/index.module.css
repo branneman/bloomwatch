@@ -4,8 +4,8 @@
   gap: var(--space-5);
   padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-5);
-  background: var(--judgement-orange-bg);
-  border: 1px solid var(--judgement-orange);
+  background: var(--judgement-fair-bg);
+  border: 1px solid var(--judgement-fair);
   border-radius: var(--radius-md);
 }
 
@@ -25,7 +25,7 @@
   font-size: 22px;
   font-weight: 700;
   line-height: 1;
-  color: var(--judgement-orange);
+  color: var(--judgement-fair);
 }
 
 .pctLabel {
@@ -44,7 +44,7 @@
   position: absolute;
   inset-block: 0;
   left: 0;
-  background: var(--judgement-orange);
+  background: var(--judgement-fair);
   border-radius: var(--radius-pill);
 }
 

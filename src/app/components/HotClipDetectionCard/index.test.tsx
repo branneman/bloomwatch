@@ -69,10 +69,10 @@ describe("HotClipDetectionCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("judges only on Rejuvenation's clip rate — a high Regrowth clip rate never turns the card red", async () => {
+  it("judges only on Rejuvenation's clip rate — a high Regrowth clip rate never turns the card bad", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
     const buffEvents = [
-      // Rejuvenation: clean, well under the 5% green threshold.
+      // Rejuvenation: clean, well under the 5% good threshold.
       anApplyBuffEvent({ timestamp: 0, targetID: 42, abilityGameID: 26982 }),
       // Regrowth: refreshed with 26s remaining out of 27s — a clip by the
       // same rule, but on a spell that's never judged.
@@ -105,7 +105,7 @@ describe("HotClipDetectionCard", () => {
       />,
     );
 
-    // Regrowth: 1 clip of 2 casts = 50% — would be red if it were judged.
+    // Regrowth: 1 clip of 2 casts = 50% — would be bad if it were judged.
     await waitFor(() => expect(screen.getByText("50.0%")).toBeInTheDocument());
     expect(screen.getByText("Good")).toBeInTheDocument();
     expect(screen.queryByText("Bad")).not.toBeInTheDocument();

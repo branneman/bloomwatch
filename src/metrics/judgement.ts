@@ -1,29 +1,29 @@
-export type Judgement = "green" | "orange" | "red";
+export type Judgement = "good" | "fair" | "bad";
 
 // Higher value is better (e.g. GCD utilization %, LB3 uptime %).
 export function judgeThreshold(
   value: number,
-  thresholds: { greenMin: number; orangeMin: number },
+  thresholds: { goodMin: number; fairMin: number },
 ): Judgement {
-  if (value >= thresholds.greenMin) return "green";
-  if (value >= thresholds.orangeMin) return "orange";
-  return "red";
+  if (value >= thresholds.goodMin) return "good";
+  if (value >= thresholds.fairMin) return "fair";
+  return "bad";
 }
 
 // Lower value is better (e.g. idle dead-time %, overheal %).
 export function judgeThresholdBelow(
   value: number,
-  thresholds: { greenMax: number; orangeMax: number },
+  thresholds: { goodMax: number; fairMax: number },
 ): Judgement {
-  if (value < thresholds.greenMax) return "green";
-  if (value <= thresholds.orangeMax) return "orange";
-  return "red";
+  if (value < thresholds.goodMax) return "good";
+  if (value <= thresholds.fairMax) return "fair";
+  return "bad";
 }
 
 const JUDGEMENT_RANK: Record<Judgement, number> = {
-  red: 2,
-  orange: 1,
-  green: 0,
+  bad: 2,
+  fair: 1,
+  good: 0,
 };
 
 export function worstJudgement(judgements: (Judgement | null)[]): Judgement {
@@ -31,32 +31,43 @@ export function worstJudgement(judgements: (Judgement | null)[]): Judgement {
   return present.reduce(
     (worst, current) =>
       JUDGEMENT_RANK[current] > JUDGEMENT_RANK[worst] ? current : worst,
-    "green" as Judgement,
+    "good" as Judgement,
   );
 }
 
 // Duration-weighted median across a report's fights for one epic — story
 // 904. Walks from the worst bucket down using >= comparisons, which is
-// what encodes "round toward red on an exact 50% tie": the median is
+// what encodes "round toward bad on an exact 50% tie": the median is
 // already the mechanism pulling the rollup toward leniency, so ties
 // shouldn't add more of that. See docs/thresholds.md's compounding-factors
 // section for the full rationale (also formerly docs/specs/
 // rollup-policy-design.md, retired once this shipped).
+//
+// Revised 2026-07-19: a mix of both good and bad fights (e.g. 1 good, 2
+// fair, 8 bad) still read as a flat "bad" under the median above, which
+// buries the fact that at least one fight actually went well — requested
+// directly as still too harsh. When an epic has at least one good fight
+// and at least one bad fight, the mixed result is reported as "fair"
+// outright, ahead of the median calculation below. See docs/thresholds.md's
+// compounding-factors section.
 export function weightedMedianJudgement(
   entries: { judgement: Judgement; weightMs: number }[],
 ): Judgement | null {
   const total = entries.reduce((acc, e) => acc + e.weightMs, 0);
   if (total === 0) return null;
+  const hasGood = entries.some((e) => e.judgement === "good");
+  const hasBad = entries.some((e) => e.judgement === "bad");
+  if (hasGood && hasBad) return "fair";
   const half = total / 2;
-  const redWeight = entries
-    .filter((e) => e.judgement === "red")
+  const badWeight = entries
+    .filter((e) => e.judgement === "bad")
     .reduce((acc, e) => acc + e.weightMs, 0);
-  if (redWeight >= half) return "red";
-  const orangeWeight = entries
-    .filter((e) => e.judgement === "orange")
+  if (badWeight >= half) return "bad";
+  const fairWeight = entries
+    .filter((e) => e.judgement === "fair")
     .reduce((acc, e) => acc + e.weightMs, 0);
-  if (redWeight + orangeWeight >= half) return "orange";
-  return "green";
+  if (badWeight + fairWeight >= half) return "fair";
+  return "good";
 }
 
 // How many fights landed in each judgement bucket — a fight-count (not
@@ -68,8 +79,8 @@ export function judgementBreakdown(
   entries: { judgement: Judgement }[],
 ): Record<Judgement, number> {
   return {
-    green: entries.filter((e) => e.judgement === "green").length,
-    orange: entries.filter((e) => e.judgement === "orange").length,
-    red: entries.filter((e) => e.judgement === "red").length,
+    good: entries.filter((e) => e.judgement === "good").length,
+    fair: entries.filter((e) => e.judgement === "fair").length,
+    bad: entries.filter((e) => e.judgement === "bad").length,
   };
 }

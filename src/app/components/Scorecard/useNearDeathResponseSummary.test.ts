@@ -27,7 +27,7 @@ describe("useNearDeathResponseSummary", () => {
     await waitFor(() => expect(result.current.status).toBe("ready"));
     expect(result.current).toEqual({
       status: "ready",
-      judgement: "green",
+      judgement: "good",
       stats: ["No crises"],
     });
   });

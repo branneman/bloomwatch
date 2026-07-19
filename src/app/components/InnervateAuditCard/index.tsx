@@ -39,7 +39,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightning.jpg";
 
 const THRESHOLD =
-  "Only the first Innervate cast of the fight is judged (a 2nd is possible on a long fight thanks to the 3-min cooldown, but is listed as informational context only). Red if never cast on a fight that's mana-constrained (own mana dropped below 70% at some point) and at least 3 minutes long. Cast on another player: green if they're a mana-using class/spec, red if not (mana wasted on a Warrior, Rogue, or Feral-spec Druid). Self-cast: green normally, orange if cast in the fight's final 10%.";
+  "Only the first Innervate cast of the fight is judged (a 2nd is possible on a long fight thanks to the 3-min cooldown, but is listed as informational context only). Bad if never cast on a fight that's mana-constrained (own mana dropped below 70% at some point) and at least 3 minutes long. Cast on another player: good if they're a mana-using class/spec, bad if not (mana wasted on a Warrior, Rogue, or Feral-spec Druid). Self-cast: good normally, fair if cast in the fight's final 10%.";
 
 function describeTarget(
   cast: {

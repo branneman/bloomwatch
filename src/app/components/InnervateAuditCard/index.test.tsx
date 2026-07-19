@@ -101,7 +101,7 @@ describe("InnervateAuditCard", () => {
     );
   });
 
-  it("renders a green chip and the ally's name/class when cast on a mana-using ally", async () => {
+  it("renders a good chip and the ally's name/class when cast on a mana-using ally", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 300_000 });
     const castEvents = [
       aCastEvent({
@@ -139,7 +139,7 @@ describe("InnervateAuditCard", () => {
     expect(screen.getByText("Good")).toBeInTheDocument();
   });
 
-  it("renders a red chip when cast on a non-mana-using ally", async () => {
+  it("renders a bad chip when cast on a non-mana-using ally", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 300_000 });
     const castEvents = [
       aCastEvent({

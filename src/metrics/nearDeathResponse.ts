@@ -306,7 +306,7 @@ export function computeNearDeathResponse(
     const judgement = !judged
       ? null
       : responded
-        ? "green"
+        ? "good"
         : judgeDeathReadiness(unspentCount);
 
     return {
@@ -326,7 +326,7 @@ export function computeNearDeathResponse(
 
   return {
     crises,
-    flaggedCount: crises.filter((c) => c.judgement === "red").length,
+    flaggedCount: crises.filter((c) => c.judgement === "bad").length,
     judgement: worstJudgement(crises.map((c) => c.judgement)),
   };
 }

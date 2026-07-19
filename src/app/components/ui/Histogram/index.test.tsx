@@ -10,10 +10,10 @@ describe("Histogram", () => {
           {
             label: "Early (< 5.5s)",
             pct: 14,
-            color: "var(--judgement-orange)",
+            color: "var(--judgement-fair)",
           },
-          { label: "Ideal (5.5–7s)", pct: 71, color: "var(--judgement-green)" },
-          { label: "Late (> 7s)", pct: 15, color: "var(--judgement-red)" },
+          { label: "Ideal (5.5–7s)", pct: 71, color: "var(--judgement-good)" },
+          { label: "Late (> 7s)", pct: 15, color: "var(--judgement-bad)" },
         ]}
       />,
     );

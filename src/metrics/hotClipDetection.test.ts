@@ -12,7 +12,7 @@ const REJUV_IDS = new Set([26982]);
 const REGROWTH_IDS = new Set([26980]);
 
 describe("computeHotClipDetection", () => {
-  it("returns zero casts/clips and green judgement with no events", () => {
+  it("returns zero casts/clips and good judgement with no events", () => {
     const result = computeHotClipDetection(
       [],
       [],
@@ -26,7 +26,7 @@ describe("computeHotClipDetection", () => {
         castCount: 0,
         clipCount: 0,
         clipPct: 0,
-        judgement: "green",
+        judgement: "good",
       },
       // No judgement field — Regrowth clipping is informational only, see
       // docs/backlog.md story 301.
@@ -245,10 +245,10 @@ describe("computeHotClipDetection", () => {
   });
 
   it.each([
-    { castCount: 100, expected: "green" },
-    { castCount: 20, expected: "orange" },
-    { castCount: 7, expected: "orange" },
-    { castCount: 5, expected: "red" },
+    { castCount: 100, expected: "good" },
+    { castCount: 20, expected: "fair" },
+    { castCount: 7, expected: "fair" },
+    { castCount: 5, expected: "bad" },
   ])(
     "judges $expected at a $castCount-cast sample with exactly one clip",
     ({ castCount, expected }) => {

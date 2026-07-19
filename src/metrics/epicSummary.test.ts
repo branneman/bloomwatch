@@ -28,16 +28,16 @@ import type { InnervateAuditResult } from "./innervateAudit";
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
-    expect(worstJudgement(["green", "orange"])).toBe("orange");
-    expect(worstJudgement(["green", "red", "orange"])).toBe("red");
+    expect(worstJudgement(["good", "fair"])).toBe("fair");
+    expect(worstJudgement(["good", "bad", "fair"])).toBe("bad");
   });
 
   it("ignores null entries", () => {
-    expect(worstJudgement(["green", null, "orange"])).toBe("orange");
+    expect(worstJudgement(["good", null, "fair"])).toBe("fair");
   });
 
-  it("defaults to green when every entry is null", () => {
-    expect(worstJudgement([null, null])).toBe("green");
+  it("defaults to good when every entry is null", () => {
+    expect(worstJudgement([null, null])).toBe("good");
   });
 });
 
@@ -47,7 +47,7 @@ describe("summarizeGcdEconomy", () => {
       activeTimeMs: 3000,
       fightDurationMs: 10000,
       utilizationPct: 87,
-      judgement: "green",
+      judgement: "good",
     };
     const idleGaps: IdleGapsResult = {
       gaps: [],
@@ -55,11 +55,11 @@ describe("summarizeGcdEconomy", () => {
       totalDeadTimeMs: 620,
       fightDurationMs: 10000,
       deadTimePct: 6.2,
-      judgement: "orange",
+      judgement: "fair",
     };
 
     expect(summarizeGcdEconomy(gcd, idleGaps)).toEqual({
-      judgement: "orange",
+      judgement: "fair",
       stats: ["GCD utilization: 87%", "Idle gaps: 6.2% dead time"],
     });
   });
@@ -75,7 +75,7 @@ describe("summarizeLifebloomDiscipline", () => {
           lb3UptimeMs: 9100,
           windowMs: 10000,
           lb3UptimePct: 91,
-          judgement: "green",
+          judgement: "good",
         },
         {
           targetId: 2,
@@ -83,31 +83,31 @@ describe("summarizeLifebloomDiscipline", () => {
           lb3UptimeMs: 7900,
           windowMs: 10000,
           lb3UptimePct: 79,
-          judgement: "orange",
+          judgement: "fair",
         },
       ],
     };
     const refresh: RefreshCadenceResult = {
       intervalCount: 5,
       medianMs: 6400,
-      judgement: "green",
+      judgement: "good",
       buckets: [],
     };
     const blooms: AccidentalBloomsResult = {
       accidentalBlooms: [{ timestampMs: 173000, targetId: 2 }],
       count: 1,
-      judgement: "orange",
+      judgement: "fair",
     };
     const restack: RestackTaxResult = {
       casts: [],
       castCount: 3,
       estimatedMana: 2400,
-      judgement: "orange",
+      judgement: "fair",
     };
 
     expect(summarizeLifebloomDiscipline(lb3, refresh, blooms, restack)).toEqual(
       {
-        judgement: "orange",
+        judgement: "fair",
         stats: ["LB3 uptime: 79–91%", "Refresh cadence: 6.4s median"],
       },
     );
@@ -122,7 +122,7 @@ describe("summarizeLifebloomDiscipline", () => {
           lb3UptimeMs: 9100,
           windowMs: 10000,
           lb3UptimePct: 91,
-          judgement: "green",
+          judgement: "good",
         },
       ],
     };
@@ -135,18 +135,18 @@ describe("summarizeLifebloomDiscipline", () => {
     const blooms: AccidentalBloomsResult = {
       accidentalBlooms: [],
       count: 0,
-      judgement: "green",
+      judgement: "good",
     };
     const restack: RestackTaxResult = {
       casts: [],
       castCount: 0,
       estimatedMana: 0,
-      judgement: "green",
+      judgement: "good",
     };
 
     expect(summarizeLifebloomDiscipline(lb3, refresh, blooms, restack)).toEqual(
       {
-        judgement: "green",
+        judgement: "good",
         stats: ["LB3 uptime: 91%", "Refresh cadence: no refreshes"],
       },
     );
@@ -163,13 +163,13 @@ describe("summarizeLifebloomDiscipline", () => {
     const blooms: AccidentalBloomsResult = {
       accidentalBlooms: [],
       count: 0,
-      judgement: "green",
+      judgement: "good",
     };
     const restack: RestackTaxResult = {
       casts: [],
       castCount: 0,
       estimatedMana: 0,
-      judgement: "green",
+      judgement: "good",
     };
 
     expect(
@@ -179,10 +179,10 @@ describe("summarizeLifebloomDiscipline", () => {
 });
 
 describe("summarizeSpellDiscipline", () => {
-  const GREEN_DOWNRANKING: DownrankingDisciplineResult = {
+  const GOOD_DOWNRANKING: DownrankingDisciplineResult = {
     breakdown: [],
     flaggedCount: 0,
-    judgement: "green",
+    judgement: "good",
   };
 
   it("takes the worst of Rejuvenation's clip judgement and the Swiftmend judgement", () => {
@@ -192,7 +192,7 @@ describe("summarizeSpellDiscipline", () => {
         castCount: 64,
         clipCount: 4,
         clipPct: 6.25,
-        judgement: "orange",
+        judgement: "fair",
       },
       regrowth: {
         spell: "Regrowth",
@@ -207,7 +207,7 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendCastCount: 6,
       wastefulCount: 0,
       wastefulPct: 0,
-      judgement: "green",
+      judgement: "good",
       availableWindows: 22,
     };
 
@@ -215,23 +215,23 @@ describe("summarizeSpellDiscipline", () => {
       summarizeSpellDiscipline(
         hotClips,
         swiftmendAudit,
-        GREEN_DOWNRANKING,
+        GOOD_DOWNRANKING,
         true,
       ),
     ).toEqual({
-      judgement: "orange",
+      judgement: "fair",
       stats: ["Rejuvenation clips: 6.3%", "Swiftmend wasteful: 0.0%"],
     });
   });
 
-  it("is green when Rejuvenation clips, Swiftmend wasteful share, and downranking are all green", () => {
+  it("is good when Rejuvenation clips, Swiftmend wasteful share, and downranking are all good", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
         castCount: 100,
         clipCount: 1,
         clipPct: 1,
-        judgement: "green",
+        judgement: "good",
       },
       regrowth: {
         spell: "Regrowth",
@@ -246,28 +246,24 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendCastCount: 4,
       wastefulCount: 0,
       wastefulPct: 0,
-      judgement: "green",
+      judgement: "good",
       availableWindows: 22,
     };
 
     expect(
-      summarizeSpellDiscipline(
-        hotClips,
-        swiftmendAudit,
-        GREEN_DOWNRANKING,
-        true,
-      ).judgement,
-    ).toBe("green");
+      summarizeSpellDiscipline(hotClips, swiftmendAudit, GOOD_DOWNRANKING, true)
+        .judgement,
+    ).toBe("good");
   });
 
-  it("turns red when Swiftmend's wasteful share is red, even if Rejuvenation clips and downranking are green", () => {
+  it("turns bad when Swiftmend's wasteful share is bad, even if Rejuvenation clips and downranking are good", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
         castCount: 100,
         clipCount: 1,
         clipPct: 1,
-        judgement: "green",
+        judgement: "good",
       },
       regrowth: {
         spell: "Regrowth",
@@ -282,28 +278,24 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendCastCount: 4,
       wastefulCount: 3,
       wastefulPct: 75,
-      judgement: "red",
+      judgement: "bad",
       availableWindows: 22,
     };
 
     expect(
-      summarizeSpellDiscipline(
-        hotClips,
-        swiftmendAudit,
-        GREEN_DOWNRANKING,
-        true,
-      ).judgement,
-    ).toBe("red");
+      summarizeSpellDiscipline(hotClips, swiftmendAudit, GOOD_DOWNRANKING, true)
+        .judgement,
+    ).toBe("bad");
   });
 
-  it("turns orange when downranking has a flag, even if Rejuvenation clips and Swiftmend are green", () => {
+  it("turns fair when downranking has a flag, even if Rejuvenation clips and Swiftmend are good", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
         castCount: 100,
         clipCount: 1,
         clipPct: 1,
-        judgement: "green",
+        judgement: "good",
       },
       regrowth: {
         spell: "Regrowth",
@@ -318,7 +310,7 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendCastCount: 4,
       wastefulCount: 0,
       wastefulPct: 0,
-      judgement: "green",
+      judgement: "good",
       availableWindows: 22,
     };
     const downranking: DownrankingDisciplineResult = {
@@ -334,7 +326,7 @@ describe("summarizeSpellDiscipline", () => {
         },
       ],
       flaggedCount: 1,
-      judgement: "orange",
+      judgement: "fair",
     };
 
     const result = summarizeSpellDiscipline(
@@ -344,7 +336,7 @@ describe("summarizeSpellDiscipline", () => {
       true,
     );
 
-    expect(result.judgement).toBe("orange");
+    expect(result.judgement).toBe("fair");
     expect(result.stats).toEqual([
       "Rejuvenation clips: 1.0%",
       "Swiftmend wasteful: 0.0%",
@@ -358,7 +350,7 @@ describe("summarizeSpellDiscipline", () => {
         castCount: 100,
         clipCount: 1,
         clipPct: 1,
-        judgement: "green",
+        judgement: "good",
       },
       regrowth: {
         spell: "Regrowth",
@@ -373,18 +365,18 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendCastCount: 0,
       wastefulCount: 0,
       wastefulPct: 0,
-      judgement: "red",
+      judgement: "bad",
       availableWindows: 22,
     };
 
     const result = summarizeSpellDiscipline(
       hotClips,
       swiftmendAudit,
-      GREEN_DOWNRANKING,
+      GOOD_DOWNRANKING,
       false,
     );
 
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
     expect(result.stats).toEqual(["Rejuvenation clips: 1.0%"]);
   });
 });
@@ -395,9 +387,9 @@ describe("summarizeManaEconomy", () => {
     rows: [],
     judgement: null,
   };
-  const OVERHEAL_TABLE_GREEN: OverhealTableResult = {
+  const OVERHEAL_TABLE_GOOD: OverhealTableResult = {
     rows: [],
-    judgement: "green",
+    judgement: "good",
   };
   const INNERVATE_NEUTRAL: InnervateAuditResult = {
     firstCast: null,
@@ -409,22 +401,22 @@ describe("summarizeManaEconomy", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
-      judgement: "green",
+      judgement: "good",
     };
     expect(
       summarizeManaEconomy(
         manaCurve,
         EXEMPT_CONSUMABLES,
-        OVERHEAL_TABLE_GREEN,
+        OVERHEAL_TABLE_GOOD,
         INNERVATE_NEUTRAL,
       ),
     ).toEqual({
-      judgement: "green",
+      judgement: "good",
       stats: ["Ending mana: 20%", "Consumables: not mana-constrained"],
     });
   });
 
-  it("reports a no-data stat and defaults to green when there are no samples", () => {
+  it("reports a no-data stat and defaults to good when there are no samples", () => {
     const manaCurve: ManaCurveResult = {
       points: [],
       endingPct: null,
@@ -434,11 +426,11 @@ describe("summarizeManaEconomy", () => {
       summarizeManaEconomy(
         manaCurve,
         EXEMPT_CONSUMABLES,
-        OVERHEAL_TABLE_GREEN,
+        OVERHEAL_TABLE_GOOD,
         INNERVATE_NEUTRAL,
       ),
     ).toEqual({
-      judgement: "green",
+      judgement: "good",
       stats: ["Ending mana: no data", "Consumables: not mana-constrained"],
     });
   });
@@ -447,7 +439,7 @@ describe("summarizeManaEconomy", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
-      judgement: "green",
+      judgement: "good",
     };
     const consumableThroughput: ConsumableThroughputResult = {
       exempt: false,
@@ -456,21 +448,21 @@ describe("summarizeManaEconomy", () => {
           label: "Mana Potion",
           used: 2,
           expectedFloor: 2,
-          judgement: "green",
+          judgement: "good",
         },
-        { label: "Rune", used: 0, expectedFloor: 1, judgement: "red" },
+        { label: "Rune", used: 0, expectedFloor: 1, judgement: "bad" },
       ],
-      judgement: "red",
+      judgement: "bad",
     };
     expect(
       summarizeManaEconomy(
         manaCurve,
         consumableThroughput,
-        OVERHEAL_TABLE_GREEN,
+        OVERHEAL_TABLE_GOOD,
         INNERVATE_NEUTRAL,
       ),
     ).toEqual({
-      judgement: "red",
+      judgement: "bad",
       stats: ["Ending mana: 20%", "Potions: 2/2, Runes: 0/1"],
     });
   });
@@ -479,7 +471,7 @@ describe("summarizeManaEconomy", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
-      judgement: "green",
+      judgement: "good",
     };
     const overhealTable: OverhealTableResult = {
       rows: [
@@ -489,10 +481,10 @@ describe("summarizeManaEconomy", () => {
           amount: 400,
           overheal: 600,
           overhealPct: 60,
-          judgement: "red",
+          judgement: "bad",
         },
       ],
-      judgement: "red",
+      judgement: "bad",
     };
     const result = summarizeManaEconomy(
       manaCurve,
@@ -500,7 +492,7 @@ describe("summarizeManaEconomy", () => {
       overhealTable,
       INNERVATE_NEUTRAL,
     );
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
     expect(result.stats).toEqual([
       "Ending mana: 20%",
       "Consumables: not mana-constrained",
@@ -511,20 +503,20 @@ describe("summarizeManaEconomy", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
-      judgement: "green",
+      judgement: "good",
     };
     const innervateAudit: InnervateAuditResult = {
       firstCast: null,
       laterCasts: [],
-      judgement: "red",
+      judgement: "bad",
     };
     const result = summarizeManaEconomy(
       manaCurve,
       EXEMPT_CONSUMABLES,
-      OVERHEAL_TABLE_GREEN,
+      OVERHEAL_TABLE_GOOD,
       innervateAudit,
     );
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
     expect(result.stats).toEqual([
       "Ending mana: 20%",
       "Consumables: not mana-constrained",
@@ -545,7 +537,7 @@ describe("summarizeDeathForensics", () => {
           nsReady: true,
           idlePreceding: true,
           unspentCount: 3,
-          judgement: "red",
+          judgement: "bad",
         },
         {
           timestampMs: 91000,
@@ -556,28 +548,28 @@ describe("summarizeDeathForensics", () => {
           nsReady: false,
           idlePreceding: false,
           unspentCount: 0,
-          judgement: "green",
+          judgement: "good",
         },
       ],
       flaggedCount: 1,
-      judgement: "red",
+      judgement: "bad",
     };
 
     expect(summarizeDeathForensics(deathForensics)).toEqual({
-      judgement: "red",
+      judgement: "bad",
       stats: ["Deaths: 2", "Flagged: 1"],
     });
   });
 
-  it("reports a single 'No friendly deaths' stat and green judgement when there were none", () => {
+  it("reports a single 'No friendly deaths' stat and good judgement when there were none", () => {
     const deathForensics: DeathForensicsResult = {
       deaths: [],
       flaggedCount: 0,
-      judgement: "green",
+      judgement: "good",
     };
 
     expect(summarizeDeathForensics(deathForensics)).toEqual({
-      judgement: "green",
+      judgement: "good",
       stats: ["No friendly deaths"],
     });
   });
@@ -598,15 +590,15 @@ describe("summarizeNearDeathResponse", () => {
           nsReady: true,
           idlePreceding: true,
           unspentCount: 3,
-          judgement: "red",
+          judgement: "bad",
         },
       ],
       flaggedCount: 1,
-      judgement: "red",
+      judgement: "bad",
     };
 
     expect(summarizeNearDeathResponse(nearDeathResponse)).toEqual({
-      judgement: "red",
+      judgement: "bad",
       stats: ["Crises: 1", "Flagged: 1"],
     });
   });
@@ -615,11 +607,11 @@ describe("summarizeNearDeathResponse", () => {
     const nearDeathResponse: NearDeathResponseResult = {
       crises: [],
       flaggedCount: 0,
-      judgement: "green",
+      judgement: "good",
     };
 
     expect(summarizeNearDeathResponse(nearDeathResponse)).toEqual({
-      judgement: "green",
+      judgement: "good",
       stats: ["No crises"],
     });
   });
@@ -632,15 +624,15 @@ describe("summarizePrepHygiene", () => {
         hasFlask: true,
         hasBattleElixir: false,
         hasGuardianElixir: false,
-        judgement: "green",
+        judgement: "good",
       },
       foodBuffPresent: true,
       weaponOilPresent: false,
-      judgement: "red",
+      judgement: "bad",
     };
 
     expect(summarizePrepHygiene(prep)).toEqual({
-      judgement: "red",
+      judgement: "bad",
       stats: ["Prep: flask active", "Food & oil: oil missing"],
     });
   });
@@ -651,11 +643,11 @@ describe("summarizePrepHygiene", () => {
         hasFlask: false,
         hasBattleElixir: true,
         hasGuardianElixir: true,
-        judgement: "green",
+        judgement: "good",
       },
       foodBuffPresent: true,
       weaponOilPresent: true,
-      judgement: "green",
+      judgement: "good",
     };
 
     expect(summarizePrepHygiene(prep).stats).toEqual([
@@ -670,11 +662,11 @@ describe("summarizePrepHygiene", () => {
         hasFlask: false,
         hasBattleElixir: true,
         hasGuardianElixir: false,
-        judgement: "orange",
+        judgement: "fair",
       },
       foodBuffPresent: false,
       weaponOilPresent: false,
-      judgement: "red",
+      judgement: "bad",
     };
     expect(summarizePrepHygiene(onlyBattle).stats[0]).toBe(
       "Prep: only battle elixir active",
@@ -686,7 +678,7 @@ describe("summarizePrepHygiene", () => {
         hasFlask: false,
         hasBattleElixir: false,
         hasGuardianElixir: true,
-        judgement: "orange",
+        judgement: "fair",
       },
     };
     expect(summarizePrepHygiene(onlyGuardian).stats[0]).toBe(
@@ -700,11 +692,11 @@ describe("summarizePrepHygiene", () => {
         hasFlask: false,
         hasBattleElixir: false,
         hasGuardianElixir: false,
-        judgement: "red",
+        judgement: "bad",
       },
       foodBuffPresent: false,
       weaponOilPresent: false,
-      judgement: "red",
+      judgement: "bad",
     };
 
     expect(summarizePrepHygiene(prep).stats).toEqual([

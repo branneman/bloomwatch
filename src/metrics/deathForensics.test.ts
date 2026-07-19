@@ -15,7 +15,7 @@ const NS_IDS = new Set([17116]);
 const LB_IDS = new Set([33763]);
 
 describe("computeDeathForensics", () => {
-  it("judges red when a maintained target's death has no LB3, both cooldowns ready, and the druid was idle", () => {
+  it("judges bad when a maintained target's death has no LB3, both cooldowns ready, and the druid was idle", () => {
     const buffEvents = [
       anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
       anApplyBuffStackEvent({
@@ -61,11 +61,11 @@ describe("computeDeathForensics", () => {
       nsReady: true,
       idlePreceding: true,
       unspentCount: 3,
-      judgement: "red",
+      judgement: "bad",
     });
   });
 
-  it("judges orange when exactly one of the three resources is unspent", () => {
+  it("judges fair when exactly one of the three resources is unspent", () => {
     const buffEvents = [
       anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
       anApplyBuffStackEvent({
@@ -118,10 +118,10 @@ describe("computeDeathForensics", () => {
     expect(result.deaths[0].nsReady).toBe(false);
     expect(result.deaths[0].idlePreceding).toBe(true);
     expect(result.deaths[0].unspentCount).toBe(1);
-    expect(result.deaths[0].judgement).toBe("orange");
+    expect(result.deaths[0].judgement).toBe("fair");
   });
 
-  it("judges green when zero resources are unspent", () => {
+  it("judges good when zero resources are unspent", () => {
     const buffEvents = [
       anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
       anApplyBuffStackEvent({
@@ -176,7 +176,7 @@ describe("computeDeathForensics", () => {
     );
 
     expect(result.deaths[0].unspentCount).toBe(0);
-    expect(result.deaths[0].judgement).toBe("green");
+    expect(result.deaths[0].judgement).toBe("good");
   });
 
   it("reports judgement as null for an unmaintained target's death, regardless of unspent count", () => {
@@ -434,9 +434,9 @@ describe("computeDeathForensics", () => {
       }),
     ];
     const deathEvents = [
-      // Early death, before any of the casts above -> everything unspent -> red.
+      // Early death, before any of the casts above -> everything unspent -> bad.
       aDeathEvent({ timestamp: 10000, targetID: 50 }),
-      // Late death, right after the cast cluster -> everything spent -> green.
+      // Late death, right after the cast cluster -> everything spent -> good.
       aDeathEvent({ timestamp: 91000, targetID: 60 }),
     ];
 
@@ -454,13 +454,13 @@ describe("computeDeathForensics", () => {
       100000,
     );
 
-    expect(result.deaths[0].judgement).toBe("red");
-    expect(result.deaths[1].judgement).toBe("green");
+    expect(result.deaths[0].judgement).toBe("bad");
+    expect(result.deaths[1].judgement).toBe("good");
     expect(result.flaggedCount).toBe(1);
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
   });
 
-  it("resolves to a green judgement with zero flagged deaths when there are no friendly deaths", () => {
+  it("resolves to a good judgement with zero flagged deaths when there are no friendly deaths", () => {
     const result = computeDeathForensics(
       [],
       [],
@@ -478,7 +478,7 @@ describe("computeDeathForensics", () => {
     expect(result).toEqual({
       deaths: [],
       flaggedCount: 0,
-      judgement: "green",
+      judgement: "good",
     });
   });
 

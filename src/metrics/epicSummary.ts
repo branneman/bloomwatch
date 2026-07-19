@@ -78,7 +78,7 @@ export function summarizeSpellDiscipline(
   // judgement. Downranking's judgement also joins the worst-of calc (per
   // docs/backlog.md story 303) but doesn't get its own stat line — story
   // 701 caps a dashboard widget at 1-2 stats. Swiftmend's judgement/stat
-  // line are excluded entirely (not scored, not shown as a spurious green)
+  // line are excluded entirely (not scored, not shown as a spurious good)
   // when the druid's build can't reach Swiftmend's talent — story 903c.
   return {
     judgement: worstJudgement([

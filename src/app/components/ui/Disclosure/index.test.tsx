@@ -8,14 +8,14 @@ describe("Disclosure", () => {
     const user = userEvent.setup();
     render(
       <Disclosure summary="Why this threshold?">
-        Green ≥ 85%, orange 70–85%, red &lt; 70%.
+        Good ≥ 85%, fair 70–85%, bad &lt; 70%.
       </Disclosure>,
     );
-    expect(screen.queryByText(/Green ≥ 85%/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Good ≥ 85%/)).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Why this threshold?" }),
     );
-    expect(screen.getByText(/Green ≥ 85%/)).toBeInTheDocument();
+    expect(screen.getByText(/Good ≥ 85%/)).toBeInTheDocument();
   });
 
   it("marks the toggle button's aria-expanded state", async () => {

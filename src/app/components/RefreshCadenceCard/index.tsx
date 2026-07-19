@@ -30,21 +30,21 @@ type FetchResult =
   | { accessToken: string; error: string };
 
 const BUCKET_LABEL: Record<RefreshCadenceBucketLabel, string> = {
-  redEarly: "< 5s",
-  orange: "5–6s",
-  green: "6–7s",
-  redLate: "> 7s",
+  badEarly: "< 5s",
+  fair: "5–6s",
+  good: "6–7s",
+  badLate: "> 7s",
 };
 
 const BUCKET_COLOR: Record<RefreshCadenceBucketLabel, string> = {
-  redEarly: "var(--judgement-red)",
-  orange: "var(--judgement-orange)",
-  green: "var(--judgement-green)",
-  redLate: "var(--judgement-red)",
+  badEarly: "var(--judgement-bad)",
+  fair: "var(--judgement-fair)",
+  good: "var(--judgement-good)",
+  badLate: "var(--judgement-bad)",
 };
 
 const THRESHOLD =
-  "Only refreshes on targets already at 3 stacks count. Buckets and median R/O/G share the same bands: red < 5s, orange 5–6s, green 6–7s, red > 7s — a late refresh risks an accidental bloom, counted separately by the accidental-bloom counter below.";
+  "Only refreshes on targets already at 3 stacks count. Buckets and median Good/Fair/Bad share the same bands: bad < 5s, fair 5–6s, good 6–7s, bad > 7s — a late refresh risks an accidental bloom, counted separately by the accidental-bloom counter below.";
 
 export function RefreshCadenceCard({
   accessToken,

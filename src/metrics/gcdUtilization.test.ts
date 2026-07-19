@@ -13,7 +13,7 @@ describe("computeGcdUtilization", () => {
     expect(result.activeTimeMs).toBe(4500);
     expect(result.fightDurationMs).toBe(10000);
     expect(result.utilizationPct).toBe(45);
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
   });
 
   it("uses the begincast-to-cast delta as the cost for a cast-time spell", () => {

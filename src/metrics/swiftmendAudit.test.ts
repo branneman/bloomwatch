@@ -13,7 +13,7 @@ const REJUV_IDS = new Set([26982]);
 const REGROWTH_IDS = new Set([26980]);
 
 describe("computeSwiftmendAudit", () => {
-  it("returns no casts, zero wasteful share, and green judgement with no events", () => {
+  it("returns no casts, zero wasteful share, and good judgement with no events", () => {
     const result = computeSwiftmendAudit(
       [],
       [],
@@ -30,7 +30,7 @@ describe("computeSwiftmendAudit", () => {
       swiftmendCastCount: 0,
       wastefulCount: 0,
       wastefulPct: 0,
-      judgement: "green",
+      judgement: "good",
       availableWindows: 22,
     });
   });
@@ -287,7 +287,7 @@ describe("computeSwiftmendAudit", () => {
     expect(result.casts).toEqual([]);
     expect(result.swiftmendCastCount).toBe(1);
     expect(result.wastefulPct).toBe(0);
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
   it("ignores casts from other sources or other abilities", () => {
@@ -316,9 +316,9 @@ describe("computeSwiftmendAudit", () => {
   });
 
   it.each([
-    { wastefulOf: [0, 4], expected: "green" },
-    { wastefulOf: [1, 4], expected: "orange" },
-    { wastefulOf: [1, 3], expected: "red" },
+    { wastefulOf: [0, 4], expected: "good" },
+    { wastefulOf: [1, 4], expected: "fair" },
+    { wastefulOf: [1, 3], expected: "bad" },
   ])(
     "judges $expected when $wastefulOf.0 of $wastefulOf.1 casts are wasteful",
     ({ wastefulOf, expected }) => {

@@ -71,7 +71,7 @@ describe("ConsumableThroughputCard", () => {
     );
     expect(screen.getByText("Rune")).toBeInTheDocument();
     // "Bad" appears twice: the card's own header chip (fight-level judgement is the
-    // worst-of, which is red because of the 0/3 rune row) plus the rune row's own chip.
+    // worst-of, which is bad because of the 0/3 rune row) plus the rune row's own chip.
     expect(screen.getAllByText("Good")).toHaveLength(1); // potions row, 3/3
     expect(screen.getAllByText("Bad")).toHaveLength(2); // header chip + rune row, 0/3
   });

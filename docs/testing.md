@@ -50,7 +50,7 @@ npm run format:check   # CI mode, fails on unformatted files, no writes
 
 **Charter:** pure logic, no I/O, no DOM. The majority of tests, and the first thing written for any new logic.
 
-Covers: metric-calculation modules (GCD utilization, LB3 uptime, idle-gap detection, mana curve, R/O/G threshold judging, added as each backlog story builds them), report URL/code parsing (002), ability-ID resolution (007), and PKCE crypto helpers (`generateCodeChallenge`, `base64urlEncode`).
+Covers: metric-calculation modules (GCD utilization, LB3 uptime, idle-gap detection, mana curve, Good/Fair/Bad threshold judging, added as each backlog story builds them), report URL/code parsing (002), ability-ID resolution (007), and PKCE crypto helpers (`generateCodeChallenge`, `base64urlEncode`).
 
 **Tooling:** Vitest, co-located as `*.test.ts` next to the file under test (e.g. `src/wcl/auth.ts` + `src/wcl/auth.test.ts`).
 
@@ -177,7 +177,7 @@ Real reports from the first TBC Classic launch (2021-2022 — not the 2007 origi
 | `cWqmJzFvBMVwyAa9` | Spideyhoof   | Full clear            | 89% ideal refresh; one target at exactly 100% uptime.                                                                                                                                                                  |
 | `DRtXV4ChA2Kw3c81` | Stuuri       | Sunwell Plateau       | 95% ideal refresh cadence (second-highest found), GCD utilization 96.7%.                                                                                                                                               |
 | `kCnydQTcXwmhB3zL` | Kudryavka    | Sunwell Plateau       | 96% ideal refresh cadence — the highest found in this whole corpus. GCD utilization 99.5%.                                                                                                                             |
-| `8xH4w1PRCvfM36G7` | Elmaskecura  | Sunwell               | Concurrent LB3 avg 1.10 (tied-highest, peak 4); one target at 91% uptime — the first and only real data point that actually clears the current 90% green bar for LB3 uptime per target.                                |
+| `8xH4w1PRCvfM36G7` | Elmaskecura  | Sunwell               | Concurrent LB3 avg 1.10 (tied-highest, peak 4); one target at 91% uptime — the first and only real data point that actually clears the current 90% good bar for LB3 uptime per target.                                 |
 | `BN7gmjKHJ8AMZxT3` | Perridur     | Sunwell (progression) | Concurrent LB3 avg 1.10 (tied-highest), peak 5 (tied-highest, matching Olklo's Sunwell log) across 9 maintained targets.                                                                                               |
 | `T4FLKV2DAtMGBQwz` | Suliss       | Sunwell Plateau       | 86% ideal refresh; concurrent avg 0.85; fairly tight 40-62% spread across 5 targets.                                                                                                                                   |
 | `HMfaXqjRZNQ32BmA` | Onipower     | Sunwell Plateau (SWP) | GCD utilization 98.7% (highest found); 70% ideal refresh.                                                                                                                                                              |

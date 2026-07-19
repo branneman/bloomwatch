@@ -20,7 +20,7 @@ export interface ActorClass {
 // except Warrior and Rogue; Druid is the only class whose mana-use depends
 // on spec (Feral doesn't use mana, Balance/Restoration do). No
 // docs/backlog.md rationale pointer is needed (principle 3 requires sourcing
-// for R/O/G *thresholds*; this is a fixed game-mechanics fact, the same way
+// for Good/Fair/Bad *thresholds*; this is a fixed game-mechanics fact, the same way
 // prepHygiene.ts documents its elixir/flask name lists).
 const NON_MANA_CLASSES = new Set(["Warrior", "Rogue"]);
 const FERAL_DRUID_SPEC_ICON = "Druid-Feral Combat";
@@ -109,9 +109,9 @@ function judgeCast(
 ): Judgement {
   if (cast.isSelfCast) {
     const elapsedFraction = (cast.timestampMs - fightStartMs) / fightDurationMs;
-    return elapsedFraction >= LATE_CAST_FRACTION ? "orange" : "green";
+    return elapsedFraction >= LATE_CAST_FRACTION ? "fair" : "good";
   }
-  return isManaUsingActor(cast.targetClass) ? "green" : "red";
+  return isManaUsingActor(cast.targetClass) ? "good" : "bad";
 }
 
 export function computeInnervateAudit(
@@ -138,7 +138,7 @@ export function computeInnervateAudit(
     );
     const judgement =
       manaConstrained && fightDurationMs >= MANA_CONSTRAINED_MIN_DURATION_MS
-        ? "red"
+        ? "bad"
         : null;
     return { firstCast: null, laterCasts: [], judgement };
   }

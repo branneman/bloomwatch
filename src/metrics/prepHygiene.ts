@@ -54,9 +54,9 @@ function judgeFlaskOrElixir(
   hasBattleElixir: boolean,
   hasGuardianElixir: boolean,
 ): Judgement {
-  if (hasFlask || (hasBattleElixir && hasGuardianElixir)) return "green";
-  if (hasBattleElixir || hasGuardianElixir) return "orange";
-  return "red";
+  if (hasFlask || (hasBattleElixir && hasGuardianElixir)) return "good";
+  if (hasBattleElixir || hasGuardianElixir) return "fair";
+  return "bad";
 }
 
 export function computePrepHygiene(
@@ -98,8 +98,8 @@ export function computePrepHygiene(
 
   const judgement = worstJudgement([
     flaskOrElixirJudgement,
-    foodBuffPresent ? "green" : "red",
-    weaponOilPresent ? "green" : "red",
+    foodBuffPresent ? "good" : "bad",
+    weaponOilPresent ? "good" : "bad",
   ]);
 
   return {

@@ -9,14 +9,14 @@
   height: 100%;
   transition: width 0.2s ease;
 }
-.green {
-  background: var(--judgement-green);
+.good {
+  background: var(--judgement-good);
 }
-.orange {
-  background: var(--judgement-orange);
+.fair {
+  background: var(--judgement-fair);
 }
-.red {
-  background: var(--judgement-red);
+.bad {
+  background: var(--judgement-bad);
 }
 .neutral {
   background: var(--accent);

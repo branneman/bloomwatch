@@ -68,7 +68,7 @@ describe("DownrankingDisciplineCard", () => {
     expect(screen.getByText("Fair")).toBeInTheDocument();
   });
 
-  it("shows a message and green judgement when there are no tracked casts", async () => {
+  it("shows a message and good judgement when there are no tracked casts", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 200000 });
 
     render(

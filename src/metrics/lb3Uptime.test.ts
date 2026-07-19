@@ -24,7 +24,7 @@ describe("computeLb3Uptime", () => {
         lb3UptimeMs: 17000,
         windowMs: 17000,
         lb3UptimePct: 100,
-        judgement: "green",
+        judgement: "good",
       },
     ]);
   });
@@ -45,7 +45,7 @@ describe("computeLb3Uptime", () => {
       targetId: 47,
       lb3UptimeMs: 0,
       lb3UptimePct: 0,
-      judgement: "red",
+      judgement: "bad",
     });
   });
 
@@ -72,12 +72,12 @@ describe("computeLb3Uptime", () => {
         lb3UptimeMs: 3000,
         windowMs: 3000,
         lb3UptimePct: 100,
-        judgement: "green",
+        judgement: "good",
       },
     ]);
   });
 
-  it("reports 0% and red for a maintained target that never reaches 3 stacks", () => {
+  it("reports 0% and bad for a maintained target that never reaches 3 stacks", () => {
     const events = [
       anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
       anApplyBuffStackEvent({ timestamp: 1000, stack: 2, targetID: 42 }),
@@ -91,7 +91,7 @@ describe("computeLb3Uptime", () => {
         lb3UptimeMs: 0,
         windowMs: 10000,
         lb3UptimePct: 0,
-        judgement: "red",
+        judgement: "bad",
       },
     ]);
   });
@@ -115,12 +115,12 @@ describe("computeLb3Uptime", () => {
         lb3UptimeMs: 5000,
         windowMs: 9000,
         lb3UptimePct: (5000 / 9000) * 100,
-        judgement: "red",
+        judgement: "bad",
       },
     ]);
   });
 
-  it("judges orange between 75% and 90%, green at or above 90%", () => {
+  it("judges fair between 75% and 90%, good at or above 90%", () => {
     const baseEvents = (dropAt: number, reopenAt: number) => [
       anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
       anApplyBuffStackEvent({ timestamp: 500, stack: 2, targetID: 42 }),
@@ -129,25 +129,25 @@ describe("computeLb3Uptime", () => {
       anApplyBuffStackEvent({ timestamp: reopenAt, stack: 3, targetID: 42 }),
     ];
 
-    const greenResult = computeLb3Uptime(
+    const goodResult = computeLb3Uptime(
       baseEvents(6000, 6500),
       2,
       LB_IDS,
       0,
       11000,
     );
-    expect(greenResult.targets[0].lb3UptimePct).toBe(95);
-    expect(greenResult.targets[0].judgement).toBe("green");
+    expect(goodResult.targets[0].lb3UptimePct).toBe(95);
+    expect(goodResult.targets[0].judgement).toBe("good");
 
-    const orangeResult = computeLb3Uptime(
+    const fairResult = computeLb3Uptime(
       baseEvents(6000, 8000),
       2,
       LB_IDS,
       0,
       11000,
     );
-    expect(orangeResult.targets[0].lb3UptimePct).toBe(80);
-    expect(orangeResult.targets[0].judgement).toBe("orange");
+    expect(fairResult.targets[0].lb3UptimePct).toBe(80);
+    expect(fairResult.targets[0].judgement).toBe("fair");
   });
 
   it("ignores events from a different caster and non-Lifebloom abilities", () => {

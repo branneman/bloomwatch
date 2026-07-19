@@ -414,15 +414,6 @@ I want the report/fight/druid selection encoded in the URL, so that I can share 
 - The browser's back/forward buttons move between screens the same way the in-app back-links (e.g. "← All fights", "← All metrics") do, everywhere in the flow — not just at the top level.
 - Opening any hash-encoded URL directly (not just the fully-selected scorecard one) resumes at that exact screen once authenticated, instead of resetting to the report-input screen.
 
-### 704 — Markdown export 🔲 Todo
-
-I want to export the current scorecard as a Markdown file, so that I can paste it into Discord/notes or archive my progression.
-
-**Acceptance criteria**
-
-- Export includes numbers, judgements, thresholds used, report link, and generation date.
-- Output renders cleanly in Discord and GitHub.
-
 ### 706 — Responsive/mobile layout ✅ Done
 
 I want the app to work well on mobile, so that I can check a scorecard from my phone.
@@ -438,9 +429,8 @@ I want every red/orange/green judgement chip to also carry a plain-language word
 
 **Acceptance criteria**
 
-- Every R/O/G chip anywhere in the app (overview widgets, per-epic detail rows, exports) shows its Good/Fair/Bad label alongside its color, never color alone.
-- The Markdown export (704) uses the text label too, not just a color name — Markdown can't render color, so the label is the only signal there.
-- Wording is consistent everywhere the same judgement tier appears — no epic invents its own synonyms for "orange."
+- Every judgement chip anywhere in the app (overview widgets, per-epic detail rows) shows its Good/Fair/Bad label alongside its color, never color alone.
+- Wording is consistent everywhere the same judgement tier appears — no epic invents its own synonyms for "Fair."
 
 ### 708 — Global error handling & recovery overlay ✅ Done
 
@@ -466,7 +456,7 @@ As a developer, I want a Vite + React + TypeScript project scaffold with a full 
 - Test pyramid stood up per `docs/testing.md`: unit + WCL-client-integration (mocked) + component tests run on every push; contract tests (real WCL API, dedicated test Client ID) run on manual trigger only; E2E smoke runs against the live site after every deploy.
 - No secrets are required to build or deploy the product itself (per principle 2); the dedicated test Client ID's access token is a CI-only test credential, documented as such.
 
-### 802 — Threshold calibration pass 🔲 Todo
+### 802 — Threshold calibration pass ✅ Done
 
 As the project's maintainers, we want to review every R/O/G threshold in the app against a corpus of real, well-regarded druid logs and adjust the ones that are currently unfair, so that judgements are consistent and trustworthy across the whole tool. This is deliberately last: it only makes sense once every metric epic exists, so we can look at the full picture holistically instead of tuning one metric in isolation. This is an internal engineering pass — there is no end-user-facing threshold-editing UI; users do not get to configure their own judgements.
 
@@ -643,7 +633,7 @@ I want Rejuvenation clip share, Swiftmend wasteful share, and downranking flag c
 **Acceptance criteria**
 
 - Regenerate the local calibration corpus (`calibration-data/`) with current code before pooling — two correctness fixes landed the same session this story was filed (013's non-raid-zone contamination fix, and a Lifebloom any-stack-uptime carry-in fix) after most of the existing `calibration-data/` JSON was generated; recalibrating against stale files would repeat the exact category of error that session found and fixed.
-- Rejuvenation clip share, Swiftmend wasteful share, and downranking flagged-count are each tabulated against their current thresholds (`hotClipDetection.ts`: green <5%/orange 5-15%/red >15%; `swiftmendAudit.ts`: green 0%/orange ≤25%/red >25%; `downrankingDiscipline.ts`: green 0/orange ≥1 flags) across the story-901 deep-resto exemplar corpus, the same corpus 902/908 already used.
+- Rejuvenation clip share, Swiftmend wasteful share, and downranking flagged-count are each tabulated against their current thresholds (`hotClipDetection.ts`: good <5%/fair 5-15%/bad >15%; `swiftmendAudit.ts`: good 0%/fair ≤25%/bad >25%; `downrankingDiscipline.ts`: good 0/fair ≥1 flags) across the story-901 deep-resto exemplar corpus, the same corpus 902/908 already used.
 - Any threshold that misjudges known-good exemplar play is adjusted, with the change and reasoning recorded in this file per story 802's own acceptance criteria; a threshold that already fits is recorded as a real "no change" finding with its supporting numbers, the same way 908 documented GCD utilization needing none — not silently skipped.
 - `docs/thresholds.md` is updated with a dated calibration-review paragraph, matching 902/905/908's existing format.
 
@@ -656,7 +646,7 @@ This was initially set aside as unusually hard to calibrate, on the reasoning th
 **Acceptance criteria**
 
 - Regenerate the calibration corpus with current code first (same note as 909).
-- Per-death readiness is tabulated against its current threshold (`deathForensics.ts`'s `judgeDeathReadiness`: green 0/orange 1/red ≥2 unspent resources) across real deaths in the story-901 exemplar corpus and/or the broader talent-tagged corpus — deaths are a comparatively rare event, so a wider net than 902/905/908 needed may be required to get a large-enough sample.
+- Per-death readiness is tabulated against its current threshold (`deathForensics.ts`'s `judgeDeathReadiness`: good 0/fair 1/bad ≥2 unspent resources) across real deaths in the story-901 exemplar corpus and/or the broader talent-tagged corpus — deaths are a comparatively rare event, so a wider net than 902/905/908 needed may be required to get a large-enough sample.
 - Story 903c's talent-eligibility gating (Swiftmend/NS readiness only counted when the build can actually reach that talent) is confirmed still correctly wired before pooling, so an ineligible build's `unspentCount` isn't silently re-inflating the sample the way it did before 903c's fix.
 - Any threshold that misjudges known-good (or known-bad) exemplar play is adjusted, with reasoning recorded here; if the current 0/1/≥2 split already holds up, that's recorded as a real "no change" finding with supporting numbers, not skipped.
 - `docs/thresholds.md` is updated with a dated calibration-review paragraph.
@@ -668,7 +658,7 @@ I want ending mana %, consumable throughput, and the Innervate audit reviewed wi
 **Acceptance criteria**
 
 - Regenerate the calibration corpus with current code first (same note as 909/910).
-- Ending mana % (`manaCurve.ts`'s green 5-40%/orange 40-70% or 0-5%/red >70%, kills only ≥90s), consumable throughput's expected-floor formula (`consumableThroughput.ts`), and Innervate's three judgement branches (`innervateAudit.ts`) are each tabulated against the story-901 exemplar corpus with the same percentile detail 902/905/908's calibration-review paragraphs already show for other metrics — not just a pass/fail glance.
+- Ending mana % (`manaCurve.ts`'s good 5-40%/fair 40-70% or 0-5%/bad >70%, kills only ≥90s), consumable throughput's expected-floor formula (`consumableThroughput.ts`), and Innervate's three judgement branches (`innervateAudit.ts`) are each tabulated against the story-901 exemplar corpus with the same percentile detail 902/905/908's calibration-review paragraphs already show for other metrics — not just a pass/fail glance.
 - Any threshold that misjudges known-good exemplar play is adjusted, with reasoning recorded here; a threshold that already fits is recorded as a real "no change" finding with supporting numbers, same standard as 909/910.
 - `docs/thresholds.md`'s existing story 905 paragraph is either extended or superseded by a new dated paragraph specific to this story, so the "reasonably distributed" placeholder language is replaced with real findings.
 
@@ -690,13 +680,13 @@ I want re-stack tax's duration-scaled formula reviewed against real exemplar dat
 **Acceptance criteria**
 
 - Regenerate the calibration corpus with current code first (same note as 909-911).
-- Re-stack tax's current formula (`restackTax.ts`'s `judgeRestackTax`: green ≤1 cast per 2min elapsed, orange ≤1 cast per 1min elapsed) is tabulated against the story-901 exemplar corpus — this is a rate/formula threshold rather than a flat percentage, so the review needs to check the formula's shape (does the ratio between green/orange tiers hold up, not just a single cutoff number) rather than just one percentile line.
+- Re-stack tax's current formula (`restackTax.ts`'s `judgeRestackTax`: good ≤1 cast per 2min elapsed, fair ≤1 cast per 1min elapsed) is tabulated against the story-901 exemplar corpus — this is a rate/formula threshold rather than a flat percentage, so the review needs to check the formula's shape (does the ratio between good/fair tiers hold up, not just a single cutoff number) rather than just one percentile line.
 - Any part of the formula that misjudges known-good exemplar play is adjusted, with reasoning recorded here; a formula that already fits is recorded as a real "no change" finding with supporting numbers.
 - `docs/thresholds.md` is updated with a dated calibration-review paragraph.
 
 ### 914 — Revisit metrics currently left un-judged (informational-only) 🔲 Todo
 
-I want every metric currently shipped as informational-only (no R/O/G) re-examined against real data and sharper thinking about whether "we don't have enough signal to judge this" still holds, rather than leaving that call unrevisited forever just because it was the original decision. Prompted directly: correcting story 910's initial framing above found that a metric can look uncalibratable before you're precise about what it's actually measuring (process vs. outcome) — the same sharpening may apply to the metrics below too.
+I want every metric currently shipped as informational-only (no Good/Fair/Bad judgement) re-examined against real data and sharper thinking about whether "we don't have enough signal to judge this" still holds, rather than leaving that call unrevisited forever just because it was the original decision. Prompted directly: correcting story 910's initial framing above found that a metric can look uncalibratable before you're precise about what it's actually measuring (process vs. outcome) — the same sharpening may apply to the metrics below too.
 
 **Per-metric review, each independently resolvable as "confirmed still informational" or "add real judgement":**
 

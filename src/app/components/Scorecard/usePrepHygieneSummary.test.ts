@@ -31,7 +31,7 @@ describe("usePrepHygieneSummary", () => {
     await waitFor(() => expect(result.current.status).toBe("ready"));
     expect(result.current).toEqual({
       status: "ready",
-      judgement: "green",
+      judgement: "good",
       stats: [
         "Prep: battle + guardian elixir active",
         "Food & oil: both present",

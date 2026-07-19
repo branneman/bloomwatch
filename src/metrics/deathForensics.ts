@@ -32,14 +32,14 @@ export interface DeathForensicsResult {
   judgement: Judgement;
 }
 
-// Only the red condition is spelled out in docs/backlog.md story 501 ("red
-// if >= 2 unspent resources on a maintained target's death"); 0 -> green,
-// 1 -> orange fill in the rest of the R/O/G scale every other judged
+// Only the bad condition is spelled out in docs/backlog.md story 501 ("bad
+// if >= 2 unspent resources on a maintained target's death"); 0 -> good,
+// 1 -> fair fill in the rest of the Good/Fair/Bad scale every other judged
 // metric in the app uses.
 export function judgeDeathReadiness(unspentCount: number): Judgement {
-  if (unspentCount === 0) return "green";
-  if (unspentCount === 1) return "orange";
-  return "red";
+  if (unspentCount === 0) return "good";
+  if (unspentCount === 1) return "fair";
+  return "bad";
 }
 
 function lastCastBefore(
@@ -177,7 +177,7 @@ export function computeDeathForensics(
 
   return {
     deaths: results,
-    flaggedCount: results.filter((d) => d.judgement === "red").length,
+    flaggedCount: results.filter((d) => d.judgement === "bad").length,
     judgement: worstJudgement(results.map((d) => d.judgement)),
   };
 }

@@ -85,7 +85,7 @@ describe("isManaUsingActor", () => {
 });
 
 describe("computeInnervateAudit", () => {
-  it("judges green when cast on a mana-using ally, reading the ally's mana% from its nearest own sample", () => {
+  it("judges good when cast on a mana-using ally, reading the ally's mana% from its nearest own sample", () => {
     const events = [
       aManaSampleEvent(MAGE_ID, 9000, 4500), // 45%, closest sample to the 10000ms cast
       aManaSampleEvent(MAGE_ID, 20000, 9000),
@@ -105,12 +105,12 @@ describe("computeInnervateAudit", () => {
       targetId: MAGE_ID,
       targetClass: MAGE,
       manaPct: 45,
-      judgement: "green",
+      judgement: "good",
     });
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
-  it("judges red when cast on a non-mana-using ally (Warrior)", () => {
+  it("judges bad when cast on a non-mana-using ally (Warrior)", () => {
     const events = [anInnervateCast(10000, WARRIOR_ID)];
     const result = computeInnervateAudit(
       events,
@@ -120,11 +120,11 @@ describe("computeInnervateAudit", () => {
       FIGHT_DURATION,
       FIGHT_START,
     );
-    expect(result.firstCast?.judgement).toBe("red");
-    expect(result.judgement).toBe("red");
+    expect(result.firstCast?.judgement).toBe("bad");
+    expect(result.judgement).toBe("bad");
   });
 
-  it("judges red when cast on a Feral-spec Druid", () => {
+  it("judges bad when cast on a Feral-spec Druid", () => {
     const FERAL_ID = 12;
     const actorClasses = new Map([[FERAL_ID, FERAL_DRUID]]);
     const events = [anInnervateCast(10000, FERAL_ID)];
@@ -136,10 +136,10 @@ describe("computeInnervateAudit", () => {
       FIGHT_DURATION,
       FIGHT_START,
     );
-    expect(result.firstCast?.judgement).toBe("red");
+    expect(result.firstCast?.judgement).toBe("bad");
   });
 
-  it("judges self-cast green when it's well within the fight, reading mana straight off the cast event", () => {
+  it("judges self-cast good when it's well within the fight, reading mana straight off the cast event", () => {
     const events = [anInnervateCast(10000, DRUID_ID)];
     const result = computeInnervateAudit(
       events,
@@ -154,7 +154,7 @@ describe("computeInnervateAudit", () => {
       targetId: DRUID_ID,
       targetClass: undefined,
       manaPct: 29,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
@@ -171,7 +171,7 @@ describe("computeInnervateAudit", () => {
     expect(result.firstCast?.isSelfCast).toBe(true);
   });
 
-  it("judges self-cast orange when it lands in the fight's final 10%", () => {
+  it("judges self-cast fair when it lands in the fight's final 10%", () => {
     const events = [anInnervateCast(280_000, DRUID_ID)]; // 93.3% elapsed of 300_000
     const result = computeInnervateAudit(
       events,
@@ -181,13 +181,13 @@ describe("computeInnervateAudit", () => {
       FIGHT_DURATION,
       FIGHT_START,
     );
-    expect(result.firstCast?.judgement).toBe("orange");
+    expect(result.firstCast?.judgement).toBe("fair");
   });
 
   it("only judges the first cast; later casts are listed but carry no judgement", () => {
     const events = [
-      anInnervateCast(10000, DRUID_ID), // first: self-cast, green
-      anInnervateCast(200_000, WARRIOR_ID), // second: would be red, but doesn't count
+      anInnervateCast(10000, DRUID_ID), // first: self-cast, good
+      anInnervateCast(200_000, WARRIOR_ID), // second: would be bad, but doesn't count
     ];
     const result = computeInnervateAudit(
       events,
@@ -197,7 +197,7 @@ describe("computeInnervateAudit", () => {
       FIGHT_DURATION,
       FIGHT_START,
     );
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
     expect(result.laterCasts).toHaveLength(1);
     expect(result.laterCasts[0]).toMatchObject({
       timestampMs: 200_000,
@@ -207,7 +207,7 @@ describe("computeInnervateAudit", () => {
     expect(result.laterCasts[0]).not.toHaveProperty("judgement");
   });
 
-  it("is red when never cast on a mana-constrained fight of at least 3 minutes", () => {
+  it("is bad when never cast on a mana-constrained fight of at least 3 minutes", () => {
     const events = [aManaSampleEvent(DRUID_ID, 1000, 6000)]; // 60%, below 70%
     const result = computeInnervateAudit(
       events,
@@ -218,7 +218,7 @@ describe("computeInnervateAudit", () => {
       FIGHT_START,
     );
     expect(result.firstCast).toBeNull();
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
   });
 
   it("is informational (no judgement) when never cast but mana never dropped below 70%", () => {
@@ -258,7 +258,7 @@ describe("computeInnervateAudit", () => {
       FIGHT_START,
     );
     expect(result.firstCast?.manaPct).toBeNull();
-    expect(result.firstCast?.judgement).toBe("green");
+    expect(result.firstCast?.judgement).toBe("good");
   });
 
   it("ignores casts from other players and non-Innervate abilities", () => {

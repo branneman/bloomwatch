@@ -19,7 +19,7 @@ const RESOLVED_ABILITIES = new Map<number, ResolvedAbility>([
 ]);
 
 describe("computeDownrankingDiscipline", () => {
-  it("returns an empty breakdown and green judgement with no events", () => {
+  it("returns an empty breakdown and good judgement with no events", () => {
     const result = computeDownrankingDiscipline(
       [],
       [],
@@ -30,7 +30,7 @@ describe("computeDownrankingDiscipline", () => {
     expect(result).toEqual({
       breakdown: [],
       flaggedCount: 0,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
@@ -177,7 +177,7 @@ describe("computeDownrankingDiscipline", () => {
       directOverhealPct: 60,
     });
     expect(result.flaggedCount).toBe(1);
-    expect(result.judgement).toBe("orange");
+    expect(result.judgement).toBe("fair");
   });
 
   it("does not flag a max-rank group at exactly 50% overheal", () => {
@@ -268,7 +268,7 @@ describe("computeDownrankingDiscipline", () => {
       flagged: false,
     });
     expect(result.flaggedCount).toBe(0);
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
   it("sums Rejuvenation's periodic ticks per cast, capping the window at the next cast on the same target", () => {
@@ -506,9 +506,9 @@ describe("computeDownrankingDiscipline", () => {
   });
 
   it.each([
-    { flaggedGroups: 0, expected: "green" },
-    { flaggedGroups: 1, expected: "orange" },
-    { flaggedGroups: 2, expected: "orange" },
+    { flaggedGroups: 0, expected: "good" },
+    { flaggedGroups: 1, expected: "fair" },
+    { flaggedGroups: 2, expected: "fair" },
   ])(
     "judges $expected with $flaggedGroups flagged group(s)",
     ({ flaggedGroups, expected }) => {

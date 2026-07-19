@@ -36,7 +36,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightningoverload.jpg";
 
 const THRESHOLD =
-  "Separate thresholds by heal type. Bloom overheal (Lifebloom): green < 80%, orange 80-90%, red > 90%. Regrowth-direct overheal varies by detected talent archetype: deep-resto green < 38%, orange 38-60%, red > 60%; Dreamstate green < 60%, orange 60-85%, red > 85% (other/undetected archetypes use the deep-resto band). Healing Touch and Swiftmend overheal: green < 30%, orange 30-50%, red > 50%. HoT tick overheal (Rejuvenation, Regrowth's HoT portion) is shown for context only, with no judgement of its own — high overheal is inherent to HoTs whose ticks often land on a target other healers are also topping off.";
+  "Separate thresholds by heal type. Bloom overheal (Lifebloom): good < 80%, fair 80-90%, bad > 90%. Regrowth-direct overheal varies by detected talent archetype: deep-resto good < 38%, fair 38-60%, bad > 60%; Dreamstate good < 60%, fair 60-85%, bad > 85% (other/undetected archetypes use the deep-resto band). Healing Touch and Swiftmend overheal: good < 30%, fair 30-50%, bad > 50%. HoT tick overheal (Rejuvenation, Regrowth's HoT portion) is shown for context only, with no judgement of its own — high overheal is inherent to HoTs whose ticks often land on a target other healers are also topping off.";
 
 const CATEGORY_LABEL: Record<OverhealCategory, string> = {
   "hot-tick": "HoT tick (informational)",

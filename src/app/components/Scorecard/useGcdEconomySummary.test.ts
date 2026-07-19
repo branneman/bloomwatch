@@ -27,7 +27,7 @@ describe("useGcdEconomySummary", () => {
     await waitFor(() => expect(result.current.status).toBe("ready"));
     expect(result.current).toMatchObject({
       status: "ready",
-      judgement: "red",
+      judgement: "bad",
       stats: ["GCD utilization: 30%", expect.stringContaining("Idle gaps:")],
     });
   });

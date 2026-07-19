@@ -4,7 +4,7 @@ import type { Fight } from "../wcl/client";
 // the player controls chess pieces rather than healing, not a real boss
 // fight. It carries a real nonzero encounterID (so isTrash's plain "0 means
 // trash" rule doesn't catch it) but every combat metric reads as a false
-// 0%/red against it, so it's excluded the same way trash pulls already are.
+// 0%/bad against it, so it's excluded the same way trash pulls already are.
 const NON_BOSS_ENCOUNTER_IDS = new Set([660]);
 
 // TBC's fixed, never-growing set of 9 raid instances (story 013). A fight

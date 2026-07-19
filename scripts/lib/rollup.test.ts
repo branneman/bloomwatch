@@ -63,26 +63,26 @@ function aFightResult(
 }
 
 describe("rollupDruid", () => {
-  it("reports the duration-weighted median judgement for an epic, not a worst-of", () => {
+  it("reports fair, not a worst-of, when both good and bad fights are present for an epic", () => {
     const fights: FightResult[] = [
-      aFightResult(1, 8000, "green"),
-      aFightResult(2, 1000, "red"),
+      aFightResult(1, 8000, "good"),
+      aFightResult(2, 1000, "bad"),
     ];
     const rollup = rollupDruid(fights);
-    expect(rollup.gcdEconomy.judgement).toBe("green");
+    expect(rollup.gcdEconomy.judgement).toBe("fair");
   });
 
   it("exposes a fight-count breakdown alongside the judgement", () => {
     const fights: FightResult[] = [
-      aFightResult(1, 5000, "green"),
-      aFightResult(2, 5000, "green"),
-      aFightResult(3, 5000, "red"),
+      aFightResult(1, 5000, "good"),
+      aFightResult(2, 5000, "good"),
+      aFightResult(3, 5000, "bad"),
     ];
     const rollup = rollupDruid(fights);
     expect(rollup.gcdEconomy.judgementBreakdown).toEqual({
-      green: 2,
-      orange: 0,
-      red: 1,
+      good: 2,
+      fair: 0,
+      bad: 1,
     });
   });
 
@@ -90,9 +90,9 @@ describe("rollupDruid", () => {
     const rollup = rollupDruid([]);
     expect(rollup.gcdEconomy.judgement).toBeNull();
     expect(rollup.gcdEconomy.judgementBreakdown).toEqual({
-      green: 0,
-      orange: 0,
-      red: 0,
+      good: 0,
+      fair: 0,
+      bad: 0,
     });
   });
 });

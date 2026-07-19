@@ -5,7 +5,7 @@
   font-size: var(--text-small-size);
 }
 .warning {
-  border-color: var(--judgement-orange);
-  background: var(--judgement-orange-bg);
+  border-color: var(--judgement-fair);
+  background: var(--judgement-fair-bg);
   color: var(--text-h);
 }

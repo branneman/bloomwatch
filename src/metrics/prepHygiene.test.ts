@@ -7,22 +7,22 @@ import {
 import { aCombatantInfoEvent } from "../testUtils/factories";
 
 describe("computePrepHygiene", () => {
-  it("is fully green when both healer elixirs, food, and oil are present", () => {
+  it("is fully good when both healer elixirs, food, and oil are present", () => {
     const result = computePrepHygiene([aCombatantInfoEvent()], 2);
     expect(result).toEqual({
       flaskOrElixir: {
         hasFlask: false,
         hasBattleElixir: true,
         hasGuardianElixir: true,
-        judgement: "green",
+        judgement: "good",
       },
       foodBuffPresent: true,
       weaponOilPresent: true,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
-  it("is green on the flask/elixir row when a recognized flask is present alone", () => {
+  it("is good on the flask/elixir row when a recognized flask is present alone", () => {
     const result = computePrepHygiene(
       [
         aCombatantInfoEvent({
@@ -43,7 +43,7 @@ describe("computePrepHygiene", () => {
       hasFlask: true,
       hasBattleElixir: false,
       hasGuardianElixir: false,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
@@ -85,7 +85,7 @@ describe("computePrepHygiene", () => {
     expect(distilledWisdom.flaskOrElixir.hasFlask).toBe(true);
   });
 
-  it("is orange on the flask/elixir row with only one elixir and no flask", () => {
+  it("is fair on the flask/elixir row with only one elixir and no flask", () => {
     const result = computePrepHygiene(
       [
         aCombatantInfoEvent({
@@ -102,12 +102,12 @@ describe("computePrepHygiene", () => {
       ],
       2,
     );
-    expect(result.flaskOrElixir.judgement).toBe("orange");
+    expect(result.flaskOrElixir.judgement).toBe("fair");
   });
 
-  it("is red on the flask/elixir row with neither an elixir nor a flask", () => {
+  it("is bad on the flask/elixir row with neither an elixir nor a flask", () => {
     const result = computePrepHygiene([aCombatantInfoEvent({ auras: [] })], 2);
-    expect(result.flaskOrElixir.judgement).toBe("red");
+    expect(result.flaskOrElixir.judgement).toBe("bad");
   });
 
   it("does not count an unrecognized elixir (wrong stats for a healer) as coverage", () => {
@@ -131,11 +131,11 @@ describe("computePrepHygiene", () => {
       hasFlask: false,
       hasBattleElixir: false,
       hasGuardianElixir: false,
-      judgement: "red",
+      judgement: "bad",
     });
   });
 
-  it("reports food missing when there is no Well Fed aura, dragging the overall judgement to red", () => {
+  it("reports food missing when there is no Well Fed aura, dragging the overall judgement to bad", () => {
     const result = computePrepHygiene(
       [
         aCombatantInfoEvent({
@@ -153,8 +153,8 @@ describe("computePrepHygiene", () => {
       2,
     );
     expect(result.foodBuffPresent).toBe(false);
-    expect(result.flaskOrElixir.judgement).toBe("orange");
-    expect(result.judgement).toBe("red");
+    expect(result.flaskOrElixir.judgement).toBe("fair");
+    expect(result.judgement).toBe("bad");
   });
 
   it("reports weapon oil missing when the main-hand slot has no temporary enchant", () => {
@@ -174,18 +174,18 @@ describe("computePrepHygiene", () => {
     expect(SUPERIOR_WIZARD_OIL_ENCHANT_ID).toBe(2678);
   });
 
-  it("degrades to all-red when no combatant-info event exists for the druid", () => {
+  it("degrades to all-bad when no combatant-info event exists for the druid", () => {
     const result = computePrepHygiene([], 2);
     expect(result).toEqual({
       flaskOrElixir: {
         hasFlask: false,
         hasBattleElixir: false,
         hasGuardianElixir: false,
-        judgement: "red",
+        judgement: "bad",
       },
       foodBuffPresent: false,
       weaponOilPresent: false,
-      judgement: "red",
+      judgement: "bad",
     });
   });
 });

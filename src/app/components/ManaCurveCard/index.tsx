@@ -13,7 +13,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_elemental_primal_mana.jpg";
 
 const THRESHOLD =
-  "Green 5–40% ending mana, orange 40–70% or 0–5%, red > 70% (hoarding) — kills only. Fights under 90s, and wipes, auto-downgrade to informational: short/easy fights make this metric moot. Ending mana is read from the druid's last cast of the fight, so it may be stale if that cast landed well before the kill.";
+  "Good 5–40% ending mana, fair 40–70% or 0–5%, bad > 70% (hoarding) — kills only. Fights under 90s, and wipes, auto-downgrade to informational: short/easy fights make this metric moot. Ending mana is read from the druid's last cast of the fight, so it may be stale if that cast landed well before the kill.";
 
 export interface ManaCurveCardProps {
   accessToken: string;

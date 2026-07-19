@@ -6,42 +6,42 @@ import {
 import type { EpicSummaryStatus } from "../app/components/Scorecard/epicSummaryStatus";
 
 const loading: EpicSummaryStatus = { status: "loading" };
-const green: EpicSummaryStatus = {
+const good: EpicSummaryStatus = {
   status: "ready",
-  judgement: "green",
+  judgement: "good",
   stats: [],
 };
-const orange: EpicSummaryStatus = {
+const fair: EpicSummaryStatus = {
   status: "ready",
-  judgement: "orange",
+  judgement: "fair",
   stats: [],
 };
-const red: EpicSummaryStatus = { status: "ready", judgement: "red", stats: [] };
+const bad: EpicSummaryStatus = { status: "ready", judgement: "bad", stats: [] };
 const errored: EpicSummaryStatus = { status: "error", error: "boom" };
 
 describe("combineFightEpicStatus", () => {
   it("stays loading until every epic has resolved", () => {
-    expect(combineFightEpicStatus([green, loading, red])).toEqual({
+    expect(combineFightEpicStatus([good, loading, bad])).toEqual({
       status: "loading",
     });
   });
 
   it("reports the worst-of judgement once every epic is ready", () => {
-    expect(combineFightEpicStatus([green, orange, green])).toEqual({
+    expect(combineFightEpicStatus([good, fair, good])).toEqual({
       status: "ready",
-      judgement: "orange",
+      judgement: "fair",
     });
   });
 
-  it("reports green when every epic is ready and green", () => {
-    expect(combineFightEpicStatus([green, green])).toEqual({
+  it("reports good when every epic is ready and good", () => {
+    expect(combineFightEpicStatus([good, good])).toEqual({
       status: "ready",
-      judgement: "green",
+      judgement: "good",
     });
   });
 
   it("surfaces an error immediately, even if other epics are still loading", () => {
-    expect(combineFightEpicStatus([loading, errored, green])).toEqual({
+    expect(combineFightEpicStatus([loading, errored, good])).toEqual({
       status: "error",
       error: "boom",
     });
@@ -59,29 +59,32 @@ describe("rollupEpicJudgement", () => {
   });
 
   it("ignores not-yet-ready and errored entries, aggregating only the ready ones", () => {
+    // Both good and bad are present among the ready entries, so the
+    // fair-override in weightedMedianJudgement applies regardless of
+    // which dominates by duration.
     expect(
       rollupEpicJudgement([
-        { status: green, weightMs: 9000 },
+        { status: good, weightMs: 9000 },
         { status: loading, weightMs: 9000 },
         { status: errored, weightMs: 9000 },
-        { status: red, weightMs: 1000 },
+        { status: bad, weightMs: 1000 },
       ]),
     ).toEqual({
-      judgement: "green",
-      breakdown: { green: 1, orange: 0, red: 1 },
+      judgement: "fair",
+      breakdown: { good: 1, fair: 0, bad: 1 },
     });
   });
 
-  it("reports a duration-weighted median, not a worst-of, across ready fights", () => {
+  it("reports fair, not a worst-of or a pure weighted median, when both good and bad fights are present", () => {
     expect(
       rollupEpicJudgement([
-        { status: green, weightMs: 8000 },
-        { status: green, weightMs: 8000 },
-        { status: red, weightMs: 1000 },
+        { status: good, weightMs: 8000 },
+        { status: good, weightMs: 8000 },
+        { status: bad, weightMs: 1000 },
       ]),
     ).toEqual({
-      judgement: "green",
-      breakdown: { green: 2, orange: 0, red: 1 },
+      judgement: "fair",
+      breakdown: { good: 2, fair: 0, bad: 1 },
     });
   });
 });

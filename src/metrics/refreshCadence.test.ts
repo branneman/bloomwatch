@@ -26,12 +26,12 @@ describe("computeRefreshCadence", () => {
 
     expect(result.intervalCount).toBe(2);
     expect(result.medianMs).toBe(6510); // (6404 + 6616) / 2
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
     expect(result.buckets).toEqual([
-      { label: "redEarly", count: 0, pct: 0 },
-      { label: "orange", count: 0, pct: 0 },
-      { label: "green", count: 2, pct: 100 },
-      { label: "redLate", count: 0, pct: 0 },
+      { label: "badEarly", count: 0, pct: 0 },
+      { label: "fair", count: 0, pct: 0 },
+      { label: "good", count: 2, pct: 100 },
+      { label: "badLate", count: 0, pct: 0 },
     ]);
   });
 
@@ -49,7 +49,7 @@ describe("computeRefreshCadence", () => {
     expect(result.medianMs).toBe(6000);
   });
 
-  it("buckets intervals using the red/orange/green/red bands, pooled across targets", () => {
+  it("buckets intervals using the badEarly/fair/good/badLate bands, pooled across targets", () => {
     const reach3For = (targetID: number) => [
       anApplyBuffEvent({ timestamp: 0, targetID }),
       anApplyBuffStackEvent({ timestamp: 100, stack: 2, targetID }),
@@ -58,23 +58,23 @@ describe("computeRefreshCadence", () => {
 
     const events = [
       ...reach3For(42),
-      aRefreshBuffEvent({ timestamp: 200 + 4999, targetID: 42 }), // redEarly
+      aRefreshBuffEvent({ timestamp: 200 + 4999, targetID: 42 }), // badEarly
       ...reach3For(43),
-      aRefreshBuffEvent({ timestamp: 200 + 5500, targetID: 43 }), // orange
+      aRefreshBuffEvent({ timestamp: 200 + 5500, targetID: 43 }), // fair
       ...reach3For(44),
-      aRefreshBuffEvent({ timestamp: 200 + 6500, targetID: 44 }), // green
+      aRefreshBuffEvent({ timestamp: 200 + 6500, targetID: 44 }), // good
       ...reach3For(45),
-      aRefreshBuffEvent({ timestamp: 200 + 7001, targetID: 45 }), // redLate
+      aRefreshBuffEvent({ timestamp: 200 + 7001, targetID: 45 }), // badLate
     ];
 
     const result = computeRefreshCadence(events, 2, LB_IDS);
 
     expect(result.intervalCount).toBe(4);
     expect(result.buckets).toEqual([
-      { label: "redEarly", count: 1, pct: 25 },
-      { label: "orange", count: 1, pct: 25 },
-      { label: "green", count: 1, pct: 25 },
-      { label: "redLate", count: 1, pct: 25 },
+      { label: "badEarly", count: 1, pct: 25 },
+      { label: "fair", count: 1, pct: 25 },
+      { label: "good", count: 1, pct: 25 },
+      { label: "badLate", count: 1, pct: 25 },
     ]);
   });
 
@@ -90,12 +90,12 @@ describe("computeRefreshCadence", () => {
       return buckets.find((bucket) => bucket.count === 1)?.label;
     };
 
-    expect(singleIntervalBucketLabel(4999)).toBe("redEarly");
-    expect(singleIntervalBucketLabel(5000)).toBe("orange");
-    expect(singleIntervalBucketLabel(5999)).toBe("orange");
-    expect(singleIntervalBucketLabel(6000)).toBe("green");
-    expect(singleIntervalBucketLabel(7000)).toBe("green");
-    expect(singleIntervalBucketLabel(7001)).toBe("redLate");
+    expect(singleIntervalBucketLabel(4999)).toBe("badEarly");
+    expect(singleIntervalBucketLabel(5000)).toBe("fair");
+    expect(singleIntervalBucketLabel(5999)).toBe("fair");
+    expect(singleIntervalBucketLabel(6000)).toBe("good");
+    expect(singleIntervalBucketLabel(7000)).toBe("good");
+    expect(singleIntervalBucketLabel(7001)).toBe("badLate");
   });
 
   it("computes the median for an odd number of intervals", () => {
@@ -132,7 +132,7 @@ describe("computeRefreshCadence", () => {
     expect(result.medianMs).toBe(6750);
   });
 
-  it("judges the median red below 5s, orange 5-6s, green 6-7s, and red above 7s", () => {
+  it("judges the median bad below 5s, fair 5-6s, good 6-7s, and bad above 7s", () => {
     const singleIntervalResult = (intervalMs: number) => {
       const events = [
         anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
@@ -143,12 +143,12 @@ describe("computeRefreshCadence", () => {
       return computeRefreshCadence(events, 2, LB_IDS);
     };
 
-    expect(singleIntervalResult(4999).judgement).toBe("red");
-    expect(singleIntervalResult(5000).judgement).toBe("orange");
-    expect(singleIntervalResult(5999).judgement).toBe("orange");
-    expect(singleIntervalResult(6000).judgement).toBe("green");
-    expect(singleIntervalResult(7000).judgement).toBe("green");
-    expect(singleIntervalResult(7001).judgement).toBe("red");
+    expect(singleIntervalResult(4999).judgement).toBe("bad");
+    expect(singleIntervalResult(5000).judgement).toBe("fair");
+    expect(singleIntervalResult(5999).judgement).toBe("fair");
+    expect(singleIntervalResult(6000).judgement).toBe("good");
+    expect(singleIntervalResult(7000).judgement).toBe("good");
+    expect(singleIntervalResult(7001).judgement).toBe("bad");
   });
 
   it("does not record a trailing interval when the window closes via removebuff (a bloom)", () => {
@@ -195,10 +195,10 @@ describe("computeRefreshCadence", () => {
       medianMs: null,
       judgement: null,
       buckets: [
-        { label: "redEarly", count: 0, pct: 0 },
-        { label: "orange", count: 0, pct: 0 },
-        { label: "green", count: 0, pct: 0 },
-        { label: "redLate", count: 0, pct: 0 },
+        { label: "badEarly", count: 0, pct: 0 },
+        { label: "fair", count: 0, pct: 0 },
+        { label: "good", count: 0, pct: 0 },
+        { label: "badLate", count: 0, pct: 0 },
       ],
     });
   });

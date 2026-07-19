@@ -276,12 +276,12 @@ describe("ReportDashboard", () => {
     });
     // The off-role fight (id 2) gets its own maintained-Lifebloom death with
     // both cooldowns unspent, which computeDeathForensics (src/metrics/
-    // deathForensics.ts) resolves to a "red" Death forensics judgement. The
-    // on-role fight (id 1) has zero death events, which resolves to "green"
+    // deathForensics.ts) resolves to a "bad" Death forensics judgement. The
+    // on-role fight (id 1) has zero death events, which resolves to "good"
     // (worstJudgement of an empty array). This divergence is what lets the
     // assertion below actually detect leakage: if the off-role fight's
     // summary were wrongly pooled into the aggregate, "Death forensics"
-    // would flip from green to red once it's added.
+    // would flip from good to bad once it's added.
     const fetchEvents = (
       _token: string,
       _report: string,
@@ -323,7 +323,7 @@ describe("ReportDashboard", () => {
       if (fight.id === 2 && dataType === "Deaths") {
         // No prior druid casts at all (Casts returns [] for fight 2), so
         // both Swiftmend and Nature's Swiftness read as "ready" (unspent) —
-        // 2 unspent resources on a maintained target is a "red" death.
+        // 2 unspent resources on a maintained target is a "bad" death.
         return Promise.resolve([
           aDeathEvent({
             targetID: 55,
@@ -444,7 +444,7 @@ describe("ReportDashboard", () => {
       // Restoration 45 clears both Swiftmend's (30) and Nature's
       // Swiftness's (20) minimums (src/report/archetypeDetection.ts), so
       // both read as unspent cooldowns on the maintained-target death
-      // above -> deadlyFight's death judges "red" (>= 2 unspent), matching
+      // above -> deadlyFight's death judges "bad" (>= 2 unspent), matching
       // this test's assertion below.
       if (fight.id === 2 && dataType === "CombatantInfo") {
         return Promise.resolve([
@@ -472,7 +472,7 @@ describe("ReportDashboard", () => {
     const deathChipText =
       screen.getByText("Death forensics").parentElement?.parentElement
         ?.textContent;
-    expect(deathChipText).toContain("1 green");
-    expect(deathChipText).toContain("1 red");
+    expect(deathChipText).toContain("1 good");
+    expect(deathChipText).toContain("1 bad");
   });
 });

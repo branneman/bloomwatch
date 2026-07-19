@@ -4,7 +4,7 @@ _The permanent reference for how Bloomwatch reflows across screen sizes — impl
 
 This is the layout spec story 706 implements. It does **not** invent a new visual
 language — it takes the existing Bloomwatch UI (one bordered reading column, purple
-accent, judgement R/O/G, system font, flat borders-over-shadows) and defines how it
+accent, judgement Good/Fair/Bad, system font, flat borders-over-shadows) and defines how it
 reflows from a 360px phone up to a 1920px desktop.
 
 ---

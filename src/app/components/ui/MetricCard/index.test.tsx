@@ -10,7 +10,7 @@ describe("MetricCard", () => {
         title="GCD utilization"
         value="87%"
         pct={87}
-        judgement="green"
+        judgement="good"
         threshold="Good >= 85%."
       />,
     );
@@ -31,7 +31,7 @@ describe("MetricCard", () => {
         title="Concurrent LB3 targets"
         value="Avg 1.6 · Peak 2"
         note="Informational — no judgement"
-        threshold="No R/O/G."
+        threshold="No Good/Fair/Bad."
       />,
     );
     expect(
@@ -46,8 +46,8 @@ describe("MetricCard", () => {
       <MetricCard
         title="GCD utilization"
         value="87%"
-        judgement="green"
-        threshold="Good >= 85%, orange 70-85%, red < 70%."
+        judgement="good"
+        threshold="Good >= 85%, fair 70-85%, bad < 70%."
       />,
     );
     expect(screen.queryByText(/Good >= 85%/)).not.toBeInTheDocument();
@@ -59,7 +59,7 @@ describe("MetricCard", () => {
 
   it("renders children as the card body", () => {
     render(
-      <MetricCard title="GCD utilization" judgement="green" threshold="...">
+      <MetricCard title="GCD utilization" judgement="good" threshold="...">
         <p>Time on the global cooldown.</p>
       </MetricCard>,
     );

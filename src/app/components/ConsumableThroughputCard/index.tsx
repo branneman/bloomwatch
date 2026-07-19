@@ -15,7 +15,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_sealofkings.jpg";
 
 const THRESHOLD =
-  "Expected floor per consumable = ⌊fight duration / 120s⌋, for fights where mana dropped below 70% at any point (fights that never did are exempt). Green ≥ floor, orange = floor − 1, red ≤ floor − 2. Dark Rune and Demonic Rune share one in-game cooldown, so they're counted together as one Rune row rather than judged separately.";
+  "Expected floor per consumable = ⌊fight duration / 120s⌋, for fights where mana dropped below 70% at any point (fights that never did are exempt). Good ≥ floor, fair = floor − 1, bad ≤ floor − 2. Dark Rune and Demonic Rune share one in-game cooldown, so they're counted together as one Rune row rather than judged separately.";
 
 export interface ConsumableThroughputCardProps {
   accessToken: string;

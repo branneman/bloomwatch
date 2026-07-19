@@ -34,7 +34,7 @@ export function Onboarding({ onContinue }: OnboardingProps) {
       <h2>What this is</h2>
       <p className={styles.section}>
         You paste a Warcraft Logs report link, pick a fight, and get a
-        scorecard: every metric turned into a number with a red/orange/green
+        scorecard: every metric turned into a number with a Good/Fair/Bad
         judgement, so you can answer &quot;did I play well?&quot; independent of
         the healing meter.
       </p>

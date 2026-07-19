@@ -28,12 +28,12 @@
 
   --text-small-size: 14px;
 
-  --judgement-green: #1a9c4a;
-  --judgement-green-bg: rgba(26, 156, 74, 0.12);
-  --judgement-orange: #d97a1f;
-  --judgement-orange-bg: rgba(217, 122, 31, 0.12);
-  --judgement-red: #d1372f;
-  --judgement-red-bg: rgba(209, 55, 47, 0.12);
+  --judgement-good: #1a9c4a;
+  --judgement-good-bg: rgba(26, 156, 74, 0.12);
+  --judgement-fair: #d97a1f;
+  --judgement-fair-bg: rgba(217, 122, 31, 0.12);
+  --judgement-bad: #d1372f;
+  --judgement-bad-bg: rgba(209, 55, 47, 0.12);
 
   --gray-400: #9ca3af;
   --purple-600: #7e22ce;
@@ -67,12 +67,12 @@
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
-    --judgement-green: #34d17a;
-    --judgement-green-bg: rgba(52, 209, 122, 0.15);
-    --judgement-orange: #e8973a;
-    --judgement-orange-bg: rgba(232, 151, 58, 0.15);
-    --judgement-red: #ef5350;
-    --judgement-red-bg: rgba(239, 83, 80, 0.15);
+    --judgement-good: #34d17a;
+    --judgement-good-bg: rgba(52, 209, 122, 0.15);
+    --judgement-fair: #e8973a;
+    --judgement-fair-bg: rgba(232, 151, 58, 0.15);
+    --judgement-bad: #ef5350;
+    --judgement-bad-bg: rgba(239, 83, 80, 0.15);
   }
 
   #social .button-icon {

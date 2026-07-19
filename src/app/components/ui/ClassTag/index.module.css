@@ -7,18 +7,18 @@
   white-space: nowrap;
 }
 .efficient {
-  color: var(--judgement-green);
-  background: var(--judgement-green-bg);
+  color: var(--judgement-good);
+  background: var(--judgement-good-bg);
 }
 .emergency {
   color: var(--text);
   background: var(--code-bg);
 }
 .wasteful {
-  color: var(--judgement-red);
-  background: var(--judgement-red-bg);
+  color: var(--judgement-bad);
+  background: var(--judgement-bad-bg);
 }
 .flagged {
-  color: var(--judgement-red);
-  background: var(--judgement-red-bg);
+  color: var(--judgement-bad);
+  background: var(--judgement-bad-bg);
 }

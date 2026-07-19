@@ -33,7 +33,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg";
 
 const THRESHOLD =
-  "Read from combatant-info auras/gear at fight start. Flask/elixir coverage: green with a recognized flask, or with both a battle and a guardian elixir; orange with only one of the two; red with neither — scoped to what actually helps a healer (Elixir of Healing Power, Elixir of Draenic Wisdom, Flask of Mighty Restoration and its Shattrath variant, Flask of Distilled Wisdom). Food buff: any Well Fed counts, assumed to be Golden Fish Sticks (TBC's only healing-relevant food) since the log can't distinguish which food was eaten. Weapon oil: only Superior Wizard Oil is recognized. The overall judgement is the worst of these three. See docs/backlog.md story 601.";
+  "Read from combatant-info auras/gear at fight start. Flask/elixir coverage: good with a recognized flask, or with both a battle and a guardian elixir; fair with only one of the two; bad with neither — scoped to what actually helps a healer (Elixir of Healing Power, Elixir of Draenic Wisdom, Flask of Mighty Restoration and its Shattrath variant, Flask of Distilled Wisdom). Food buff: any Well Fed counts, assumed to be Golden Fish Sticks (TBC's only healing-relevant food) since the log can't distinguish which food was eaten. Weapon oil: only Superior Wizard Oil is recognized. The overall judgement is the worst of these three. See docs/backlog.md story 601.";
 
 function flaskOrElixirLabel(
   flaskOrElixir: PrepHygieneResult["flaskOrElixir"],

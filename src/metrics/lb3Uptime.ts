@@ -9,9 +9,9 @@ import {
 // one-off casts, not "maintained" targets, and are excluded entirely.
 export const MAINTAINED_MIN_UPTIME_PCT = 30;
 
-// R/O/G thresholds per docs/backlog.md story 201: green >= 90%, orange 75-90%, red < 75%.
-const GREEN_MIN_PCT = 90;
-const ORANGE_MIN_PCT = 75;
+// Good/Fair/Bad thresholds per docs/backlog.md story 201: good >= 90%, fair 75-90%, bad < 75%.
+const GOOD_MIN_PCT = 90;
+const FAIR_MIN_PCT = 75;
 
 export interface Lb3TargetResult {
   targetId: number;
@@ -69,8 +69,8 @@ export function computeLb3Uptime(
       windowMs,
       lb3UptimePct,
       judgement: judgeThreshold(lb3UptimePct, {
-        greenMin: GREEN_MIN_PCT,
-        orangeMin: ORANGE_MIN_PCT,
+        goodMin: GOOD_MIN_PCT,
+        fairMin: FAIR_MIN_PCT,
       }),
     });
   }

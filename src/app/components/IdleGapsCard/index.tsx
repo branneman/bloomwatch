@@ -89,7 +89,7 @@ export function IdleGapsCard({
   const isCurrent = result !== null && result.accessToken === accessToken;
 
   const threshold =
-    "Green < 5%, orange 5–15%, red > 15% of fight duration, measured as total dead time as a share of the fight.";
+    "Good < 5%, fair 5–15%, bad > 15% of fight duration, measured as total dead time as a share of the fight.";
 
   if (!isCurrent) {
     return (

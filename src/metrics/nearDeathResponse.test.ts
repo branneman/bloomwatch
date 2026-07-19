@@ -21,7 +21,7 @@ const HEALING_TOUCH_ID = 26979;
 const HEALING_IDS = new Set([33763, 774, 8936, HEALING_TOUCH_ID, 18562, 740]);
 
 describe("computeNearDeathResponse", () => {
-  it("judges green when the druid lands a reactive heal inside the crisis window", () => {
+  it("judges good when the druid lands a reactive heal inside the crisis window", () => {
     const damageEvents = [
       aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 12 }),
     ];
@@ -61,9 +61,9 @@ describe("computeNearDeathResponse", () => {
       hitPointsPct: 12,
       judged: true,
       responded: true,
-      judgement: "green",
+      judgement: "good",
     });
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
   it("judges by the unspent-resource tally when nobody responded, on a target with no clear tank assignment", () => {
@@ -92,7 +92,7 @@ describe("computeNearDeathResponse", () => {
     expect(result.crises[0].responded).toBe(false);
     expect(result.crises[0].judged).toBe(true);
     expect(result.crises[0].unspentCount).toBe(3);
-    expect(result.crises[0].judgement).toBe("red");
+    expect(result.crises[0].judgement).toBe("bad");
   });
 
   it("closes the crisis window on recovery, not on every subsequent low reading", () => {
@@ -366,7 +366,7 @@ describe("computeNearDeathResponse", () => {
     expect(result.crises[0].responded).toBe(false);
   });
 
-  it("resolves to a green judgement with no crises when there are none", () => {
+  it("resolves to a good judgement with no crises when there are none", () => {
     const result = computeNearDeathResponse(
       [],
       [],
@@ -384,7 +384,7 @@ describe("computeNearDeathResponse", () => {
       100000,
     );
 
-    expect(result).toEqual({ crises: [], flaggedCount: 0, judgement: "green" });
+    expect(result).toEqual({ crises: [], flaggedCount: 0, judgement: "good" });
   });
 
   it("swiftmendReady and nsReady are false when hasSwiftmend/hasNaturesSwiftness are false, even with no prior cast recorded", () => {
@@ -412,7 +412,7 @@ describe("computeNearDeathResponse", () => {
     expect(result.crises[0].swiftmendReady).toBe(false);
     expect(result.crises[0].nsReady).toBe(false);
     expect(result.crises[0].unspentCount).toBe(1);
-    expect(result.crises[0].judgement).toBe("orange");
+    expect(result.crises[0].judgement).toBe("fair");
   });
 
   it("produces two separate crisis episodes for the same target across a dip-recover-dip-recover sequence", () => {

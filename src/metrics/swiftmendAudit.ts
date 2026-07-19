@@ -43,13 +43,13 @@ interface HotRemoval {
   remainingMs: number;
 }
 
-// Green only at exactly 0% wasteful, orange up to 25%, red above — per
+// Good only at exactly 0% wasteful, fair up to 25%, bad above — per
 // docs/backlog.md story 302. Deliberately not judgeThresholdBelow (whose
-// "< greenMax" semantics can't express an exact-zero green band).
+// "< goodMax" semantics can't express an exact-zero good band).
 function judgeWastefulShare(wastefulPct: number): Judgement {
-  if (wastefulPct === 0) return "green";
-  if (wastefulPct <= 25) return "orange";
-  return "red";
+  if (wastefulPct === 0) return "good";
+  if (wastefulPct <= 25) return "fair";
+  return "bad";
 }
 
 function trackHotRemovals(

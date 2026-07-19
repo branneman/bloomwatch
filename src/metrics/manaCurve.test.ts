@@ -28,34 +28,34 @@ describe("computeManaCurve", () => {
     expect(result.endingPct).toBe(30);
   });
 
-  it("judges green in the middle of the band on a kill ≥ 90s", () => {
+  it("judges good in the middle of the band on a kill ≥ 90s", () => {
     const events = [aManaCastEvent(1000, 2000)]; // 20%
-    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("green");
+    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("good");
   });
 
-  it("judges orange just above the green band", () => {
+  it("judges fair just above the good band", () => {
     const events = [aManaCastEvent(1000, 5000)]; // 50%
-    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("orange");
+    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("fair");
   });
 
-  it("judges orange just below the green band", () => {
+  it("judges fair just below the good band", () => {
     const events = [aManaCastEvent(1000, 200)]; // 2%
-    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("orange");
+    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("fair");
   });
 
-  it("judges red above 70%", () => {
+  it("judges bad above 70%", () => {
     const events = [aManaCastEvent(1000, 8000)]; // 80%
-    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("red");
+    expect(computeManaCurve(events, 2, true, 120_000).judgement).toBe("bad");
   });
 
-  it("treats exactly 5% and exactly 40% as green (band boundaries)", () => {
+  it("treats exactly 5% and exactly 40% as good (band boundaries)", () => {
     expect(
       computeManaCurve([aManaCastEvent(1000, 500)], 2, true, 120_000).judgement,
-    ).toBe("green");
+    ).toBe("good");
     expect(
       computeManaCurve([aManaCastEvent(1000, 4000)], 2, true, 120_000)
         .judgement,
-    ).toBe("green");
+    ).toBe("good");
   });
 
   it("is informational (null judgement) on a wipe", () => {

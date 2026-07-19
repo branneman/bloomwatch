@@ -88,7 +88,7 @@ export function LB3UptimeCard({
   const isCurrent = result !== null && result.accessToken === accessToken;
 
   const threshold =
-    "Measured from first reaching 3 stacks. Green ≥ 90%, orange 75–90%, red < 75%, per target. Only targets with ≥ 30% overall LB uptime are shown — one-off casts don't count as maintained.";
+    "Measured from first reaching 3 stacks. Good ≥ 90%, fair 75–90%, bad < 75%, per target. Only targets with ≥ 30% overall LB uptime are shown — one-off casts don't count as maintained.";
 
   if (!isCurrent) {
     return (

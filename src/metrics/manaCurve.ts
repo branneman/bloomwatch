@@ -15,13 +15,13 @@ export interface ManaCurveResult {
 
 const MIN_JUDGED_FIGHT_DURATION_MS = 90_000;
 
-// Green 5–40% ending mana, orange 40–70% or 0–5%, red > 70% (hoarding) — kills
-// only, per docs/backlog.md story 401. Green sits in the middle of the range,
+// Good 5–40% ending mana, fair 40–70% or 0–5%, bad > 70% (hoarding) — kills
+// only, per docs/backlog.md story 401. Good sits in the middle of the range,
 // so this doesn't fit judgeThreshold/judgeThresholdBelow's monotonic shape.
 function judgeManaBand(pct: number): Judgement {
-  if (pct > 70) return "red";
-  if (pct >= 5 && pct <= 40) return "green";
-  return "orange";
+  if (pct > 70) return "bad";
+  if (pct >= 5 && pct <= 40) return "good";
+  return "fair";
 }
 
 export function computeManaCurve(

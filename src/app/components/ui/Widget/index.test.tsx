@@ -10,7 +10,7 @@ describe("Widget", () => {
       <Widget
         icon="icon.jpg"
         label="GCD economy"
-        judgement="orange"
+        judgement="fair"
         stats={["GCD utilization: 87%", "Idle gaps: 6.2% dead time"]}
         onOpen={onOpen}
       />,

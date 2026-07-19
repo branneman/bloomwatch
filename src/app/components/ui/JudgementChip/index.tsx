@@ -6,9 +6,9 @@ export interface JudgementChipProps {
 }
 
 const LABEL: Record<Judgement, string> = {
-  green: "Good",
-  orange: "Fair",
-  red: "Bad",
+  good: "Good",
+  fair: "Fair",
+  bad: "Bad",
 };
 
 export function JudgementChip({ judgement }: JudgementChipProps) {

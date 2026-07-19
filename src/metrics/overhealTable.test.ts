@@ -15,9 +15,9 @@ const RESOLVED_ABILITIES = new Map<number, ResolvedAbility>([
 ]);
 
 describe("computeOverhealTable", () => {
-  it("returns no rows and a green judgement with no events", () => {
+  it("returns no rows and a good judgement with no events", () => {
     const result = computeOverhealTable([], DRUID_ID, RESOLVED_ABILITIES);
-    expect(result).toEqual({ rows: [], judgement: "green" });
+    expect(result).toEqual({ rows: [], judgement: "good" });
   });
 
   it("aggregates Rejuvenation's periodic ticks into one informational hot-tick row", () => {
@@ -52,7 +52,7 @@ describe("computeOverhealTable", () => {
         judgement: null,
       },
     ]);
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
   it("splits Regrowth into a hot-tick row (ticks) and a direct row (the non-tick heal)", () => {
@@ -87,7 +87,7 @@ describe("computeOverhealTable", () => {
         amount: 780,
         overheal: 220,
         overhealPct: 22,
-        judgement: "green",
+        judgement: "good",
       },
     ]);
   });
@@ -116,7 +116,7 @@ describe("computeOverhealTable", () => {
         amount: 670,
         overheal: 330,
         overhealPct: 33,
-        judgement: "green",
+        judgement: "good",
       },
     ]);
   });
@@ -140,7 +140,7 @@ describe("computeOverhealTable", () => {
         amount: 420,
         overheal: 580,
         overhealPct: 58,
-        judgement: "red",
+        judgement: "bad",
       },
       {
         category: "direct",
@@ -148,16 +148,16 @@ describe("computeOverhealTable", () => {
         amount: 810,
         overheal: 190,
         overhealPct: 19,
-        judgement: "green",
+        judgement: "good",
       },
     ]);
   });
 
   it.each([
-    { overhealPct: 79, expected: "green" },
-    { overhealPct: 80, expected: "orange" },
-    { overhealPct: 90, expected: "orange" },
-    { overhealPct: 91, expected: "red" },
+    { overhealPct: 79, expected: "good" },
+    { overhealPct: 80, expected: "fair" },
+    { overhealPct: 90, expected: "fair" },
+    { overhealPct: 91, expected: "bad" },
   ])(
     "judges a Bloom row at $overhealPct% overheal as $expected (recalibrated, story 905)",
     ({ overhealPct, expected }) => {
@@ -180,40 +180,40 @@ describe("computeOverhealTable", () => {
   );
 
   it.each([
-    { bucket: "deep-resto" as const, overhealPct: 37, expected: "green" },
-    { bucket: "deep-resto" as const, overhealPct: 38, expected: "orange" },
-    { bucket: "deep-resto" as const, overhealPct: 60, expected: "orange" },
-    { bucket: "deep-resto" as const, overhealPct: 61, expected: "red" },
+    { bucket: "deep-resto" as const, overhealPct: 37, expected: "good" },
+    { bucket: "deep-resto" as const, overhealPct: 38, expected: "fair" },
+    { bucket: "deep-resto" as const, overhealPct: 60, expected: "fair" },
+    { bucket: "deep-resto" as const, overhealPct: 61, expected: "bad" },
     {
       bucket: "likely-dreamstate-full" as const,
       overhealPct: 59,
-      expected: "green",
+      expected: "good",
     },
     {
       bucket: "likely-dreamstate-full" as const,
       overhealPct: 60,
-      expected: "orange",
+      expected: "fair",
     },
     {
       bucket: "likely-dreamstate-full" as const,
       overhealPct: 85,
-      expected: "orange",
+      expected: "fair",
     },
     {
       bucket: "likely-dreamstate-full" as const,
       overhealPct: 86,
-      expected: "red",
+      expected: "bad",
     },
     {
       bucket: "likely-dreamstate-partial" as const,
       overhealPct: 70,
-      expected: "orange",
+      expected: "fair",
     },
-    { bucket: "mostly-resto" as const, overhealPct: 61, expected: "red" },
+    { bucket: "mostly-resto" as const, overhealPct: 61, expected: "bad" },
     {
       bucket: "unknown-no-talent-data" as const,
       overhealPct: 61,
-      expected: "red",
+      expected: "bad",
     },
   ])(
     "judges a Regrowth-direct row for $bucket at $overhealPct% overheal as $expected (story 905)",
@@ -248,14 +248,14 @@ describe("computeOverhealTable", () => {
       RESOLVED_ABILITIES,
     );
 
-    expect(result.rows[0].judgement).toBe("red");
+    expect(result.rows[0].judgement).toBe("bad");
   });
 
   it.each([
-    { overhealPct: 29, expected: "green" },
-    { overhealPct: 30, expected: "orange" },
-    { overhealPct: 50, expected: "orange" },
-    { overhealPct: 51, expected: "red" },
+    { overhealPct: 29, expected: "good" },
+    { overhealPct: 30, expected: "fair" },
+    { overhealPct: 50, expected: "fair" },
+    { overhealPct: 51, expected: "bad" },
   ])(
     "judges a Direct row at $overhealPct% overheal as $expected",
     ({ overhealPct, expected }) => {
@@ -315,16 +315,16 @@ describe("computeOverhealTable", () => {
 
   it("takes the worst-of judgement across Bloom and Direct rows only, ignoring HoT-tick rows", () => {
     const healingEvents = [
-      // Rejuvenation at 90% overheal — informational, must not turn this red.
+      // Rejuvenation at 90% overheal — informational, must not turn this bad.
       aHealEvent({
         abilityGameID: 3627,
         amount: 10,
         overheal: 90,
         tick: true,
       }),
-      // Lifebloom bloom at 33% — green.
+      // Lifebloom bloom at 33% — good.
       aHealEvent({ abilityGameID: 33763, amount: 670, overheal: 330 }),
-      // Swiftmend at 60% — red.
+      // Swiftmend at 60% — bad.
       aHealEvent({ abilityGameID: 18562, amount: 400, overheal: 600 }),
     ];
 
@@ -334,7 +334,7 @@ describe("computeOverhealTable", () => {
       RESOLVED_ABILITIES,
     );
 
-    expect(result.judgement).toBe("red");
+    expect(result.judgement).toBe("bad");
   });
 
   it("ignores heal events from other sources and from untracked spells", () => {

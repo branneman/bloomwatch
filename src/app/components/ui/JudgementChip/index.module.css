@@ -6,15 +6,15 @@
   font-size: var(--text-small-size);
   font-weight: 600;
 }
-.green {
-  color: var(--judgement-green);
-  background: var(--judgement-green-bg);
+.good {
+  color: var(--judgement-good);
+  background: var(--judgement-good-bg);
 }
-.orange {
-  color: var(--judgement-orange);
-  background: var(--judgement-orange-bg);
+.fair {
+  color: var(--judgement-fair);
+  background: var(--judgement-fair-bg);
 }
-.red {
-  color: var(--judgement-red);
-  background: var(--judgement-red-bg);
+.bad {
+  color: var(--judgement-bad);
+  background: var(--judgement-bad-bg);
 }

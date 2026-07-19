@@ -29,7 +29,7 @@ type FetchResult =
   | { accessToken: string; error: string };
 
 const THRESHOLD =
-  "No R/O/G — the right number of concurrent targets depends on your assignments, not a universal target.";
+  "No Good/Fair/Bad — the right number of concurrent targets depends on your assignments, not a universal target.";
 
 const LEVEL_COLORS = [
   "var(--border)",

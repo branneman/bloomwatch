@@ -129,7 +129,7 @@ describe("SwiftmendAuditCard", () => {
     expect(screen.getByText("Wasteful")).toBeInTheDocument();
   });
 
-  it("shows a message and green judgement when there are no Swiftmends", async () => {
+  it("shows a message and good judgement when there are no Swiftmends", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 200000 });
 
     render(

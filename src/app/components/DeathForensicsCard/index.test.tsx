@@ -92,7 +92,7 @@ describe("DeathForensicsCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a message and green judgement when there are no friendly deaths", async () => {
+  it("shows a message and good judgement when there are no friendly deaths", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
 
     render(
@@ -255,7 +255,7 @@ describe("DeathForensicsCard", () => {
     );
   });
 
-  it("doesn't flag a maintained target's death as red purely from a talent-unreachable resource", async () => {
+  it("doesn't flag a maintained target's death as bad purely from a talent-unreachable resource", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
     const buffEvents = [
       anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
@@ -314,7 +314,7 @@ describe("DeathForensicsCard", () => {
     // Both cooldowns look "unspent" by isReady's no-prior-cast rule, but
     // Swiftmend is talent-unreachable at 26 Restoration -> only Nature's
     // Swiftness (talent-reachable) and idle-preceding count -> unspentCount
-    // 2 -> still red, but for the right reason (2, not 3). This test's
+    // 2 -> still bad, but for the right reason (2, not 3). This test's
     // real assertion is in the per-death card's own detail, not the
     // overall MetricCard verdict, since both unspentCount 2 and 3 read
     // "Bad" at the MetricCard level per judgeDeathReadiness — open the

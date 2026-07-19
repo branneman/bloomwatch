@@ -8,12 +8,12 @@
   white-space: nowrap;
 }
 .kill {
-  color: var(--judgement-green);
-  background: var(--judgement-green-bg);
+  color: var(--judgement-good);
+  background: var(--judgement-good-bg);
 }
 .wipe {
-  color: var(--judgement-orange);
-  background: var(--judgement-orange-bg);
+  color: var(--judgement-fair);
+  background: var(--judgement-fair-bg);
 }
 .trash {
   color: var(--gray-400);

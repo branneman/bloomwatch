@@ -57,40 +57,38 @@ describe("computeIdleGaps", () => {
     ]);
   });
 
-  it("computes deadTimePct and a green judgement below 5%", () => {
+  it("computes deadTimePct and a good judgement below 5%", () => {
     const events = [
       aCastEvent({ timestamp: 0, sourceID: 2, abilityGameID: 33763 }),
       aCastEvent({ timestamp: 5000, sourceID: 2, abilityGameID: 33763 }),
     ];
     const result = computeIdleGaps(events, 2, 0, 100000);
     expect(result.deadTimePct).toBeCloseTo(3.5);
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
-  it("judges orange between 5% and 15%, red above 15%", () => {
-    const orangeEvents = [
+  it("judges fair between 5% and 15%, bad above 15%", () => {
+    const fairEvents = [
       aCastEvent({ timestamp: 0, sourceID: 2, abilityGameID: 33763 }),
       aCastEvent({ timestamp: 10000, sourceID: 2, abilityGameID: 33763 }),
     ];
-    expect(computeIdleGaps(orangeEvents, 2, 0, 100000).judgement).toBe(
-      "orange",
-    );
+    expect(computeIdleGaps(fairEvents, 2, 0, 100000).judgement).toBe("fair");
 
-    const redEvents = [
+    const badEvents = [
       aCastEvent({ timestamp: 0, sourceID: 2, abilityGameID: 33763 }),
       aCastEvent({ timestamp: 20000, sourceID: 2, abilityGameID: 33763 }),
     ];
-    expect(computeIdleGaps(redEvents, 2, 0, 100000).judgement).toBe("red");
+    expect(computeIdleGaps(badEvents, 2, 0, 100000).judgement).toBe("bad");
   });
 
-  it("judges 6% dead time green after story 908's recalibration (was orange under the old 5% boundary)", () => {
+  it("judges 6% dead time good after story 908's recalibration (was fair under the old 5% boundary)", () => {
     const events = [
       aCastEvent({ timestamp: 0, sourceID: 2, abilityGameID: 33763 }),
       aCastEvent({ timestamp: 7500, sourceID: 2, abilityGameID: 33763 }),
     ];
     const result = computeIdleGaps(events, 2, 0, 100000);
     expect(result.deadTimePct).toBeCloseTo(6);
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 
   it("ignores casts from other actors", () => {
@@ -102,13 +100,13 @@ describe("computeIdleGaps", () => {
     expect(result.gaps).toEqual([]);
   });
 
-  it("returns a green, empty result when there are fewer than two casts", () => {
+  it("returns a good, empty result when there are fewer than two casts", () => {
     const events = [
       aCastEvent({ timestamp: 0, sourceID: 2, abilityGameID: 33763 }),
     ];
     const result = computeIdleGaps(events, 2, 0, 10000);
     expect(result.gaps).toEqual([]);
     expect(result.totalDeadTimeMs).toBe(0);
-    expect(result.judgement).toBe("green");
+    expect(result.judgement).toBe("good");
   });
 });

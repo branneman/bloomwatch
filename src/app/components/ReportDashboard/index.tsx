@@ -74,9 +74,9 @@ function formatJudgementBreakdown(
   breakdown: Record<Judgement, number>,
 ): string {
   const parts: string[] = [];
-  if (breakdown.green > 0) parts.push(`${breakdown.green} green`);
-  if (breakdown.orange > 0) parts.push(`${breakdown.orange} orange`);
-  if (breakdown.red > 0) parts.push(`${breakdown.red} red`);
+  if (breakdown.good > 0) parts.push(`${breakdown.good} good`);
+  if (breakdown.fair > 0) parts.push(`${breakdown.fair} fair`);
+  if (breakdown.bad > 0) parts.push(`${breakdown.bad} bad`);
   return parts.join(" · ");
 }
 
@@ -295,8 +295,9 @@ export function ReportDashboard({
       <h2>{reportTitle}</h2>
       <p className={styles.summaryLine}>
         {druidLabel} · {rows.length} non-trash boss{" "}
-        {rows.length === 1 ? "fight" : "fights"} aggregated automatically. Click
-        a fight for its full single-fight scorecard.
+        {rows.length === 1 ? "fight" : "fights"} averaged automatically into an
+        epic-by-epic verdict below. Click a fight for its full single-fight
+        scorecard.
       </p>
 
       <div className={styles.chipStrip}>

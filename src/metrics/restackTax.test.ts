@@ -13,7 +13,7 @@ const LIFEBLOOM_IDS = new Set([33763]);
 const FIGHT_DURATION_MS = 341000; // 5:41 — matches the story's worked example
 
 describe("computeRestackTax", () => {
-  it("returns zero casts and green judgement with no events", () => {
+  it("returns zero casts and good judgement with no events", () => {
     const result = computeRestackTax(
       [],
       [],
@@ -25,7 +25,7 @@ describe("computeRestackTax", () => {
       casts: [],
       castCount: 0,
       estimatedMana: 0,
-      judgement: "green",
+      judgement: "good",
     });
   });
 
@@ -182,9 +182,9 @@ describe("computeRestackTax", () => {
   });
 
   it.each([
-    { restackCasts: 2, expected: "green" },
-    { restackCasts: 5, expected: "orange" },
-    { restackCasts: 6, expected: "red" },
+    { restackCasts: 2, expected: "good" },
+    { restackCasts: 5, expected: "fair" },
+    { restackCasts: 6, expected: "bad" },
   ])(
     "judges a 5:41 fight $expected at $restackCasts re-stack casts",
     ({ restackCasts, expected }) => {
