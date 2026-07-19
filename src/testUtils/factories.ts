@@ -16,6 +16,7 @@ export function aFight(overrides: Partial<Fight> = {}): Fight {
     encounterID: 601,
     kill: true,
     bossPercentage: null,
+    gameZone: { id: 548, name: "Serpentshrine Cavern" },
     ...overrides,
   };
 }

@@ -684,6 +684,15 @@
       "feral": 0,
       "restoration": 24,
       "bucket": "likely-dreamstate-full"
+    },
+    "y3kamxfc9N7H2Yb4:Dassz": {
+      "druidId": 1,
+      "druidName": "Dassz",
+      "source": "fresh",
+      "balance": 5,
+      "feral": 0,
+      "restoration": 56,
+      "bucket": "deep-resto"
     }
   }
 }

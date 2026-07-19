@@ -48,6 +48,69 @@ describe("buildFightRows", () => {
     const rows = buildFightRows(fights);
     expect(rows.every((r) => r.isTrash && r.pullNumber === null)).toBe(true);
   });
+
+  it("marks a heroic-dungeon zone visit as trash despite a nonzero encounterID", () => {
+    const fights = [
+      aFight({
+        id: 1,
+        encounterID: 100004,
+        kill: false,
+        gameZone: { id: 547, name: "The Slave Pens" },
+      }),
+    ];
+    const rows = buildFightRows(fights);
+    expect(rows).toEqual([
+      { fight: fights[0], isTrash: true, pullNumber: null },
+    ]);
+  });
+
+  it("marks a different expansion's real raid boss as trash", () => {
+    const fights = [
+      aFight({
+        id: 1,
+        encounterID: 611,
+        kill: true,
+        gameZone: { id: 1000, name: "Blackwing Lair" },
+      }),
+    ];
+    const rows = buildFightRows(fights);
+    expect(rows).toEqual([
+      { fight: fights[0], isTrash: true, pullNumber: null },
+    ]);
+  });
+
+  it("marks a fight with no gameZone at all as trash", () => {
+    const fights = [
+      aFight({ id: 1, encounterID: 50661, kill: true, gameZone: null }),
+    ];
+    const rows = buildFightRows(fights);
+    expect(rows).toEqual([
+      { fight: fights[0], isTrash: true, pullNumber: null },
+    ]);
+  });
+
+  it.each([
+    "Karazhan",
+    "Gruul's Lair",
+    "Magtheridon's Lair",
+    "Serpentshrine Cavern",
+    "The Eye",
+    "Hyjal Summit",
+    "Black Temple",
+    "Sunwell Plateau",
+    "Zul'Aman",
+  ])("does not mark a real TBC raid boss in %s as trash", (zoneName) => {
+    const fights = [
+      aFight({
+        id: 1,
+        encounterID: 50661,
+        kill: true,
+        gameZone: { id: 1, name: zoneName },
+      }),
+    ];
+    const rows = buildFightRows(fights);
+    expect(rows[0].isTrash).toBe(false);
+  });
 });
 
 describe("formatDuration", () => {

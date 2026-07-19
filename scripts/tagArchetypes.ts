@@ -62,7 +62,7 @@ async function fetchReportFights(
   const data = (await graphql(
     accessToken,
     host,
-    `query { reportData { report(code: "${reportCode}") { fights { id name startTime endTime encounterID kill bossPercentage } } } }`,
+    `query { reportData { report(code: "${reportCode}") { fights { id name startTime endTime encounterID kill bossPercentage gameZone { id name } } } } }`,
   )) as { reportData: { report: { fights: Fight[] } | null } };
   const report = data.reportData.report;
   if (!report) throw new Error("report not found");

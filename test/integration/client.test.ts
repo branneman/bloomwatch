@@ -85,6 +85,7 @@ describe("fetchReportFights", () => {
       encounterID: 0,
       kill: null,
       bossPercentage: null,
+      gameZone: { id: 548, name: "Serpentshrine Cavern" },
     });
     expect(result.fights[5]).toEqual({
       id: 6,
@@ -94,10 +95,11 @@ describe("fetchReportFights", () => {
       encounterID: 100624,
       kill: true,
       bossPercentage: 0.01,
+      gameZone: { id: 548, name: "Serpentshrine Cavern" },
     });
   });
 
-  it("requests encounterID, kill, and bossPercentage for each fight", async () => {
+  it("requests encounterID, kill, bossPercentage, and gameZone for each fight", async () => {
     let requestBody: { query: string } | undefined;
     server.use(
       http.post(USER_API_URL, async ({ request }) => {
@@ -111,7 +113,7 @@ describe("fetchReportFights", () => {
     expect(requestBody?.query).toContain("encounterID");
     expect(requestBody?.query).toContain("kill");
     expect(requestBody?.query).toContain("bossPercentage");
-    expect(requestBody?.query).not.toContain("gameZone");
+    expect(requestBody?.query).toContain("gameZone");
     expect(requestBody?.query).toContain("expansion");
     expect(requestBody?.query).toContain("archiveStatus");
   });

@@ -190,6 +190,7 @@ export interface Fight {
   encounterID: number;
   kill: boolean | null;
   bossPercentage: number | null;
+  gameZone: { id: number; name: string } | null;
 }
 
 export interface ReportFights {
@@ -211,7 +212,7 @@ export async function fetchReportFights(
   reportData {
     report(code: "${reportCode}") {
       title
-      fights { id name startTime endTime encounterID kill bossPercentage }
+      fights { id name startTime endTime encounterID kill bossPercentage gameZone { id name } }
       zone { expansion { id name } }
       archiveStatus { isArchived isAccessible }
     }
@@ -231,6 +232,7 @@ export async function fetchReportFights(
         encounterID: number;
         kill: boolean | null;
         bossPercentage: number | null;
+        gameZone: { id: number; name: string } | null;
       }): Fight => ({
         id: fight.id,
         name: fight.name,
@@ -239,6 +241,7 @@ export async function fetchReportFights(
         encounterID: fight.encounterID,
         kill: fight.kill,
         bossPercentage: fight.bossPercentage,
+        gameZone: fight.gameZone,
       }),
     ),
     expansionId: report.zone.expansion.id,

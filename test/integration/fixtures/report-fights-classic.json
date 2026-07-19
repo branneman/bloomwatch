@@ -11,7 +11,8 @@
             "endTime": 427463,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 564, "name": "Black Temple" }
           },
           {
             "id": 2,
@@ -20,7 +21,8 @@
             "endTime": 552783,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 564, "name": "Black Temple" }
           },
           {
             "id": 3,
@@ -29,7 +31,8 @@
             "endTime": 572463,
             "encounterID": 0,
             "kill": null,
-            "bossPercentage": null
+            "bossPercentage": null,
+            "gameZone": { "id": 564, "name": "Black Temple" }
           },
           {
             "id": 10,
@@ -38,7 +41,8 @@
             "endTime": 1271196,
             "encounterID": 601,
             "kill": true,
-            "bossPercentage": 0.01
+            "bossPercentage": 0.01,
+            "gameZone": { "id": 564, "name": "Black Temple" }
           }
         ],
         "zone": { "expansion": { "id": 1001, "name": "The Burning Crusade" } },

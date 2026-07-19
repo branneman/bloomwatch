@@ -140,7 +140,7 @@ I want the app to accept a report from `classic.warcraftlogs.com` — not just `
 - `docs/roadmap.md` and CLAUDE.md's principle 1 are updated to describe the widened scope (TBC content generally — Anniversary _and_ the original Classic-launch TBC window — still excluding every other expansion/realm type) once this ships.
 - `docs/testing.md`'s known-reports table gains at least one validated `classic.`-sourced TBC report, the same way every other row documents what it validates.
 
-### 013 — Exclude non-raid content (dungeons, world zones, other-expansion content) from fight lists 🔲 Todo
+### 013 — Exclude non-raid content (dungeons, world zones, other-expansion content) from fight lists ✅ Done
 
 I want the app's fight-list building to exclude anything that isn't a real TBC raid-boss encounter — not just raid trash and Karazhan's Chess Event (already excluded), but also 5-man dungeons/heroic dungeons, open-world zones (including incidental world PvP logged while travelling between raids), and — confirmed live to actually happen — full clears of an entirely different expansion's raid bundled into the same WCL report — so that a raid night's scorecard (both the single-fight list, 003, and the whole-report dashboard, 702) is never silently polluted by content this tool was never meant to judge. Per this project's "many logs contain 2 raids" convention (a guild session commonly spans two zones, e.g. an "SSC+TK" report), the fix has to work per-fight, not per-report — a report's own top-level `zone` field already can't be trusted to describe every fight inside it even for the two-raids-in-one-report case story 012 already handles, let alone these newly-found cases.
 
