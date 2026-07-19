@@ -8,7 +8,9 @@ import { useLifebloomDisciplineSummary } from "./useLifebloomDisciplineSummary";
 import { useSpellDisciplineSummary } from "./useSpellDisciplineSummary";
 import { useManaEconomySummary } from "./useManaEconomySummary";
 import { useDeathForensicsSummary } from "./useDeathForensicsSummary";
+import { useNearDeathResponseSummary } from "./useNearDeathResponseSummary";
 import { usePrepHygieneSummary } from "./usePrepHygieneSummary";
+import { getHealingAbilityIds } from "../../../metrics/nearDeathResponse";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
 export interface FightEpicSummaries {
@@ -17,6 +19,7 @@ export interface FightEpicSummaries {
   spell: EpicSummaryStatus;
   mana: EpicSummaryStatus;
   death: EpicSummaryStatus;
+  crisis: EpicSummaryStatus;
   prep: EpicSummaryStatus;
 }
 
@@ -30,9 +33,10 @@ type FetchEvents = (
   includeResources?: boolean,
 ) => Promise<WclEvent[]>;
 
-// Wraps the six per-epic summary hooks Scorecard needs for its widget grid,
-// so both Scorecard and ReportDashboard's per-fight rows can get all six
-// without each re-writing the same six hook calls in the same order.
+// Wraps the seven per-epic summary hooks Scorecard needs for its widget
+// grid, so both Scorecard and ReportDashboard's per-fight rows can get all
+// seven without each re-writing the same seven hook calls in the same
+// order.
 export function useFightEpicSummaries(
   accessToken: string,
   reportCode: string,
@@ -92,6 +96,18 @@ export function useFightEpicSummaries(
     lifebloomAbilityIds,
     fetchEvents,
   );
+  const healingAbilityIds = getHealingAbilityIds(resolvedAbilities);
+  const crisis = useNearDeathResponseSummary(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    healingAbilityIds,
+    swiftmendAbilityIds,
+    naturesSwiftnessAbilityIds,
+    lifebloomAbilityIds,
+    fetchEvents,
+  );
   const prep = usePrepHygieneSummary(
     accessToken,
     reportCode,
@@ -100,5 +116,5 @@ export function useFightEpicSummaries(
     fetchEvents,
   );
 
-  return { gcd, lifebloom, spell, mana, death, prep };
+  return { gcd, lifebloom, spell, mana, death, crisis, prep };
 }

@@ -4,7 +4,7 @@ import { useFightEpicSummaries } from "./useFightEpicSummaries";
 import { aFight } from "../../../testUtils/factories";
 
 describe("useFightEpicSummaries", () => {
-  it("starts every epic loading, then resolves all six once their fetches settle", async () => {
+  it("starts every epic loading, then resolves all seven once their fetches settle", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => Promise.resolve([]);
 
@@ -31,6 +31,7 @@ describe("useFightEpicSummaries", () => {
       spell: { status: "loading" },
       mana: { status: "loading" },
       death: { status: "loading" },
+      crisis: { status: "loading" },
       prep: { status: "loading" },
     });
 
