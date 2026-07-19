@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
@@ -96,7 +97,10 @@ export function useFightEpicSummaries(
     lifebloomAbilityIds,
     fetchEvents,
   );
-  const healingAbilityIds = getHealingAbilityIds(resolvedAbilities);
+  const healingAbilityIds = useMemo(
+    () => getHealingAbilityIds(resolvedAbilities),
+    [resolvedAbilities],
+  );
   const crisis = useNearDeathResponseSummary(
     accessToken,
     reportCode,
