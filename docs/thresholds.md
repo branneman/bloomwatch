@@ -85,6 +85,13 @@ Each threshold's rationale lives as a code comment next to its constant (princip
 | Food buff             | green / red          | present / missing (binary, no orange)                                     | story 601 | `src/metrics/prepHygiene.ts`                        |
 | Weapon oil            | green / red          | present / missing (binary, no orange)                                     | story 601 | `src/metrics/prepHygiene.ts`                        |
 
+## Crisis response (epic J)
+
+| Metric           | Threshold                          | Current default                                                                                                                     | Source     | Code                                                                                    |
+| ---------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------- |
+| Crisis threshold | HP% at or below counts as a crisis | 15% (provisional — not yet calibrated against real exemplar data)                                                                   | story 1001 | `src/metrics/nearDeathResponse.ts` (`CRISIS_THRESHOLD_PCT`)                             |
+| Crisis response  | green / orange / red               | responded (green, unconditional) / else 0 / 1 / >=2 unspent resources, judged only when maintained or with no clear tank assignment | story 1001 | `src/metrics/nearDeathResponse.ts` (reuses `deathForensics.ts`'s `judgeDeathReadiness`) |
+
 ## Non-tunable constants (excluded from calibration scope)
 
 These aren't judgement thresholds — they're fixed TBC game-mechanics facts (spell durations, cooldowns) that parsing/matching logic depends on, live-validated against real WCL data (see `docs/testing.md`'s known-reports table). They don't get recalibrated; they get re-validated if TBC's numbers ever change.

@@ -717,7 +717,7 @@ I want every metric currently shipped as informational-only (no R/O/G) re-examin
 
 A tip from a fellow druid (creator of another community tool, the "LB3 Calculator") proposed raid-wide "clutch save" detection: find near-death moments and credit every healer who intervened, built out into a shareable "look what we did" view. Reframed here to fit this app's process-over-output principle and its single-druid scope (see the removed story 803's precedent against raid-wide/multi-player comparison): the credit-everyone leaderboard framing is left out, but the process question underneath it — did you react when a real crisis hit — is real and in scope below.
 
-### 1001 — Near-death response audit 🔲 Todo
+### 1001 — Near-death response audit ✅ Done
 
 I want an audit of raid-wide near-death moments — a raider's HP dropping critically low and surviving — so that my reaction to genuine crises is judged the same honest, process-first way story 501 judges an actual death: this is near-survival's mirror image of 501, not an extension of it. 501 audits readiness at an actual death on a maintained target; this audits whether a _survived_ crisis got a real reactive response from me, raid-wide, with an exemption for crises outside my apparent healing assignment.
 
