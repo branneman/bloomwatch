@@ -4,6 +4,7 @@ import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { ActorClass } from "../../../metrics/innervateAudit";
+import { getHealingAbilityIds } from "../../../metrics/nearDeathResponse";
 import type { DruidCandidate } from "../../../report/druidDetection";
 import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
@@ -13,6 +14,7 @@ import { LifebloomDisciplineContent } from "../LifebloomDisciplineContent";
 import { SpellDisciplineContent } from "../SpellDisciplineContent";
 import { ManaEconomyContent } from "../ManaEconomyContent";
 import { DeathForensicsContent } from "../DeathForensicsContent";
+import { NearDeathResponseContent } from "../NearDeathResponseContent";
 import { PrepHygieneContent } from "../PrepHygieneContent";
 import { useFightEpicSummaries, type EpicId } from "./useFightEpicSummaries";
 import { useArchetypeBucket } from "./useArchetypeBucket";
@@ -65,6 +67,8 @@ const MANA_ECONOMY_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_potion_137.jpg";
 const DEATH_FORENSICS_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathscream.jpg";
+const CRISIS_RESPONSE_ICON =
+  "https://wow.zamimg.com/images/wow/icons/large/spell_holy_layonhands.jpg";
 const PREP_HYGIENE_ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg";
 
@@ -106,6 +110,7 @@ export function Scorecard({
     spell: spellSummary,
     mana: manaSummary,
     death: deathSummary,
+    crisis: crisisSummary,
     prep: prepSummary,
   } = useFightEpicSummaries(
     accessToken,
@@ -121,6 +126,7 @@ export function Scorecard({
     actorClasses,
     fetchEvents,
   );
+  const healingAbilityIds = getHealingAbilityIds(resolvedAbilities);
   const archetypeStatus = useArchetypeBucket(
     accessToken,
     reportCode,
@@ -316,6 +322,28 @@ export function Scorecard({
               }
             />
             <Widget
+              icon={CRISIS_RESPONSE_ICON}
+              label="Crisis response"
+              onOpen={() => onSelectEpic("crisis")}
+              judgement={
+                crisisSummary.status === "ready"
+                  ? crisisSummary.judgement
+                  : undefined
+              }
+              stats={
+                crisisSummary.status === "ready"
+                  ? crisisSummary.stats
+                  : undefined
+              }
+              note={
+                crisisSummary.status === "loading"
+                  ? "Calculating…"
+                  : crisisSummary.status === "error"
+                    ? crisisSummary.error
+                    : undefined
+              }
+            />
+            <Widget
               icon={PREP_HYGIENE_ICON}
               label="Prep hygiene"
               onOpen={() => onSelectEpic("prep")}
@@ -480,6 +508,38 @@ export function Scorecard({
             host={host}
             fight={fight}
             druidId={druidId}
+            swiftmendAbilityIds={swiftmendAbilityIds}
+            naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
+            lifebloomAbilityIds={lifebloomAbilityIds}
+            targetNames={targetNames}
+            fetchEvents={fetchEvents}
+          />
+        </div>
+      )}
+
+      {activeEpic === "crisis" && (
+        <div className={styles.detail}>
+          <button
+            type="button"
+            className={styles.backLink}
+            onClick={() => onSelectEpic(null)}
+          >
+            ← All metrics
+          </button>
+          <div className={styles.epicHeader}>
+            <SpellIcon src={CRISIS_RESPONSE_ICON} />
+            <h2 className={styles.epicTitle}>Crisis response</h2>
+            {crisisSummary.status === "ready" && (
+              <JudgementChip judgement={crisisSummary.judgement} />
+            )}
+          </div>
+          <NearDeathResponseContent
+            accessToken={accessToken}
+            reportCode={reportCode}
+            host={host}
+            fight={fight}
+            druidId={druidId}
+            healingAbilityIds={healingAbilityIds}
             swiftmendAbilityIds={swiftmendAbilityIds}
             naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
             lifebloomAbilityIds={lifebloomAbilityIds}
