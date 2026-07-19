@@ -252,6 +252,7 @@ export async function fetchReportFights(
 export interface CastTableAbility {
   name: string;
   total: number;
+  guid?: number;
 }
 
 export interface CastTableEntry {
@@ -290,7 +291,7 @@ export async function fetchCastsTable(
       abilities: Array<{
         name: string;
         total: number;
-        guid?: unknown;
+        guid?: number;
         type?: unknown;
         icon?: unknown;
       }>;
@@ -302,6 +303,7 @@ export async function fetchCastsTable(
       abilities: entry.abilities.map((ability) => ({
         name: ability.name,
         total: ability.total,
+        guid: ability.guid,
       })),
     }),
   );

@@ -41,10 +41,10 @@ export function aCastTableEntry(
     type: "Druid",
     icon: "Druid-Restoration",
     abilities: [
-      { name: "Lifebloom", total: 33 },
-      { name: "Rejuvenation", total: 16 },
-      { name: "Regrowth", total: 6 },
-      { name: "Swiftmend", total: 2 },
+      { name: "Lifebloom", total: 33, guid: 33763 },
+      { name: "Rejuvenation", total: 16, guid: 774 },
+      { name: "Regrowth", total: 6, guid: 8936 },
+      { name: "Swiftmend", total: 2, guid: 18562 },
     ],
     ...overrides,
   };
