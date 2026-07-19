@@ -1,7 +1,13 @@
 import { WclApiError, postGraphQL } from "./client";
 
 export type WclEventDataType =
-  "Casts" | "Buffs" | "Healing" | "Resources" | "Deaths" | "CombatantInfo";
+  | "Casts"
+  | "Buffs"
+  | "Healing"
+  | "Resources"
+  | "Deaths"
+  | "CombatantInfo"
+  | "DamageTaken";
 
 export interface WclEvent {
   timestamp: number;
