@@ -386,6 +386,65 @@ describe("computeNearDeathResponse", () => {
 
     expect(result).toEqual({ crises: [], flaggedCount: 0, judgement: "green" });
   });
+
+  it("swiftmendReady and nsReady are false when hasSwiftmend/hasNaturesSwiftness are false, even with no prior cast recorded", () => {
+    const damageEvents = [
+      aDamageEvent({ timestamp: 90000, targetID: 50, hitPoints: 10 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      [],
+      [],
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      false,
+      false,
+      0,
+      100000,
+    );
+
+    expect(result.crises[0].swiftmendReady).toBe(false);
+    expect(result.crises[0].nsReady).toBe(false);
+    expect(result.crises[0].unspentCount).toBe(1);
+    expect(result.crises[0].judgement).toBe("orange");
+  });
+
+  it("produces two separate crisis episodes for the same target across a dip-recover-dip-recover sequence", () => {
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 11000, targetID: 50, hitPoints: 50 }),
+      aDamageEvent({ timestamp: 20000, targetID: 50, hitPoints: 8 }),
+      aDamageEvent({ timestamp: 21000, targetID: 50, hitPoints: 60 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      [],
+      [],
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+    );
+
+    expect(result.crises).toHaveLength(2);
+    expect(result.crises[0].timestampMs).toBe(10000);
+    expect(result.crises[1].timestampMs).toBe(20000);
+    expect(result.crises.every((c) => c.targetId === 50)).toBe(true);
+  });
 });
 
 describe("getHealingAbilityIds", () => {
