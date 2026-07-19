@@ -46,3 +46,6 @@ docs/design_v*
 # policy — calibration-data/4GYHZRdtL3bvhpc8.json — left as historical, not
 # retroactively removed.)
 calibration-data/
+
+# Local git worktree checkouts (superpowers:using-git-worktrees) — never committed.
+.worktrees/
