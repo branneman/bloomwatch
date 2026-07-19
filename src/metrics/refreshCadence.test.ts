@@ -28,9 +28,10 @@ describe("computeRefreshCadence", () => {
     expect(result.medianMs).toBe(6510); // (6404 + 6616) / 2
     expect(result.judgement).toBe("green");
     expect(result.buckets).toEqual([
-      { label: "early", count: 0, pct: 0 },
-      { label: "ideal", count: 2, pct: 100 },
-      { label: "late", count: 0, pct: 0 },
+      { label: "redEarly", count: 0, pct: 0 },
+      { label: "orange", count: 0, pct: 0 },
+      { label: "green", count: 2, pct: 100 },
+      { label: "redLate", count: 0, pct: 0 },
     ]);
   });
 
@@ -48,7 +49,7 @@ describe("computeRefreshCadence", () => {
     expect(result.medianMs).toBe(6000);
   });
 
-  it("buckets intervals at the early/ideal/late boundaries, pooled across targets", () => {
+  it("buckets intervals using the red/orange/green/red bands, pooled across targets", () => {
     const reach3For = (targetID: number) => [
       anApplyBuffEvent({ timestamp: 0, targetID }),
       anApplyBuffStackEvent({ timestamp: 100, stack: 2, targetID }),
@@ -57,23 +58,44 @@ describe("computeRefreshCadence", () => {
 
     const events = [
       ...reach3For(42),
-      aRefreshBuffEvent({ timestamp: 200 + 5499, targetID: 42 }), // early
+      aRefreshBuffEvent({ timestamp: 200 + 4999, targetID: 42 }), // redEarly
       ...reach3For(43),
-      aRefreshBuffEvent({ timestamp: 200 + 5500, targetID: 43 }), // ideal, lower edge
+      aRefreshBuffEvent({ timestamp: 200 + 5500, targetID: 43 }), // orange
       ...reach3For(44),
-      aRefreshBuffEvent({ timestamp: 200 + 7000, targetID: 44 }), // ideal, upper edge
+      aRefreshBuffEvent({ timestamp: 200 + 6500, targetID: 44 }), // green
       ...reach3For(45),
-      aRefreshBuffEvent({ timestamp: 200 + 7001, targetID: 45 }), // late
+      aRefreshBuffEvent({ timestamp: 200 + 7001, targetID: 45 }), // redLate
     ];
 
     const result = computeRefreshCadence(events, 2, LB_IDS);
 
     expect(result.intervalCount).toBe(4);
     expect(result.buckets).toEqual([
-      { label: "early", count: 1, pct: 25 },
-      { label: "ideal", count: 2, pct: 50 },
-      { label: "late", count: 1, pct: 25 },
+      { label: "redEarly", count: 1, pct: 25 },
+      { label: "orange", count: 1, pct: 25 },
+      { label: "green", count: 1, pct: 25 },
+      { label: "redLate", count: 1, pct: 25 },
     ]);
+  });
+
+  it("buckets intervals at the exact same boundary edges as the median judgement", () => {
+    const singleIntervalBucketLabel = (intervalMs: number) => {
+      const events = [
+        anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 100, stack: 2, targetID: 42 }),
+        anApplyBuffStackEvent({ timestamp: 200, stack: 3, targetID: 42 }),
+        aRefreshBuffEvent({ timestamp: 200 + intervalMs, targetID: 42 }),
+      ];
+      const { buckets } = computeRefreshCadence(events, 2, LB_IDS);
+      return buckets.find((bucket) => bucket.count === 1)?.label;
+    };
+
+    expect(singleIntervalBucketLabel(4999)).toBe("redEarly");
+    expect(singleIntervalBucketLabel(5000)).toBe("orange");
+    expect(singleIntervalBucketLabel(5999)).toBe("orange");
+    expect(singleIntervalBucketLabel(6000)).toBe("green");
+    expect(singleIntervalBucketLabel(7000)).toBe("green");
+    expect(singleIntervalBucketLabel(7001)).toBe("redLate");
   });
 
   it("computes the median for an odd number of intervals", () => {
@@ -160,7 +182,7 @@ describe("computeRefreshCadence", () => {
     const result = computeRefreshCadence(events, 2, LB_IDS);
 
     expect(result.intervalCount).toBe(2);
-    expect(result.buckets.map((bucket) => bucket.count)).toEqual([0, 2, 0]);
+    expect(result.buckets.map((bucket) => bucket.count)).toEqual([0, 0, 2, 0]);
   });
 
   it("returns null median/judgement and zeroed buckets when no 3-stack refresh ever happened", () => {
@@ -173,9 +195,10 @@ describe("computeRefreshCadence", () => {
       medianMs: null,
       judgement: null,
       buckets: [
-        { label: "early", count: 0, pct: 0 },
-        { label: "ideal", count: 0, pct: 0 },
-        { label: "late", count: 0, pct: 0 },
+        { label: "redEarly", count: 0, pct: 0 },
+        { label: "orange", count: 0, pct: 0 },
+        { label: "green", count: 0, pct: 0 },
+        { label: "redLate", count: 0, pct: 0 },
       ],
     });
   });

@@ -208,7 +208,7 @@ I want a histogram of intervals between my Lifebloom refreshes on 3-stacked targ
 
 - Only refreshes on targets already at 3 stacks count.
 - For each target, the interval from reaching 3 stacks to first refresh counts the same as any later refresh-to-refresh interval.
-- Buckets: < 5.5 s (early), 5.5–7 s (ideal), > 7 s (late).
+- Buckets share the same bands as the median R/O/G judgement below: red < 5 s, orange 5–6 s, green 6–7 s, red > 7 s.
 - R/O/G on median: green 6–7 s, orange 5–6 s, red < 5 s or > 7 s. Consistently late refreshes correlate with near-bloom timing and are judged as severely as refreshing too eagerly; actual bloom events are counted separately by story 203.
 
 ### 203 — Accidental bloom counter ✅ Done

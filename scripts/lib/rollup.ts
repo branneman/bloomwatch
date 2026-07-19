@@ -132,10 +132,14 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     { value: number; weightMs: number }[]
   >();
   const refreshMedians: { value: number; weight: number }[] = [];
-  const bucketTotals: Record<"early" | "ideal" | "late", number> = {
-    early: 0,
-    ideal: 0,
-    late: 0,
+  const bucketTotals: Record<
+    "redEarly" | "orange" | "green" | "redLate",
+    number
+  > = {
+    redEarly: 0,
+    orange: 0,
+    green: 0,
+    redLate: 0,
   };
   let accidentalBloomsTotal = 0;
   let restackTaxCastsTotal = 0;
@@ -160,9 +164,12 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     restackTaxEstimatedManaTotal += entry.metrics.restackTax.estimatedMana;
   }
   const bucketCountTotal =
-    bucketTotals.early + bucketTotals.ideal + bucketTotals.late;
+    bucketTotals.redEarly +
+    bucketTotals.orange +
+    bucketTotals.green +
+    bucketTotals.redLate;
   const refreshCadenceBuckets: RefreshCadenceBucketRollup[] = (
-    ["early", "ideal", "late"] as const
+    ["redEarly", "orange", "green", "redLate"] as const
   ).map((label) => ({
     label,
     count: bucketTotals[label],

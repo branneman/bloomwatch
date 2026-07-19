@@ -2,20 +2,18 @@ import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
 import { reconstructLifebloomTimelines } from "./lifebloomStacks";
 
-// Bucket boundaries per docs/backlog.md story 202.
-const EARLY_MAX_MS = 5500; // < 5.5s
-const IDEAL_MAX_MS = 7000; // 5.5-7s inclusive; > 7s is "late"
-
-// Median R/O/G per docs/backlog.md story 202: green 6-7s, orange 5-6s.
-// A median above 7s is judged red, not just "not green" - refreshing
-// consistently late correlates with near-bloom timing, treated as
-// severely as refreshing too eagerly. Actual blooms are counted
-// separately by story 203's accidental-bloom counter.
+// Bucket boundaries per docs/backlog.md story 202. The per-interval
+// histogram buckets share the same bands as the median R/O/G judgement
+// below: red < 5s, orange 5-6s, green 6-7s, red > 7s. A late interval
+// correlates with near-bloom timing and is judged as severely as
+// refreshing too eagerly. Actual blooms are counted separately by
+// story 203's accidental-bloom counter.
 const GREEN_MIN_MS = 6000;
 const GREEN_MAX_MS = 7000;
 const ORANGE_MIN_MS = 5000;
 
-export type RefreshCadenceBucketLabel = "early" | "ideal" | "late";
+export type RefreshCadenceBucketLabel =
+  "redEarly" | "orange" | "green" | "redLate";
 
 export interface RefreshCadenceBucket {
   label: RefreshCadenceBucketLabel;
@@ -92,24 +90,27 @@ export function computeRefreshCadence(
   }
 
   const bucketCounts: Record<RefreshCadenceBucketLabel, number> = {
-    early: 0,
-    ideal: 0,
-    late: 0,
+    redEarly: 0,
+    orange: 0,
+    green: 0,
+    redLate: 0,
   };
 
   for (const intervalMs of intervalsMs) {
-    if (intervalMs < EARLY_MAX_MS) {
-      bucketCounts.early += 1;
-    } else if (intervalMs <= IDEAL_MAX_MS) {
-      bucketCounts.ideal += 1;
+    if (intervalMs < ORANGE_MIN_MS) {
+      bucketCounts.redEarly += 1;
+    } else if (intervalMs < GREEN_MIN_MS) {
+      bucketCounts.orange += 1;
+    } else if (intervalMs <= GREEN_MAX_MS) {
+      bucketCounts.green += 1;
     } else {
-      bucketCounts.late += 1;
+      bucketCounts.redLate += 1;
     }
   }
 
   const intervalCount = intervalsMs.length;
   const buckets: RefreshCadenceBucket[] = (
-    ["early", "ideal", "late"] as const
+    ["redEarly", "orange", "green", "redLate"] as const
   ).map((label) => ({
     label,
     count: bucketCounts[label],

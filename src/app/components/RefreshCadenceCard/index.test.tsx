@@ -47,9 +47,10 @@ describe("RefreshCadenceCard", () => {
       expect(screen.getByText("Median 6.5s")).toBeInTheDocument(),
     );
     expect(screen.getByText("Good")).toBeInTheDocument();
-    expect(screen.getByText("Early (< 5.5s)")).toBeInTheDocument();
-    expect(screen.getByText("Ideal (5.5–7s)")).toBeInTheDocument();
-    expect(screen.getByText("Late (> 7s)")).toBeInTheDocument();
+    expect(screen.getByText("< 5s")).toBeInTheDocument();
+    expect(screen.getByText("5–6s")).toBeInTheDocument();
+    expect(screen.getByText("6–7s")).toBeInTheDocument();
+    expect(screen.getByText("> 7s")).toBeInTheDocument();
   });
 
   it("shows a message when no 3-stack refreshes happened", async () => {

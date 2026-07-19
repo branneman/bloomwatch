@@ -95,7 +95,7 @@ export interface LifebloomTargetRollup {
   totalWindowMs: number;
 }
 export interface RefreshCadenceBucketRollup {
-  label: "early" | "ideal" | "late";
+  label: "redEarly" | "orange" | "green" | "redLate";
   count: number;
   pct: number;
 }
