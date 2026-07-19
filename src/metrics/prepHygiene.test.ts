@@ -135,7 +135,7 @@ describe("computePrepHygiene", () => {
     });
   });
 
-  it("reports food missing when there is no Well Fed aura, dragging the overall judgement to bad", () => {
+  it("reports food missing when there is no Well Fed aura, reading fair since the flask/elixir and oil checks are still fine", () => {
     const result = computePrepHygiene(
       [
         aCombatantInfoEvent({
@@ -154,7 +154,71 @@ describe("computePrepHygiene", () => {
     );
     expect(result.foodBuffPresent).toBe(false);
     expect(result.flaskOrElixir.judgement).toBe("fair");
+    // gear isn't overridden here, so the factory's default main-hand
+    // temporary enchant keeps weaponOilPresent true ("good") — the triple
+    // is fair/bad/good, a good+bad mix, so mixedJudgement reads "fair"
+    // rather than the strict worst-of "bad".
+    expect(result.weaponOilPresent).toBe(true);
+    expect(result.judgement).toBe("fair");
+  });
+
+  it("reads bad overall when food and oil are both missing and the flask/elixir row is only fair (no good sibling to mix in)", () => {
+    const gear = Array.from({ length: 16 }, () => ({}));
+    const result = computePrepHygiene(
+      [
+        aCombatantInfoEvent({
+          auras: [
+            {
+              source: 2,
+              ability: 39627,
+              stacks: 1,
+              icon: "x.jpg",
+              name: "Elixir of Draenic Wisdom",
+            },
+          ],
+          gear,
+        }),
+      ],
+      2,
+    );
+    expect(result.flaskOrElixir.judgement).toBe("fair");
+    expect(result.foodBuffPresent).toBe(false);
+    expect(result.weaponOilPresent).toBe(false);
     expect(result.judgement).toBe("bad");
+  });
+
+  it("reads fair overall when the flask/elixir row and food are good but weapon oil is missing", () => {
+    const gear = Array.from({ length: 16 }, () => ({}));
+    const result = computePrepHygiene(
+      [
+        aCombatantInfoEvent({
+          auras: [
+            {
+              source: 2,
+              ability: 28588,
+              stacks: 1,
+              icon: "x.jpg",
+              name: "Flask of Mighty Restoration",
+            },
+            {
+              source: 2,
+              ability: 33268,
+              stacks: 1,
+              icon: "spell_misc_food.jpg",
+              name: "Well Fed",
+            },
+          ],
+          gear,
+        }),
+      ],
+      2,
+    );
+    expect(result.flaskOrElixir.judgement).toBe("good");
+    expect(result.foodBuffPresent).toBe(true);
+    expect(result.weaponOilPresent).toBe(false);
+    // A good sibling (flask/elixir, food) mixed with a bad one (oil) reads
+    // "fair" via mixedJudgement, not the strict worst-of "bad".
+    expect(result.judgement).toBe("fair");
   });
 
   it("reports weapon oil missing when the main-hand slot has no temporary enchant", () => {

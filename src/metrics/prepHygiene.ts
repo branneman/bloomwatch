@@ -1,6 +1,6 @@
 import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
-import { worstJudgement } from "./epicSummary";
+import { mixedJudgement } from "./judgement";
 
 // Sourced from the restoration druid healer consumables guide (Wowhead/Icy
 // Veins) plus live confirmation against real reports — a combatant-info
@@ -96,7 +96,7 @@ export function computePrepHygiene(
     hasGuardianElixir,
   );
 
-  const judgement = worstJudgement([
+  const judgement = mixedJudgement([
     flaskOrElixirJudgement,
     foodBuffPresent ? "good" : "bad",
     weaponOilPresent ? "good" : "bad",
