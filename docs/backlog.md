@@ -710,3 +710,23 @@ I want every metric currently shipped as informational-only (no R/O/G) re-examin
 - Each of the four metrics above gets an explicit, documented conclusion in this file (not silence) — either "confirmed: stays informational, here's the data and reasoning" or "add judgement: here's the new threshold and its sourcing," matching every other calibrated threshold's rationale-in-a-comment convention.
 - Regrowth clip share, if it gains an archetype-aware judgement, follows the pattern story 905 already established for Regrowth-direct overheal (per-archetype threshold sourced from `useArchetypeBucket`/`classifyBucket`, deep-resto kept informational per the existing Tree-of-Life reasoning).
 - `docs/thresholds.md` is updated to reflect whatever is decided for each of the four metrics, whether that's a new threshold row or an updated "confirmed informational" rationale.
+
+---
+
+## Epic J — Crisis response
+
+A tip from a fellow druid (creator of another community tool, the "LB3 Calculator") proposed raid-wide "clutch save" detection: find near-death moments and credit every healer who intervened, built out into a shareable "look what we did" view. Reframed here to fit this app's process-over-output principle and its single-druid scope (see the removed story 803's precedent against raid-wide/multi-player comparison): the credit-everyone leaderboard framing is left out, but the process question underneath it — did you react when a real crisis hit — is real and in scope below.
+
+### 1001 — Near-death response audit 🔲 Todo
+
+I want an audit of raid-wide near-death moments — a raider's HP dropping critically low and surviving — so that my reaction to genuine crises is judged the same honest, process-first way story 501 judges an actual death: this is near-survival's mirror image of 501, not an extension of it. 501 audits readiness at an actual death on a maintained target; this audits whether a _survived_ crisis got a real reactive response from me, raid-wide, with an exemption for crises outside my apparent healing assignment.
+
+**Acceptance criteria**
+
+- A "crisis" opens when a target's HP% (`hitPoints`, already a real percentage from WCL's `includeResources: true` on both `DamageTaken` and `Healing` events — confirmed live during this story's design, no reconstruction of raw/absolute HP needed) drops to ≤15% (provisional, sourced value pending a calibration pass akin to 909-913), walking each target's merged damage+healing HP-reading timeline with that target's own `Deaths` events merged in as explicit terminal markers (not inferred from timestamp proximity — a live check found a battle-rez can leave a ~90s gap between a death and its target's next real HP reading, which a proximity-based rule would misread as one long survived crisis).
+- The response window for a crisis runs from that reading until the earliest of: the target's HP next reads above the threshold (survived), a death marker appears first for that target (excluded — 501's territory, not this one), or the target's timeline runs out with the fight still in progress (survived, unresolved by fight end).
+- "Responded" means a new reactive healing-spell cast (a `Casts` event, `sourceID` = the druid) lands on the target inside that window — a HoT already ticking from an earlier cast does not count on its own; it must be an active decision made during the crisis.
+- Scope/exemption: compute "maintained targets" exactly as stories 201/501 already do (≥30% Lifebloom uptime). If the druid has a clear tank assignment (1-2 maintained targets), crises on any other raider are shown as context only and excluded from judgement. If there's no such assignment, every raider's crisis is judged.
+- Judgement mirrors 501's shape: a judged crisis is green if responded; if not, red/orange severity uses the same unspent-resource tally 501 already computes (Swiftmend ready / Nature's Swiftness ready / a GCD available in the 5s before the crisis).
+- New card on the single-fight Scorecard (mirrors `DeathForensicsCard`'s structure and placement) and folds into 702's whole-report rollup via 904's existing weighted-median policy, same as every other judged metric.
+- Clearly labeled caveat, matching 501's own: a missed crisis outside your maintained targets is not automatically a failure — this audits your readiness and reaction only, not assignments or positioning.
