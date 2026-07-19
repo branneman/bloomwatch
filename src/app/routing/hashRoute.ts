@@ -32,6 +32,7 @@ const EPIC_IDS: readonly EpicId[] = [
   "spell",
   "mana",
   "death",
+  "crisis",
   "prep",
 ];
 
