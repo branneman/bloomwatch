@@ -1,4 +1,5 @@
 import type { ReportAbility } from "../wcl/client";
+import { matchLocalizedSpellName } from "./localizedSpellNames";
 
 export type DruidHealingSpell =
   | "Lifebloom"
@@ -16,17 +17,6 @@ export type ResolvedAbility =
   | { kind: "spell"; spell: DruidHealingSpell; rank: number }
   | { kind: "spell"; spell: DruidHealingSpell; rank: null }
   | { kind: "consumable"; item: DruidConsumable };
-
-const DRUID_HEALING_SPELLS: readonly DruidHealingSpell[] = [
-  "Lifebloom",
-  "Rejuvenation",
-  "Regrowth",
-  "Healing Touch",
-  "Swiftmend",
-  "Nature's Swiftness",
-  "Tranquility",
-  "Innervate",
-];
 
 // gameID -> rank for every ID confidently attributable to a real player-trainable
 // spell rank, sourced from wowhead's TBC Classic spell-family listings and
@@ -143,12 +133,9 @@ export function resolveAbilities(
       continue;
     }
 
-    if ((DRUID_HEALING_SPELLS as readonly string[]).includes(ability.name)) {
-      resolved.set(ability.gameID, {
-        kind: "spell",
-        spell: ability.name as DruidHealingSpell,
-        rank: null,
-      });
+    const spell = matchLocalizedSpellName(ability.name);
+    if (spell) {
+      resolved.set(ability.gameID, { kind: "spell", spell, rank: null });
       continue;
     }
 
