@@ -4,6 +4,7 @@ import {
   judgeThresholdBelow,
   judgementBreakdown,
   weightedMedianJudgement,
+  mixedJudgement,
   type Judgement,
 } from "./judgement";
 
@@ -161,5 +162,41 @@ describe("judgementBreakdown", () => {
 
   it("returns all-zero counts for an empty list", () => {
     expect(judgementBreakdown([])).toEqual({ good: 0, fair: 0, bad: 0 });
+  });
+});
+
+describe("mixedJudgement", () => {
+  it("returns good when every entry is good", () => {
+    expect(mixedJudgement(["good", "good"])).toBe("good");
+  });
+
+  it("returns bad when every entry is bad", () => {
+    expect(mixedJudgement(["bad", "bad"])).toBe("bad");
+  });
+
+  it("returns fair when both good and bad are present, regardless of order", () => {
+    expect(mixedJudgement(["good", "bad"])).toBe("fair");
+    expect(mixedJudgement(["good", "good", "bad"])).toBe("fair");
+    expect(mixedJudgement(["bad", "good", "good"])).toBe("fair");
+  });
+
+  it("falls back to strict worst-of when no bad is present, even with fair mixed in", () => {
+    // This is the case a full weightedMedianJudgement reuse would have
+    // gotten wrong (majority-by-count would read this as "good" since
+    // 2 of 3 entries are good) — see docs/specs/epic-mixed-judgement-design.md.
+    expect(mixedJudgement(["good", "good", "fair"])).toBe("fair");
+  });
+
+  it("falls back to strict worst-of when no good is present", () => {
+    expect(mixedJudgement(["fair", "bad"])).toBe("bad");
+  });
+
+  it("ignores null entries", () => {
+    expect(mixedJudgement(["good", null, "bad"])).toBe("fair");
+    expect(mixedJudgement(["good", null, "fair"])).toBe("fair");
+  });
+
+  it("defaults to good when every entry is null", () => {
+    expect(mixedJudgement([null, null])).toBe("good");
   });
 });
