@@ -626,9 +626,15 @@ I want ability resolution to stop depending on English spell-name strings, so th
 - `druidDetection.ts`'s `HEALING_SPELL_NAMES` gains the same per-language coverage, or is changed to resolve via game ID the same way `resolveAbilities.ts`'s primary path already does.
 - A short note in `docs/testing.md` records which language(s) were actually validated against a real non-English-logged report, versus which are translated but unverified.
 
-### 909 — Recalibrate spell discipline thresholds against exemplars 🔲 Todo
+### 909 — Recalibrate spell discipline thresholds against exemplars ✅ Done
 
 I want Rejuvenation clip share, Swiftmend wasteful share, and downranking flag count reviewed against real exemplar data the same way Lifebloom (902), mana economy (905), and GCD economy (908) already were, so these three stop being the only thresholds in Epic D still running on their original story-era defaults with zero real-play validation behind them.
+
+**Findings**, from the same 20-report story-901 `classic.warcraftlogs.com` deep-resto exemplar corpus 902/908 used (134 real kill-fights, duration > 30s, regenerated fresh via `scripts/calibrate.ts` after story 013's non-raid-zone contamination fix and the Lifebloom any-stack-uptime carry-in fix):
+
+- **Rejuvenation clip share (good <5%/fair 5-15%/bad >15%): no change.** 93% good/5% fair/1% bad, median 0% clips — strong real validation of the current bands.
+- **Swiftmend wasteful share (good ==0%/fair ≤25%/bad >25%): recalibrated to good <40%/fair 40-80%/bad >80%.** The old zero-tolerance good band convicted the median real player: 440 real Swiftmend casts from 20 elite players pooled a 58.2% wasteful rate overall (median 63.6% per fight). The "wasteful"-classified casts themselves have a median 10.6s of HoT remaining and median target HP of 73% (min 51%) — real skilled play routinely bursts Swiftmend onto a healthy-ish target with a live HoT, which the classify() logic's "efficient / emergency (≤50% HP) / else wasteful" split can't distinguish from careless spam. Flagged but not fixed here: the classify() emergency-HP cutoff (50%) looks like the real root cause and is a candidate for a future recalibration pass, but redefining classification logic is outside a threshold-value story's scope — only the wasteful-share band moved.
+- **Downranking flagged-count (good 0 flags/fair ≥1 flag): no change.** 88% good/12% fair, max flags seen in any real fight was 1 (confirms "bad is structurally unreachable" still holds). The underlying >50% direct-overheal flag cutoff sits almost exactly at the real p75 of max-rank overheal-by-spell-group (median 36%, p75 51%), additional support for no change.
 
 **Acceptance criteria**
 
