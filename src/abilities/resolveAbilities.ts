@@ -101,6 +101,12 @@ export function getMaxRank(spell: DruidHealingSpell): number | null {
   return max;
 }
 
+export function getSpellForGameId(
+  gameID: number,
+): DruidHealingSpell | undefined {
+  return SPELL_RANKS[gameID]?.spell;
+}
+
 // Mana potions resolve by gameID only: WCL logs their cast under the ability name
 // "Restore Mana", which is shared with unrelated effects (other classes'
 // mana-drain/return abilities, engineering items), so name-matching would produce

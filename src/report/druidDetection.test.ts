@@ -142,6 +142,22 @@ describe("detectDruids", () => {
     const result = detectDruids([dreamstateHighCasts, restoLowCasts]);
     expect(result.map((c) => c.name)).toEqual(["Dassz", "Neepzendruid"]);
   });
+
+  it("counts a healing cast by gameID even when the ability name is untranslated (e.g. a German client's log)", () => {
+    // "Verjüngung" is the real German client name for Rejuvenation rank 1
+    // (gameID 774) — confirmed against wowhead's German localization. The
+    // gameID resolves via resolveAbilities.ts's SPELL_RANKS table
+    // regardless of what language the name string is in.
+    const germanClient = aCastTableEntry({
+      id: 9,
+      name: "Emrakul",
+      icon: "Druid",
+      abilities: [{ name: "Verjüngung", total: 50, guid: 774 }],
+    });
+    expect(detectDruids([germanClient])).toEqual([
+      { id: 9, name: "Emrakul", healingCastCount: 50, isRestoSpec: false },
+    ]);
+  });
 });
 
 describe("detectHealingRoleThisFight", () => {
