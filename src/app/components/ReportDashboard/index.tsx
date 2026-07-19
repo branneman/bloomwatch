@@ -62,6 +62,7 @@ const EPIC_META: { id: keyof FightEpicSummaries; label: string }[] = [
   { id: "spell", label: "Spell discipline" },
   { id: "mana", label: "Mana economy" },
   { id: "death", label: "Death forensics" },
+  { id: "crisis", label: "Crisis response" },
   { id: "prep", label: "Prep hygiene" },
 ];
 
