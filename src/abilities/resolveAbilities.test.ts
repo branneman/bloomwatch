@@ -52,16 +52,23 @@ describe("resolveAbilities", () => {
     });
   });
 
-  it("resolves a rune by name and gameID", () => {
+  it("resolves Dark Rune by gameID regardless of ability name", () => {
     const result = resolveAbilities([
-      aReportAbility({
-        gameID: 27869,
-        name: "Dark Rune",
-      }),
+      aReportAbility({ gameID: 27869, name: "Rune Sombre" }), // name irrelevant now — real gameID confirmed live
     ]);
     expect(result.get(27869)).toEqual({
       kind: "consumable",
       item: "Dark Rune",
+    });
+  });
+
+  it("resolves Demonic Rune by gameID regardless of ability name", () => {
+    const result = resolveAbilities([
+      aReportAbility({ gameID: 16666, name: "Rune Démoniaque" }),
+    ]);
+    expect(result.get(16666)).toEqual({
+      kind: "consumable",
+      item: "Demonic Rune",
     });
   });
 

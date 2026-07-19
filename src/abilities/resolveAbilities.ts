@@ -28,8 +28,6 @@ const DRUID_HEALING_SPELLS: readonly DruidHealingSpell[] = [
   "Innervate",
 ];
 
-const RUNE_ITEMS: readonly DruidConsumable[] = ["Dark Rune", "Demonic Rune"];
-
 // gameID -> rank for every ID confidently attributable to a real player-trainable
 // spell rank, sourced from wowhead's TBC Classic spell-family listings and
 // cross-checked against live masterData.abilities pulls (docs/testing.md's known
@@ -125,6 +123,14 @@ const MANA_POTION_GAME_IDS: ReadonlySet<number> = new Set([
   38929, // Fel Mana Potion
 ]);
 
+// Dark Rune and Demonic Rune are matched by gameID only, like Mana Potion
+// above — item IDs are locale-independent, so unlike the healing spells'
+// fallback path (see resolveAbilities' loop below), no name-matching is
+// needed for these two. Confirmed live against
+// test/integration/fixtures/masterdata-abilities.json.
+const DARK_RUNE_ID = 27869;
+const DEMONIC_RUNE_ID = 16666;
+
 export function resolveAbilities(
   reportAbilities: ReportAbility[],
 ): Map<number, ResolvedAbility> {
@@ -146,10 +152,15 @@ export function resolveAbilities(
       continue;
     }
 
-    if ((RUNE_ITEMS as readonly string[]).includes(ability.name)) {
+    if (ability.gameID === DARK_RUNE_ID) {
+      resolved.set(ability.gameID, { kind: "consumable", item: "Dark Rune" });
+      continue;
+    }
+
+    if (ability.gameID === DEMONIC_RUNE_ID) {
       resolved.set(ability.gameID, {
         kind: "consumable",
-        item: ability.name as DruidConsumable,
+        item: "Demonic Rune",
       });
       continue;
     }
