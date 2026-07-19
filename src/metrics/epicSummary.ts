@@ -1,4 +1,4 @@
-import { worstJudgement, type Judgement } from "./judgement";
+import { mixedJudgement, type Judgement } from "./judgement";
 export { worstJudgement } from "./judgement";
 import type { GcdUtilizationResult } from "./gcdUtilization";
 import type { IdleGapsResult } from "./idleGaps";
@@ -27,7 +27,7 @@ export function summarizeGcdEconomy(
   idleGaps: IdleGapsResult,
 ): EpicSummary {
   return {
-    judgement: worstJudgement([gcd.judgement, idleGaps.judgement]),
+    judgement: mixedJudgement([gcd.judgement, idleGaps.judgement]),
     stats: [
       `GCD utilization: ${Math.round(gcd.utilizationPct)}%`,
       `Idle gaps: ${idleGaps.deadTimePct.toFixed(1)}% dead time`,
@@ -48,7 +48,7 @@ export function summarizeLifebloomDiscipline(
   blooms: AccidentalBloomsResult,
   restack: RestackTaxResult,
 ): EpicSummary {
-  const judgement = worstJudgement([
+  const judgement = mixedJudgement([
     ...lb3.targets.map((target) => target.judgement),
     refresh.judgement,
     blooms.judgement,
@@ -75,13 +75,14 @@ export function summarizeSpellDiscipline(
   // Regrowth clipping has no judgement of its own (informational only —
   // see docs/backlog.md story 301), so it can't move this verdict; the
   // widget's two stat lines show the two metrics that do carry a
-  // judgement. Downranking's judgement also joins the worst-of calc (per
-  // docs/backlog.md story 303) but doesn't get its own stat line — story
-  // 701 caps a dashboard widget at 1-2 stats. Swiftmend's judgement/stat
-  // line are excluded entirely (not scored, not shown as a spurious good)
-  // when the druid's build can't reach Swiftmend's talent — story 903c.
+  // judgement. Downranking's judgement also joins the mixedJudgement calc
+  // (per docs/backlog.md story 303 and docs/specs/epic-mixed-judgement-
+  // design.md) but doesn't get its own stat line — story 701 caps a
+  // dashboard widget at 1-2 stats. Swiftmend's judgement/stat line are
+  // excluded entirely (not scored, not shown as a spurious good) when the
+  // druid's build can't reach Swiftmend's talent — story 903c.
   return {
-    judgement: worstJudgement([
+    judgement: mixedJudgement([
       hotClips.rejuvenation.judgement,
       ...(hasSwiftmend ? [swiftmendAudit.judgement] : []),
       downranking.judgement,
@@ -111,12 +112,13 @@ export function summarizeManaEconomy(
         .join(", ");
 
   return {
-    // overhealTable's and innervateAudit's judgements both join the worst-of
-    // calc (per docs/backlog.md stories 404 and 403) but neither gets its own
+    // overhealTable's and innervateAudit's judgements both join the
+    // mixedJudgement calc (per docs/backlog.md stories 404 and 403, and
+    // docs/specs/epic-mixed-judgement-design.md) but neither gets its own
     // stat line — story 701 caps a dashboard widget at 1-2 stats, same
-    // precedent as Downranking Discipline joining Spell Discipline's worst-of
+    // precedent as Downranking Discipline joining Spell Discipline's calc
     // silently.
-    judgement: worstJudgement([
+    judgement: mixedJudgement([
       manaCurve.judgement,
       consumableThroughput.judgement,
       overhealTable.judgement,

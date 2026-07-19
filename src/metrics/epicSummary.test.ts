@@ -63,6 +63,25 @@ describe("summarizeGcdEconomy", () => {
       stats: ["GCD utilization: 87%", "Idle gaps: 6.2% dead time"],
     });
   });
+
+  it("reads fair (not bad) when GCD utilization is good but idle gaps are bad", () => {
+    const gcd: GcdUtilizationResult = {
+      activeTimeMs: 3000,
+      fightDurationMs: 10000,
+      utilizationPct: 87,
+      judgement: "good",
+    };
+    const idleGaps: IdleGapsResult = {
+      gaps: [],
+      longestGaps: [],
+      totalDeadTimeMs: 4200,
+      fightDurationMs: 10000,
+      deadTimePct: 42,
+      judgement: "bad",
+    };
+
+    expect(summarizeGcdEconomy(gcd, idleGaps).judgement).toBe("fair");
+  });
 });
 
 describe("summarizeLifebloomDiscipline", () => {
@@ -176,6 +195,42 @@ describe("summarizeLifebloomDiscipline", () => {
       summarizeLifebloomDiscipline(lb3, refresh, blooms, restack).stats[0],
     ).toBe("LB3 uptime: no maintained targets");
   });
+
+  it("reads fair (not bad) when a maintained target is good but restack tax is bad", () => {
+    const lb3: Lb3UptimeResult = {
+      targets: [
+        {
+          targetId: 1,
+          lbUptimePct: 95,
+          lb3UptimeMs: 9100,
+          windowMs: 10000,
+          lb3UptimePct: 91,
+          judgement: "good",
+        },
+      ],
+    };
+    const refresh: RefreshCadenceResult = {
+      intervalCount: 5,
+      medianMs: 6400,
+      judgement: "good",
+      buckets: [],
+    };
+    const blooms: AccidentalBloomsResult = {
+      accidentalBlooms: [],
+      count: 0,
+      judgement: "good",
+    };
+    const restack: RestackTaxResult = {
+      casts: [],
+      castCount: 8,
+      estimatedMana: 6400,
+      judgement: "bad",
+    };
+
+    expect(
+      summarizeLifebloomDiscipline(lb3, refresh, blooms, restack).judgement,
+    ).toBe("fair");
+  });
 });
 
 describe("summarizeSpellDiscipline", () => {
@@ -256,7 +311,7 @@ describe("summarizeSpellDiscipline", () => {
     ).toBe("good");
   });
 
-  it("turns bad when Swiftmend's wasteful share is bad, even if Rejuvenation clips and downranking are good", () => {
+  it("reads fair (not bad) when Swiftmend's wasteful share is bad but Rejuvenation clips and downranking are good", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {
         spell: "Rejuvenation",
@@ -285,7 +340,7 @@ describe("summarizeSpellDiscipline", () => {
     expect(
       summarizeSpellDiscipline(hotClips, swiftmendAudit, GOOD_DOWNRANKING, true)
         .judgement,
-    ).toBe("bad");
+    ).toBe("fair");
   });
 
   it("turns fair when downranking has a flag, even if Rejuvenation clips and Swiftmend are good", () => {
@@ -435,7 +490,7 @@ describe("summarizeManaEconomy", () => {
     });
   });
 
-  it("formats the potion/rune stat line and takes the worst-of judgement", () => {
+  it("formats the potion/rune stat line and reads fair when a bad row is mixed with good judgements elsewhere", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
@@ -462,12 +517,12 @@ describe("summarizeManaEconomy", () => {
         INNERVATE_NEUTRAL,
       ),
     ).toEqual({
-      judgement: "bad",
+      judgement: "fair",
       stats: ["Ending mana: 20%", "Potions: 2/2, Runes: 0/1"],
     });
   });
 
-  it("folds the overheal table's judgement into the worst-of without adding a stat line", () => {
+  it("folds the overheal table's judgement in, reading fair since mana curve is good", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
@@ -492,14 +547,14 @@ describe("summarizeManaEconomy", () => {
       overhealTable,
       INNERVATE_NEUTRAL,
     );
-    expect(result.judgement).toBe("bad");
+    expect(result.judgement).toBe("fair");
     expect(result.stats).toEqual([
       "Ending mana: 20%",
       "Consumables: not mana-constrained",
     ]);
   });
 
-  it("folds the innervate audit's judgement into the worst-of without adding a stat line", () => {
+  it("folds the innervate audit's judgement in, reading fair since mana curve and overheal are good", () => {
     const manaCurve: ManaCurveResult = {
       points: [{ timestampMs: 1000, pct: 20 }],
       endingPct: 20,
@@ -516,7 +571,7 @@ describe("summarizeManaEconomy", () => {
       OVERHEAL_TABLE_GOOD,
       innervateAudit,
     );
-    expect(result.judgement).toBe("bad");
+    expect(result.judgement).toBe("fair");
     expect(result.stats).toEqual([
       "Ending mana: 20%",
       "Consumables: not mana-constrained",

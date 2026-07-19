@@ -166,7 +166,7 @@ describe("Scorecard", () => {
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: /GCD economy/ }),
-      ).toHaveTextContent("Bad"),
+      ).toHaveTextContent("Fair"),
     );
 
     const user = userEvent.setup();
