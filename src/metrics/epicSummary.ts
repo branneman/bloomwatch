@@ -11,6 +11,7 @@ import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
+import type { NearDeathResponseResult } from "./nearDeathResponse";
 import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
 import type { OverhealTableResult } from "./overhealTable";
@@ -140,6 +141,19 @@ export function summarizeDeathForensics(
       deaths.length === 0
         ? ["No friendly deaths"]
         : [`Deaths: ${deaths.length}`, `Flagged: ${flaggedCount}`],
+  };
+}
+
+export function summarizeNearDeathResponse(
+  nearDeathResponse: NearDeathResponseResult,
+): EpicSummary {
+  const { crises, flaggedCount, judgement } = nearDeathResponse;
+  return {
+    judgement,
+    stats:
+      crises.length === 0
+        ? ["No crises"]
+        : [`Crises: ${crises.length}`, `Flagged: ${flaggedCount}`],
   };
 }
 

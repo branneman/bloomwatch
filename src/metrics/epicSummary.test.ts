@@ -6,6 +6,7 @@ import {
   summarizeSpellDiscipline,
   summarizeManaEconomy,
   summarizeDeathForensics,
+  summarizeNearDeathResponse,
   summarizePrepHygiene,
 } from "./epicSummary";
 import type { HotClipDetectionResult } from "./hotClipDetection";
@@ -19,6 +20,7 @@ import type { SwiftmendAuditResult } from "./swiftmendAudit";
 import type { DownrankingDisciplineResult } from "./downrankingDiscipline";
 import type { ManaCurveResult } from "./manaCurve";
 import type { DeathForensicsResult } from "./deathForensics";
+import type { NearDeathResponseResult } from "./nearDeathResponse";
 import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
 import type { OverhealTableResult } from "./overhealTable";
@@ -577,6 +579,48 @@ describe("summarizeDeathForensics", () => {
     expect(summarizeDeathForensics(deathForensics)).toEqual({
       judgement: "green",
       stats: ["No friendly deaths"],
+    });
+  });
+});
+
+describe("summarizeNearDeathResponse", () => {
+  it("reports the crises/flagged stat lines and the rollup judgement", () => {
+    const nearDeathResponse: NearDeathResponseResult = {
+      crises: [
+        {
+          timestampMs: 90000,
+          targetId: 50,
+          hitPointsPct: 10,
+          maintained: true,
+          judged: true,
+          responded: false,
+          swiftmendReady: true,
+          nsReady: true,
+          idlePreceding: true,
+          unspentCount: 3,
+          judgement: "red",
+        },
+      ],
+      flaggedCount: 1,
+      judgement: "red",
+    };
+
+    expect(summarizeNearDeathResponse(nearDeathResponse)).toEqual({
+      judgement: "red",
+      stats: ["Crises: 1", "Flagged: 1"],
+    });
+  });
+
+  it("reports 'No crises' when there are none", () => {
+    const nearDeathResponse: NearDeathResponseResult = {
+      crises: [],
+      flaggedCount: 0,
+      judgement: "green",
+    };
+
+    expect(summarizeNearDeathResponse(nearDeathResponse)).toEqual({
+      judgement: "green",
+      stats: ["No crises"],
     });
   });
 });
