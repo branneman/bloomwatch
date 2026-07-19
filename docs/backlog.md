@@ -604,7 +604,7 @@ I want mana economy's thresholds reviewed against real data, so that judgements 
 - Healing Touch and Swiftmend overheal are left unchanged.
 - `docs/thresholds.md` is updated with the new values and a dated calibration-review paragraph.
 
-### 906 — Fix locale-dependent ability-name matching 🔲 Todo
+### 906 — Fix locale-dependent ability-name matching ✅ Done
 
 I want ability resolution to stop depending on English spell-name strings, so that a report logged by a non-English WoW client doesn't silently lose data for any spell resolved through the name-matching fallback. `src/abilities/resolveAbilities.ts` matches by game ID first (locale-safe) but falls back to matching `ability.name` against hardcoded English strings for any ID not already in its rank table; `src/report/druidDetection.ts`'s `HEALING_SPELL_NAMES` (which decides who counts as a healer at all) is 100% name-based with no ID fallback whatsoever. This wasn't confirmed as a live bug this session (a suspected German-localized report turned out to log Lifebloom in English — combat logs reflect the uploader's client language, not each player's own), but the fragility is real and independently worth fixing.
 
