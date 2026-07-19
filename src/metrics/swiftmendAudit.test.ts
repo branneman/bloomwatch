@@ -317,8 +317,8 @@ describe("computeSwiftmendAudit", () => {
 
   it.each([
     { wastefulOf: [0, 4], expected: "good" },
-    { wastefulOf: [1, 4], expected: "fair" },
-    { wastefulOf: [1, 3], expected: "bad" },
+    { wastefulOf: [2, 4], expected: "fair" },
+    { wastefulOf: [5, 6], expected: "bad" },
   ])(
     "judges $expected when $wastefulOf.0 of $wastefulOf.1 casts are wasteful",
     ({ wastefulOf, expected }) => {

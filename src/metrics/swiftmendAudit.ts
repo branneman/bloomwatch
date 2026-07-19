@@ -1,5 +1,6 @@
 import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
+import { judgeThresholdBelow } from "./judgement";
 import {
   type HotClipSpell,
   CLIP_THRESHOLD_MS,
@@ -43,13 +44,16 @@ interface HotRemoval {
   remainingMs: number;
 }
 
-// Good only at exactly 0% wasteful, fair up to 25%, bad above — per
-// docs/backlog.md story 302. Deliberately not judgeThresholdBelow (whose
-// "< goodMax" semantics can't express an exact-zero good band).
+// good <40% / fair 40-80% / bad >80% — per docs/backlog.md story 302,
+// revised story 909. The original zero-tolerance good band (good only at
+// exactly 0%) never matched real elite play: story 909's 20-report deep-resto
+// exemplar corpus (440 real Swiftmend casts) pooled a 58.2% wasteful rate
+// overall, median 63.6% per fight — real skilled players routinely burst-heal
+// a target with a live HoT and >50% HP still up, which this metric's
+// "wasteful" bucket can't distinguish from careless HoT-refresh spam (see
+// docs/thresholds.md's spell discipline calibration-review paragraph).
 function judgeWastefulShare(wastefulPct: number): Judgement {
-  if (wastefulPct === 0) return "good";
-  if (wastefulPct <= 25) return "fair";
-  return "bad";
+  return judgeThresholdBelow(wastefulPct, { goodMax: 40, fairMax: 80 });
 }
 
 function trackHotRemovals(

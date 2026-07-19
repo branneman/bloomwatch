@@ -275,9 +275,9 @@ describe("summarizeSpellDiscipline", () => {
     };
     const swiftmendAudit: SwiftmendAuditResult = {
       casts: [],
-      swiftmendCastCount: 4,
-      wastefulCount: 3,
-      wastefulPct: 75,
+      swiftmendCastCount: 6,
+      wastefulCount: 5,
+      wastefulPct: 83.3,
       judgement: "bad",
       availableWindows: 22,
     };
