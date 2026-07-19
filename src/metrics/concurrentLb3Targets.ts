@@ -45,6 +45,7 @@ export function computeConcurrentLb3Targets(
   for (const timeline of timelines.values()) {
     const { totalAnyStackMs, stack3Intervals } = deriveLifebloomTargetState(
       timeline,
+      fightStart,
       fightEnd,
     );
     const lbUptimePct = (totalAnyStackMs / fightDurationMs) * 100;

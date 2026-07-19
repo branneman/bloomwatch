@@ -114,12 +114,26 @@ export interface LifebloomTargetState {
 // two stories' metric modules don't each re-implement this state machine.
 export function deriveLifebloomTargetState(
   timeline: LifebloomTimelineEvent[],
+  fightStart: number,
   fightEnd: number,
 ): LifebloomTargetState {
   let openAt: number | null = null;
   let stack3OpenAt: number | null = null;
   let totalAnyStackMs = 0;
   const stack3Intervals: { start: number; end: number }[] = [];
+
+  // WCL sometimes splits one continuous pull attempt across multiple
+  // "fight" IDs (e.g. a wipe immediately following a short aborted
+  // mini-pull). When that happens, a Lifebloom applied during the earlier
+  // fight carries into this one as a stack-change/refresh/close with no
+  // preceding "open" event in this window - those event kinds only ever
+  // fire on an already-active buff, so their presence is proof (not a
+  // guess) that the buff was up since before fightStart. The exact prior
+  // stack count is unknown, so stack-3 tracking below still waits for an
+  // explicit stack-change rather than assuming stack3OpenAt too.
+  if (timeline.length > 0 && timeline[0].kind !== "open") {
+    openAt = fightStart;
+  }
 
   for (const event of timeline) {
     if (event.kind === "open") {

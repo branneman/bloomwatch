@@ -125,7 +125,7 @@ export function computeDeathForensics(
   const lifebloomStateByTarget = new Map(
     [...lifebloomTimelines.entries()].map(([targetId, timeline]) => [
       targetId,
-      deriveLifebloomTargetState(timeline, fightEnd),
+      deriveLifebloomTargetState(timeline, fightStart, fightEnd),
     ]),
   );
 

@@ -128,7 +128,7 @@ describe("deriveLifebloomTargetState", () => {
       LB_IDS,
     );
 
-    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 20000);
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 0, 20000);
 
     expect(state).toEqual({
       totalAnyStackMs: 10000,
@@ -152,7 +152,7 @@ describe("deriveLifebloomTargetState", () => {
       LB_IDS,
     );
 
-    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 10000);
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 0, 10000);
 
     expect(state).toEqual({
       totalAnyStackMs: 7000,
@@ -174,7 +174,7 @@ describe("deriveLifebloomTargetState", () => {
       LB_IDS,
     );
 
-    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 5000);
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 0, 5000);
 
     expect(state).toEqual({
       totalAnyStackMs: 5000,
@@ -193,10 +193,86 @@ describe("deriveLifebloomTargetState", () => {
       LB_IDS,
     );
 
-    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 10000);
+    const state = deriveLifebloomTargetState(timelines.get(42) ?? [], 0, 10000);
 
     expect(state).toEqual({
       totalAnyStackMs: 8000,
+      stack3Intervals: [],
+    });
+  });
+
+  // Real capture: report D61P4CN9mqGjnW3J fight 7 (Hydross the Unstable,
+  // wipe). WCL split one continuous pull attempt across fight IDs, so
+  // Lifebloom's applybuff on this target landed in the preceding fight -
+  // within fight 7's own event window, the timeline starts mid-stream with
+  // a refreshbuff and no "open". A refresh only ever fires on an
+  // already-active buff, so the any-stack window is backdated to
+  // fightStart; the exact prior stack count is unknown, so no stack-3
+  // interval is assumed.
+  it("backdates any-stack uptime to fightStart when the timeline opens with a refresh instead of an open", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [
+        aRefreshBuffEvent({ timestamp: 2016447, targetID: 5, sourceID: 1 }),
+        aRemoveBuffEvent({ timestamp: 2064275, targetID: 5, sourceID: 1 }),
+      ],
+      1,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(
+      timelines.get(5) ?? [],
+      2011529,
+      2113050,
+    );
+
+    expect(state).toEqual({
+      totalAnyStackMs: 2064275 - 2011529,
+      stack3Intervals: [],
+    });
+  });
+
+  it("does not backdate a stack-3 interval before the first explicit stack-change, even though any-stack time is backdated to fightStart", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [
+        anApplyBuffStackEvent({
+          timestamp: 1500,
+          stack: 3,
+          targetID: 5,
+          sourceID: 1,
+        }),
+        aRemoveBuffEvent({ timestamp: 4000, targetID: 5, sourceID: 1 }),
+      ],
+      1,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(
+      timelines.get(5) ?? [],
+      1000,
+      5000,
+    );
+
+    expect(state).toEqual({
+      totalAnyStackMs: 3000,
+      stack3Intervals: [{ start: 1500, end: 4000 }],
+    });
+  });
+
+  it("backdates any-stack uptime to fightStart when the timeline is still open at fightEnd with no leading open event", () => {
+    const timelines = reconstructLifebloomTimelines(
+      [aRefreshBuffEvent({ timestamp: 2000, targetID: 5, sourceID: 1 })],
+      1,
+      LB_IDS,
+    );
+
+    const state = deriveLifebloomTargetState(
+      timelines.get(5) ?? [],
+      1000,
+      5000,
+    );
+
+    expect(state).toEqual({
+      totalAnyStackMs: 4000,
       stack3Intervals: [],
     });
   });

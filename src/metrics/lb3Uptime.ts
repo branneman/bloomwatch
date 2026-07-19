@@ -45,6 +45,7 @@ export function computeLb3Uptime(
   for (const [targetId, timeline] of timelines) {
     const { totalAnyStackMs, stack3Intervals } = deriveLifebloomTargetState(
       timeline,
+      fightStart,
       fightEnd,
     );
 
