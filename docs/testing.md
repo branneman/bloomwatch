@@ -123,14 +123,43 @@ real game IDs are locale-independent, so this path is a narrow edge case, not
 the primary resolution mechanism). `src/report/druidDetection.ts`'s
 `detectDruids` uses the same gameID-first, name-fallback mechanism.
 
-As of this note, only English is populated — non-English entries are being
-sourced by hand and validated against real non-English-logged WCL reports
-where possible (a report reflects the _uploader's_ client language, not each
-player's own — see the `F7aL6x13zVq8kTRt` row above for a report that was
-suspected German but turned out to log in English). This section will list,
-per language, which are validated against a real report (with its report
-code) versus sourced from reference material only (unverified) once
-populated.
+All 10 languages are now populated (German, French, Spanish, Italian,
+Portuguese, Russian, Korean, Chinese Simplified, Chinese Traditional, plus
+English). None are validated against a real non-English-logged WCL report —
+no such report has been found yet (a report reflects the _uploader's_ client
+language, not each player's own — see the `F7aL6x13zVq8kTRt` row above for a
+report that was suspected German but turned out to log in English). All are
+sourced from reference material instead:
+
+- German, French, Spanish, Portuguese, Russian, Korean, and Chinese
+  (Simplified and Traditional) were hand-compiled from wowhead spell data.
+- Italian was independently re-derived during this story after the original
+  reference data turned out to be a wowhead-classic-page gap, not real
+  in-game data — wowhead's TBC-Classic-scoped pages showed several spell
+  names identical to English, but cross-checking against Blizzard's own
+  official Italian patch notes (`news.blizzard.com/it-it`) and wowhead's
+  _retail_ Italian pages (`wowhead.com/it/spell=<id>`) confirmed real,
+  distinct Italian names exist for 7 of the 8 spells (Lifebloom, Rejuvenation,
+  Regrowth, Healing Touch, Swiftmend, Tranquility, Innervate). This also
+  surfaced a real, separate fact: Blizzard never localized Classic-era
+  content into Italian at all (confirmed via an official Blizzard EU forum
+  moderator reply — economically not worthwhile for legacy quest/world
+  text) — but that's unrelated to spell-family names, which are shared live
+  infrastructure across every game version and so already had modern Italian
+  strings from retail. The one exception is **Nature's Swiftness**: its
+  Druid-specific gameID (17116) 404s on current retail wowhead, meaning the
+  ability appears to have been reworked or reassigned (retail's current
+  "Nature's Swiftness" spell now belongs to Shaman) — no confirmed current
+  Italian string could be found for the Druid version, so that entry is
+  community-guide-sourced only, the weakest-confidence entry in this table.
+- Spanish esES and esMX share one string — no confirmed per-spell difference
+  was found (esES/esMX are known to differ in general translation quality
+  elsewhere in the game, but not confirmed for these specific 8 spell
+  names), and wowhead's own esMX site section may no longer be actively
+  maintained.
+
+If a genuinely non-English-logged WCL report turns up in the future, use it
+to validate (or correct) the entries above and update this note.
 
 ## Known real 2021-2022 TBC Classic reports
 
