@@ -635,3 +635,78 @@ I want ability resolution to stop depending on English spell-name strings, so th
 - WoW TBC has a fixed, enumerable set of supported client languages — every spell name currently matched via the English-only fallback path gets a hardcoded per-language translation table, rather than relying on a live non-English repro to drive the fix.
 - `druidDetection.ts`'s `HEALING_SPELL_NAMES` gains the same per-language coverage, or is changed to resolve via game ID the same way `resolveAbilities.ts`'s primary path already does.
 - A short note in `docs/testing.md` records which language(s) were actually validated against a real non-English-logged report, versus which are translated but unverified.
+
+### 909 — Recalibrate spell discipline thresholds against exemplars 🔲 Todo
+
+I want Rejuvenation clip share, Swiftmend wasteful share, and downranking flag count reviewed against real exemplar data the same way Lifebloom (902), mana economy (905), and GCD economy (908) already were, so these three stop being the only thresholds in Epic D still running on their original story-era defaults with zero real-play validation behind them.
+
+**Acceptance criteria**
+
+- Regenerate the local calibration corpus (`calibration-data/`) with current code before pooling — two correctness fixes landed the same session this story was filed (013's non-raid-zone contamination fix, and a Lifebloom any-stack-uptime carry-in fix) after most of the existing `calibration-data/` JSON was generated; recalibrating against stale files would repeat the exact category of error that session found and fixed.
+- Rejuvenation clip share, Swiftmend wasteful share, and downranking flagged-count are each tabulated against their current thresholds (`hotClipDetection.ts`: green <5%/orange 5-15%/red >15%; `swiftmendAudit.ts`: green 0%/orange ≤25%/red >25%; `downrankingDiscipline.ts`: green 0/orange ≥1 flags) across the story-901 deep-resto exemplar corpus, the same corpus 902/908 already used.
+- Any threshold that misjudges known-good exemplar play is adjusted, with the change and reasoning recorded in this file per story 802's own acceptance criteria; a threshold that already fits is recorded as a real "no change" finding with its supporting numbers, the same way 908 documented GCD utilization needing none — not silently skipped.
+- `docs/thresholds.md` is updated with a dated calibration-review paragraph, matching 902/905/908's existing format.
+
+### 910 — Recalibrate death forensics thresholds against exemplars 🔲 Todo
+
+I want per-death readiness's threshold (0/1/≥2 unspent resources) reviewed against real exemplar data, so it stops being the one remaining Epic F metric nobody has validated since story 501 shipped it.
+
+This was initially set aside as unusually hard to calibrate, on the reasoning that you can't verify whether a resource would have actually prevented a specific death. That reasoning was wrong to apply here: story 501 already only judges _process_ — was Swiftmend/NS/a free GCD available and unspent in the 5s before death — never the counterfactual outcome of whether using it would have saved the target. Casting Swiftmend or Nature's Swiftness in that moment is good process regardless of whether the target lives; the metric was designed around exactly this from the start (its own "a death is not automatically the druid's fault; this audits your readiness only" caveat). Calibrating the _threshold_ — is 2 unspent resources genuinely worse than 1, does that split hold up against real deaths — is the same kind of statistical exercise 902/905/908 already did elsewhere; nothing about it needs outcome verification, and it shouldn't have been treated as categorically harder than the rest of this list.
+
+**Acceptance criteria**
+
+- Regenerate the calibration corpus with current code first (same note as 909).
+- Per-death readiness is tabulated against its current threshold (`deathForensics.ts`'s `judgeDeathReadiness`: green 0/orange 1/red ≥2 unspent resources) across real deaths in the story-901 exemplar corpus and/or the broader talent-tagged corpus — deaths are a comparatively rare event, so a wider net than 902/905/908 needed may be required to get a large-enough sample.
+- Story 903c's talent-eligibility gating (Swiftmend/NS readiness only counted when the build can actually reach that talent) is confirmed still correctly wired before pooling, so an ineligible build's `unspentCount` isn't silently re-inflating the sample the way it did before 903c's fix.
+- Any threshold that misjudges known-good (or known-bad) exemplar play is adjusted, with reasoning recorded here; if the current 0/1/≥2 split already holds up, that's recorded as a real "no change" finding with supporting numbers, not skipped.
+- `docs/thresholds.md` is updated with a dated calibration-review paragraph.
+
+### 911 — Deepen mana curve, consumable throughput, and Innervate calibration 🔲 Todo
+
+I want ending mana %, consumable throughput, and the Innervate audit reviewed with the same rigor 905 gave overheal, so that "reasonably distributed" (905's own words, a passing observation rather than a real percentile finding) stops standing in for calibration on three thresholds that were only glanced at while investigating a different sub-metric.
+
+**Acceptance criteria**
+
+- Regenerate the calibration corpus with current code first (same note as 909/910).
+- Ending mana % (`manaCurve.ts`'s green 5-40%/orange 40-70% or 0-5%/red >70%, kills only ≥90s), consumable throughput's expected-floor formula (`consumableThroughput.ts`), and Innervate's three judgement branches (`innervateAudit.ts`) are each tabulated against the story-901 exemplar corpus with the same percentile detail 902/905/908's calibration-review paragraphs already show for other metrics — not just a pass/fail glance.
+- Any threshold that misjudges known-good exemplar play is adjusted, with reasoning recorded here; a threshold that already fits is recorded as a real "no change" finding with supporting numbers, same standard as 909/910.
+- `docs/thresholds.md`'s existing story 905 paragraph is either extended or superseded by a new dated paragraph specific to this story, so the "reasonably distributed" placeholder language is replaced with real findings.
+
+### 912 — Find and validate dreamstate exemplar reports (a "901 for dreamstate") 🔲 Todo
+
+I want a validated set of real reports/fights from genuinely dreamstate-spec, dreamstate-behaviorally-playing druids — the same rigor story 901 applied to deep-resto — so dreamstate-specific thresholds (currently just Regrowth-direct overheal, story 905) stop resting on the broader talent-tagged corpus alone, and so future archetype-aware calibration work (909-911, and story 914 below) has real dreamstate exemplars to check against instead of none.
+
+**Acceptance criteria**
+
+- A documented, repeatable method combines story 900's `likely-dreamstate-full`/`likely-dreamstate-partial` talent buckets with a genuine behavioral filter (analogous to 901's concurrent-LB3-maintenance filter for deep-resto) — talent eligibility alone doesn't prove a player is actually playing the style, the same lesson 901 learned the hard way with Profex (99-parse, deep-resto talents, zero maintained 3-stack targets on a real fight).
+- At least a handful of validated dreamstate exemplar fights are captured in `docs/testing.md`'s known-reports table, each annotated with the evidence for why it qualifies, mirroring 901's entries.
+- Exemplars are tagged via story 900's bucketing so they're queryable alongside the rest of the corpus.
+- Story 905's dreamstate Regrowth-direct overheal band (`<60%/60-85%/>85%`, currently marked provisional in `docs/thresholds.md`) is re-reviewed against this new exemplar set specifically, and either confirmed or adjusted — with the provisional flag removed either way.
+
+### 913 — Recalibrate re-stack tax thresholds 🔲 Todo
+
+I want re-stack tax's duration-scaled formula reviewed against real exemplar data, so it stops being the one Lifebloom-discipline metric 902 didn't cover (902 was scoped to LB3 uptime and refresh cadence only) and the last remaining untouched original from Epic C.
+
+**Acceptance criteria**
+
+- Regenerate the calibration corpus with current code first (same note as 909-911).
+- Re-stack tax's current formula (`restackTax.ts`'s `judgeRestackTax`: green ≤1 cast per 2min elapsed, orange ≤1 cast per 1min elapsed) is tabulated against the story-901 exemplar corpus — this is a rate/formula threshold rather than a flat percentage, so the review needs to check the formula's shape (does the ratio between green/orange tiers hold up, not just a single cutoff number) rather than just one percentile line.
+- Any part of the formula that misjudges known-good exemplar play is adjusted, with reasoning recorded here; a formula that already fits is recorded as a real "no change" finding with supporting numbers.
+- `docs/thresholds.md` is updated with a dated calibration-review paragraph.
+
+### 914 — Revisit metrics currently left un-judged (informational-only) 🔲 Todo
+
+I want every metric currently shipped as informational-only (no R/O/G) re-examined against real data and sharper thinking about whether "we don't have enough signal to judge this" still holds, rather than leaving that call unrevisited forever just because it was the original decision. Prompted directly: correcting story 910's initial framing above found that a metric can look uncalibratable before you're precise about what it's actually measuring (process vs. outcome) — the same sharpening may apply to the metrics below too.
+
+**Per-metric review, each independently resolvable as "confirmed still informational" or "add real judgement":**
+
+- **Concurrent LB3 targets (story 205).** Currently unjudged because "the right number depends on assignments," and WCL has no direct signal for raid healing assignments. Investigate whether a proxy exists — e.g. inferring likely tank-count from damage-taken patterns already in the event stream — before re-accepting the original "can't be judged" conclusion at face value.
+- **Regrowth clip share (story 301).** Currently exempted from judgement specifically because "in Tree of Life form, Regrowth is a resto druid's only direct heal without a cooldown" — but Tree of Life is gated behind 41 Restoration (deep-resto only, per story 903c). For any other archetype (dreamstate, mostly-resto, etc.) that never reaches Tree of Life at all, this exemption's premise doesn't hold — those players have Healing Touch available with no form-swap tax, so clipping Regrowth's HoT tail isn't the same forced trade-off for them. This looks like a real gap worth fixing with an archetype-aware judgement (deep-resto stays informational per the existing reasoning; other archetypes get a real threshold), not just re-confirming the status quo.
+- **Nature's Swiftness usage (story 304).** Currently informational because "NS is situational by design." Check whether that's still true for _routine_ usage patterns (probably yes — NS is a burst cooldown, not a rotational spell) separately from _emergency_ availability, which 501's death forensics already judges as a process failure when unspent at a maintained-target death. Confirm that emergency-availability path is fully and correctly wired (no double-counting or gaps against 903c's talent-eligibility gating) rather than assuming it's fine; the routine-usage card itself likely stays informational unless real data suggests otherwise.
+- **HoT-tick overheal (story 404).** Currently informational-only, on the reasoning that high overheal is inherent to HoTs landing during overlapping raid-wide healing. Story 905 found Bloom overheal — also assumed "inherent" — genuinely does cluster tight enough (72-74% median) that a real threshold was possible once actual data was pooled, exactly this same kind of assumption getting tested with real numbers instead of a guess. Check whether HoT-tick overheal clusters as tightly across the exemplar corpus; if it does, that's confirmation the "inherent, don't judge" call was right; if it shows real spread, that spread is itself a skill signal worth judging (e.g. distinguishing proactive, well-timed HoTs that occasionally overheal from compulsive recasting on already-full-health targets).
+
+**Acceptance criteria**
+
+- Each of the four metrics above gets an explicit, documented conclusion in this file (not silence) — either "confirmed: stays informational, here's the data and reasoning" or "add judgement: here's the new threshold and its sourcing," matching every other calibrated threshold's rationale-in-a-comment convention.
+- Regrowth clip share, if it gains an archetype-aware judgement, follows the pattern story 905 already established for Regrowth-direct overheal (per-archetype threshold sourced from `useArchetypeBucket`/`classifyBucket`, deep-resto kept informational per the existing Tree-of-Life reasoning).
+- `docs/thresholds.md` is updated to reflect whatever is decided for each of the four metrics, whether that's a new threshold row or an updated "confirmed informational" rationale.
