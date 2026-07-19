@@ -158,6 +158,21 @@ export function aHealEvent(overrides: Partial<WclEvent> = {}): WclEvent {
   };
 }
 
+export function aDamageEvent(overrides: Partial<WclEvent> = {}): WclEvent {
+  return {
+    timestamp: 1926345,
+    type: "damage",
+    sourceID: 72,
+    targetID: 42,
+    abilityGameID: 1,
+    fight: 6,
+    amount: 1110,
+    hitPoints: 50,
+    maxHitPoints: 100,
+    ...overrides,
+  };
+}
+
 export function aDeathEvent(overrides: Partial<WclEvent> = {}): WclEvent {
   return {
     timestamp: 1926404,
