@@ -36,7 +36,7 @@ export interface DeathForensicsResult {
 // if >= 2 unspent resources on a maintained target's death"); 0 -> green,
 // 1 -> orange fill in the rest of the R/O/G scale every other judged
 // metric in the app uses.
-function judgeDeathReadiness(unspentCount: number): Judgement {
+export function judgeDeathReadiness(unspentCount: number): Judgement {
   if (unspentCount === 0) return "green";
   if (unspentCount === 1) return "orange";
   return "red";
@@ -54,31 +54,31 @@ function lastCastBefore(
   return last;
 }
 
-function isReady(
+export function isReady(
   sortedCasts: WclEvent[],
-  deathTimestamp: number,
+  atTimestamp: number,
   cooldownMs: number,
 ): boolean {
-  const last = lastCastBefore(sortedCasts, deathTimestamp);
+  const last = lastCastBefore(sortedCasts, atTimestamp);
   if (last === undefined) return true;
-  return deathTimestamp - last.timestamp >= cooldownMs;
+  return atTimestamp - last.timestamp >= cooldownMs;
 }
 
-function wasIdlePreceding(
+export function wasIdlePreceding(
   castIntervals: CastInterval[],
-  deathTimestamp: number,
+  atTimestamp: number,
   fightStart: number,
 ): boolean {
   let lastIntervalBefore: CastInterval | undefined;
   for (const interval of castIntervals) {
-    if (interval.start > deathTimestamp) break;
+    if (interval.start > atTimestamp) break;
     lastIntervalBefore = interval;
   }
   if (lastIntervalBefore === undefined) {
-    return deathTimestamp - fightStart >= DEATH_IDLE_WINDOW_MS;
+    return atTimestamp - fightStart >= DEATH_IDLE_WINDOW_MS;
   }
-  if (lastIntervalBefore.end > deathTimestamp) return false;
-  return deathTimestamp - lastIntervalBefore.end >= DEATH_IDLE_WINDOW_MS;
+  if (lastIntervalBefore.end > atTimestamp) return false;
+  return atTimestamp - lastIntervalBefore.end >= DEATH_IDLE_WINDOW_MS;
 }
 
 export function computeDeathForensics(
