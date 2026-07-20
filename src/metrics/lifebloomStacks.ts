@@ -128,6 +128,63 @@ export function detectCarryInTargets(
   return flagged;
 }
 
+// Story 915: attempts to resolve a carry-in target's true state at
+// fightStart using a bounded lookback window (events strictly before
+// fightStart). Walks the lookback timeline forward simulating the same
+// open/stack-change/close state machine deriveLifebloomTargetState uses; if
+// a genuine "open" is found and the buff is still active by fightStart,
+// returns fightWindowTimeline prefixed with a synthetic open (and, if the
+// resolved stack is >= 2, a stack-change) at exactly fightStart - a
+// timeline deriveLifebloomTargetState can consume completely unchanged,
+// since it now legitimately starts with "open" at fightStart. Returns null
+// when the ambiguity persists (no genuine open found, or the buff already
+// closed again before fightStart) - callers exclude the target from
+// judgement in that case rather than guessing.
+export function resolveCarryInTimeline(
+  fightWindowTimeline: LifebloomTimelineEvent[],
+  lookbackEvents: WclEvent[],
+  druidId: number,
+  lifebloomAbilityIds: Set<number>,
+  targetId: number,
+  fightStart: number,
+): LifebloomTimelineEvent[] | null {
+  const lookbackTimelines = reconstructLifebloomTimelines(
+    lookbackEvents,
+    druidId,
+    lifebloomAbilityIds,
+  );
+  const lookbackTimeline = lookbackTimelines.get(targetId) ?? [];
+
+  let stack = 0;
+  let isOpen = false;
+  let sawGenuineOpen = false;
+
+  for (const event of lookbackTimeline) {
+    if (event.kind === "open") {
+      isOpen = true;
+      stack = 1;
+      sawGenuineOpen = true;
+    } else if (event.kind === "stack-change") {
+      stack = event.stack ?? stack;
+    } else if (event.kind === "close") {
+      isOpen = false;
+      stack = 0;
+    }
+    // "refresh": no state change.
+  }
+
+  if (!sawGenuineOpen || !isOpen) return null;
+
+  const prefix: LifebloomTimelineEvent[] = [
+    { timestamp: fightStart, kind: "open" },
+  ];
+  if (stack >= 2) {
+    prefix.push({ timestamp: fightStart, kind: "stack-change", stack });
+  }
+
+  return [...prefix, ...fightWindowTimeline];
+}
+
 export interface LifebloomTargetState {
   totalAnyStackMs: number;
   stack3Intervals: { start: number; end: number }[];

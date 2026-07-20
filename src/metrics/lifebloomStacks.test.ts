@@ -3,7 +3,10 @@ import {
   reconstructLifebloomTimelines,
   deriveLifebloomTargetState,
   detectCarryInTargets,
+  resolveCarryInTimeline,
+  type LifebloomTimelineEvent,
 } from "./lifebloomStacks";
+import type { WclEvent } from "../wcl/events";
 import {
   anApplyBuffEvent,
   anApplyBuffStackEvent,
@@ -307,5 +310,111 @@ describe("detectCarryInTargets", () => {
     ];
 
     expect(detectCarryInTargets(events, 1, LB_IDS)).toEqual([47]);
+  });
+});
+
+describe("resolveCarryInTimeline", () => {
+  it("resolves a genuine open found in the lookback window, synthesizing open+stack-change at fightStart", () => {
+    const fightWindowTimeline: LifebloomTimelineEvent[] = [
+      { timestamp: 2016447, kind: "refresh" },
+      { timestamp: 2064275, kind: "close" },
+    ];
+    // Lookback events: the druid genuinely applied Lifebloom and stacked it
+    // to 3 within the 60s before fightStart (2011529).
+    const lookbackEvents = [
+      anApplyBuffEvent({ timestamp: 1960000, targetID: 5, sourceID: 1 }),
+      anApplyBuffStackEvent({
+        timestamp: 1965000,
+        stack: 2,
+        targetID: 5,
+        sourceID: 1,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 1970000,
+        stack: 3,
+        targetID: 5,
+        sourceID: 1,
+      }),
+    ];
+
+    const resolved = resolveCarryInTimeline(
+      fightWindowTimeline,
+      lookbackEvents,
+      1,
+      LB_IDS,
+      5,
+      2011529,
+    );
+
+    expect(resolved).toEqual([
+      { timestamp: 2011529, kind: "open" },
+      { timestamp: 2011529, kind: "stack-change", stack: 3 },
+      { timestamp: 2016447, kind: "refresh" },
+      { timestamp: 2064275, kind: "close" },
+    ]);
+  });
+
+  it("resolves to a bare open (no stack-change) when the lookback shows exactly 1 stack at fightStart", () => {
+    const fightWindowTimeline: LifebloomTimelineEvent[] = [
+      { timestamp: 2016447, kind: "refresh" },
+    ];
+    const lookbackEvents = [
+      anApplyBuffEvent({ timestamp: 2000000, targetID: 5, sourceID: 1 }),
+    ];
+
+    const resolved = resolveCarryInTimeline(
+      fightWindowTimeline,
+      lookbackEvents,
+      1,
+      LB_IDS,
+      5,
+      2011529,
+    );
+
+    expect(resolved).toEqual([
+      { timestamp: 2011529, kind: "open" },
+      { timestamp: 2016447, kind: "refresh" },
+    ]);
+  });
+
+  it("returns null when the lookback window itself never shows a genuine open (real capture: report DRtXV4ChA2Kw3c81 fight 84, druid Stuuri, target 30)", () => {
+    const fightWindowTimeline: LifebloomTimelineEvent[] = [
+      { timestamp: 10199672, kind: "refresh" },
+    ];
+    // No applybuff for this druid/target anywhere in the 60s lookback -
+    // matches this session's live trace, which found nothing even 190s back.
+    const lookbackEvents: WclEvent[] = [];
+
+    const resolved = resolveCarryInTimeline(
+      fightWindowTimeline,
+      lookbackEvents,
+      10,
+      LB_IDS,
+      30,
+      10199672,
+    );
+
+    expect(resolved).toBeNull();
+  });
+
+  it("returns null when the lookback shows the buff opened and closed again before fightStart", () => {
+    const fightWindowTimeline: LifebloomTimelineEvent[] = [
+      { timestamp: 2016447, kind: "refresh" },
+    ];
+    const lookbackEvents = [
+      anApplyBuffEvent({ timestamp: 1990000, targetID: 5, sourceID: 1 }),
+      aRemoveBuffEvent({ timestamp: 1995000, targetID: 5, sourceID: 1 }),
+    ];
+
+    const resolved = resolveCarryInTimeline(
+      fightWindowTimeline,
+      lookbackEvents,
+      1,
+      LB_IDS,
+      5,
+      2011529,
+    );
+
+    expect(resolved).toBeNull();
   });
 });
