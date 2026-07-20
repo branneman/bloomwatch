@@ -403,7 +403,7 @@ export async function computeFightResult(
             fight.startTime,
             fight.endTime,
           ),
-        { avgConcurrent: 0, peakConcurrent: 0, levels: [] },
+        { avgConcurrent: 0, peakConcurrent: 0, levels: [], judgement: null },
       ),
       naturesSwiftnessAudit: safeInformational(
         () =>

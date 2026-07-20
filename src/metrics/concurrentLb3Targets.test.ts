@@ -16,6 +16,7 @@ describe("computeConcurrentLb3Targets", () => {
       avgConcurrent: 0,
       peakConcurrent: 0,
       levels: [{ count: 0, pct: 100 }],
+      judgement: null,
     });
   });
 
@@ -47,6 +48,7 @@ describe("computeConcurrentLb3Targets", () => {
         { count: 1, pct: 10 },
         { count: 2, pct: 70 },
       ],
+      judgement: "good",
     });
   });
 
@@ -77,6 +79,7 @@ describe("computeConcurrentLb3Targets", () => {
         { count: 0, pct: 40 },
         { count: 1, pct: 60 },
       ],
+      judgement: null,
     });
   });
 
@@ -100,6 +103,7 @@ describe("computeConcurrentLb3Targets", () => {
       avgConcurrent: 0,
       peakConcurrent: 0,
       levels: [{ count: 0, pct: 100 }],
+      judgement: null,
     });
   });
 
@@ -125,6 +129,7 @@ describe("computeConcurrentLb3Targets", () => {
         { count: 0, pct: 40 },
         { count: 1, pct: 60 },
       ],
+      judgement: null,
     });
   });
 
@@ -158,6 +163,7 @@ describe("computeConcurrentLb3Targets", () => {
         { count: 2, pct: 10 },
         { count: 3, pct: 70 },
       ],
+      judgement: "good",
     });
   });
 
@@ -214,6 +220,56 @@ describe("computeConcurrentLb3Targets", () => {
       avgConcurrent: 0,
       peakConcurrent: 0,
       levels: [{ count: 0, pct: 100 }],
+      judgement: null,
     });
+  });
+
+  it("judges good when 2+ targets held LB3 for at least 50% of the fight", () => {
+    const events = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 5000, stack: 2, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 10000, stack: 3, targetID: 42 }),
+      anApplyBuffEvent({ timestamp: 0, targetID: 47 }),
+      anApplyBuffStackEvent({ timestamp: 15000, stack: 2, targetID: 47 }),
+      anApplyBuffStackEvent({ timestamp: 20000, stack: 3, targetID: 47 }),
+      anApplyBuffEvent({ timestamp: 0, targetID: 50 }),
+      anApplyBuffStackEvent({ timestamp: 25000, stack: 2, targetID: 50 }),
+      anApplyBuffStackEvent({ timestamp: 30000, stack: 3, targetID: 50 }),
+    ];
+
+    const result = computeConcurrentLb3Targets(
+      events,
+      DRUID_ID,
+      LB_IDS,
+      0,
+      100000,
+    );
+
+    // Same fixture as the "three-way overlap" test above: levels are
+    // 0%=10, 1%=10, 2%=10, 3%=70 -> time at count>=2 is 10+70=80%.
+    expect(result.judgement).toBe("good");
+  });
+
+  it("stays unjudged (never fair/bad) just below the 50% time-at-2+ bar", () => {
+    const events = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 1000, stack: 2, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 2000, stack: 3, targetID: 42 }),
+      anApplyBuffEvent({ timestamp: 0, targetID: 47 }),
+      anApplyBuffStackEvent({ timestamp: 4000, stack: 2, targetID: 47 }),
+      anApplyBuffStackEvent({ timestamp: 5000, stack: 3, targetID: 47 }),
+    ];
+
+    const result = computeConcurrentLb3Targets(
+      events,
+      DRUID_ID,
+      LB_IDS,
+      0,
+      9000,
+    );
+
+    // Same fixture as the "rounds level percentages" test above: levels
+    // are 0%=22, 1%=33, 2%=45 -> time at count>=2 is 45%, just under 50.
+    expect(result.judgement).toBeNull();
   });
 });

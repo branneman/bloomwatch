@@ -1,4 +1,5 @@
 import type { WclEvent } from "../wcl/events";
+import { type Judgement } from "./judgement";
 import {
   deriveLifebloomTargetState,
   reconstructLifebloomTimelines,
@@ -19,6 +20,7 @@ export interface ConcurrentLb3Result {
   avgConcurrent: number;
   peakConcurrent: number;
   levels: ConcurrentLb3Level[];
+  judgement: Judgement | null;
 }
 
 interface Boundary {
@@ -113,7 +115,16 @@ export function computeConcurrentLb3Targets(
     pct: roundedPcts[i],
   }));
 
-  return { avgConcurrent, peakConcurrent, levels };
+  // Reward-only signal, per docs/backlog.md story 205 (revised story 914,
+  // direct request 2026-07-20): the "right" number of concurrent targets
+  // depends on raid healing assignments this app can't see, so below the
+  // bar stays unjudged rather than penalized — never "fair" or "bad".
+  const timeAt2PlusPct = levels
+    .filter((level) => level.count >= 2)
+    .reduce((sum, level) => sum + level.pct, 0);
+  const judgement: Judgement | null = timeAt2PlusPct >= 50 ? "good" : null;
+
+  return { avgConcurrent, peakConcurrent, levels, judgement };
 }
 
 // Largest-remainder rounding: rounds each value down, then distributes the
