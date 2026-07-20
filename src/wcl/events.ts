@@ -33,14 +33,10 @@ export class WclRateLimitError extends WclApiError {
   }
 }
 
-export async function fetchEventsPage(
+async function postEventsQuery(
   accessToken: string,
   reportCode: string,
-  fightId: number,
-  dataType: WclEventDataType,
-  startTime: number,
-  endTime: number,
-  includeResources = false,
+  eventsFieldArgs: string,
 ): Promise<WclEventsPage> {
   let data;
   try {
@@ -50,7 +46,7 @@ export async function fetchEventsPage(
   rateLimitData { limitPerHour pointsSpentThisHour }
   reportData {
     report(code: "${reportCode}") {
-      events(fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}) {
+      events(${eventsFieldArgs}) {
         data
         nextPageTimestamp
       }
@@ -71,6 +67,22 @@ export async function fetchEventsPage(
   };
 }
 
+export async function fetchEventsPage(
+  accessToken: string,
+  reportCode: string,
+  fightId: number,
+  dataType: WclEventDataType,
+  startTime: number,
+  endTime: number,
+  includeResources = false,
+): Promise<WclEventsPage> {
+  return postEventsQuery(
+    accessToken,
+    reportCode,
+    `fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}`,
+  );
+}
+
 // Used only for backlog story 915's bounded pre-pull lookback: querying
 // with a fightIDs filter never returns events before that fight's own
 // startTime, even with an earlier startTime argument (confirmed live
@@ -88,31 +100,9 @@ export async function fetchLookbackEventsPage(
   endTime: number,
   includeResources = false,
 ): Promise<WclEventsPage> {
-  let data;
-  try {
-    data = await postGraphQL(
-      accessToken,
-      `query {
-  rateLimitData { limitPerHour pointsSpentThisHour }
-  reportData {
-    report(code: "${reportCode}") {
-      events(dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}) {
-        data
-        nextPageTimestamp
-      }
-    }
-  }
-}`,
-    );
-  } catch (err) {
-    if (err instanceof WclApiError && err.status === 429) {
-      throw new WclRateLimitError(err.status, err.body);
-    }
-    throw err;
-  }
-  const events = data.reportData.report.events;
-  return {
-    events: events.data,
-    nextPageTimestamp: events.nextPageTimestamp,
-  };
+  return postEventsQuery(
+    accessToken,
+    reportCode,
+    `dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}`,
+  );
 }
