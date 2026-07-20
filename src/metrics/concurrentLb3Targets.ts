@@ -2,7 +2,9 @@ import type { WclEvent } from "../wcl/events";
 import { type Judgement } from "./judgement";
 import {
   deriveLifebloomTargetState,
+  detectCarryInTargets,
   reconstructLifebloomTimelines,
+  resolveCarryInTimeline,
 } from "./lifebloomStacks";
 
 // Backlog story 201's "maintained target" filter (>=30% any-stack uptime),
@@ -34,6 +36,7 @@ export function computeConcurrentLb3Targets(
   lifebloomAbilityIds: Set<number>,
   fightStart: number,
   fightEnd: number,
+  lookbackEvents?: WclEvent[],
 ): ConcurrentLb3Result {
   const timelines = reconstructLifebloomTimelines(
     events,
@@ -41,12 +44,30 @@ export function computeConcurrentLb3Targets(
     lifebloomAbilityIds,
   );
   const fightDurationMs = fightEnd - fightStart;
+  const carryInTargets =
+    lookbackEvents !== undefined
+      ? new Set(detectCarryInTargets(events, druidId, lifebloomAbilityIds))
+      : new Set<number>();
 
   const boundaries: Boundary[] = [];
 
-  for (const timeline of timelines.values()) {
+  for (const [targetId, timeline] of timelines) {
+    let resolvedTimeline = timeline;
+    if (carryInTargets.has(targetId)) {
+      const resolved = resolveCarryInTimeline(
+        timeline,
+        lookbackEvents as WclEvent[],
+        druidId,
+        lifebloomAbilityIds,
+        targetId,
+        fightStart,
+      );
+      if (resolved === null) continue; // still ambiguous - exclude, don't guess
+      resolvedTimeline = resolved;
+    }
+
     const { totalAnyStackMs, stack3Intervals } = deriveLifebloomTargetState(
-      timeline,
+      resolvedTimeline,
       fightStart,
       fightEnd,
     );

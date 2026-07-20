@@ -3,6 +3,7 @@ import { computeConcurrentLb3Targets } from "./concurrentLb3Targets";
 import {
   anApplyBuffEvent,
   anApplyBuffStackEvent,
+  aRefreshBuffEvent,
   aRemoveBuffEvent,
 } from "../testUtils/factories";
 
@@ -271,5 +272,92 @@ describe("computeConcurrentLb3Targets", () => {
     // Same fixture as the "rounds level percentages" test above: levels
     // are 0%=22, 1%=33, 2%=45 -> time at count>=2 is 45%, just under 50.
     expect(result.judgement).toBeNull();
+  });
+
+  it("resolves a carry-in target's true stack-3 state using lookback events instead of leaving it silently absent", () => {
+    const fightStart = 2011529;
+    const fightEnd = 2113050;
+    // Fight window alone only ever sees a refreshbuff on target 5 - no
+    // explicit stack-change - so without the lookback it never contributes
+    // a stack3Interval at all, even though it's "maintained" the whole
+    // fight. The lookback proves it was already at 3 stacks before
+    // fightStart.
+    const events = [aRefreshBuffEvent({ timestamp: 2016447, targetID: 5 })];
+    const lookbackEvents = [
+      anApplyBuffEvent({ timestamp: 1960000, targetID: 5 }),
+      anApplyBuffStackEvent({ timestamp: 1970000, stack: 3, targetID: 5 }),
+    ];
+
+    const result = computeConcurrentLb3Targets(
+      events,
+      DRUID_ID,
+      LB_IDS,
+      fightStart,
+      fightEnd,
+      lookbackEvents,
+    );
+
+    expect(result).toEqual({
+      avgConcurrent: 1,
+      peakConcurrent: 1,
+      levels: [{ count: 1, pct: 100 }],
+      judgement: null,
+    });
+  });
+
+  it("excludes a carry-in target still ambiguous after the lookback, contributing nothing (as if never maintained)", () => {
+    const fightStart = 10199672;
+    const fightEnd = 10440305;
+    const events = [aRefreshBuffEvent({ timestamp: fightStart, targetID: 30 })];
+    const lookbackEvents: ReturnType<typeof anApplyBuffEvent>[] = [];
+
+    const result = computeConcurrentLb3Targets(
+      events,
+      DRUID_ID,
+      LB_IDS,
+      fightStart,
+      fightEnd,
+      lookbackEvents,
+    );
+
+    expect(result).toEqual({
+      avgConcurrent: 0,
+      peakConcurrent: 0,
+      levels: [{ count: 0, pct: 100 }],
+      judgement: null,
+    });
+  });
+
+  it("keeps today's exact behavior when lookbackEvents is omitted (backward compatible)", () => {
+    const fightStart = 0;
+    const fightEnd = 100000;
+    // Target 42's fight-window timeline starts with a non-open event
+    // (carry-in shaped) but also has an explicit stack-change to 3 within
+    // the window - proving that when lookbackEvents is omitted, the raw
+    // unresolved timeline is used as-is (stack3Interval starts at the
+    // explicit stack-change timestamp, not backdated to fightStart).
+    const events = [
+      aRefreshBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 1000, stack: 3, targetID: 42 }),
+      aRemoveBuffEvent({ timestamp: 100000, targetID: 42 }),
+    ];
+
+    const result = computeConcurrentLb3Targets(
+      events,
+      DRUID_ID,
+      LB_IDS,
+      fightStart,
+      fightEnd,
+    );
+
+    expect(result).toEqual({
+      avgConcurrent: 0.99,
+      peakConcurrent: 1,
+      levels: [
+        { count: 0, pct: 1 },
+        { count: 1, pct: 99 },
+      ],
+      judgement: null,
+    });
   });
 });
