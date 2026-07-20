@@ -51,6 +51,34 @@ describe("ConcurrentTargetsCard", () => {
     expect(screen.getByText("1 target — 60%")).toBeInTheDocument();
   });
 
+  it("shows a Good chip (not the informational note) when 2+ targets held LB3 for at least 50% of the fight", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 5000, stack: 2, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 10000, stack: 3, targetID: 42 }),
+      anApplyBuffEvent({ timestamp: 0, targetID: 47 }),
+      anApplyBuffStackEvent({ timestamp: 15000, stack: 2, targetID: 47 }),
+      anApplyBuffStackEvent({ timestamp: 20000, stack: 3, targetID: 47 }),
+    ];
+
+    render(
+      <ConcurrentTargetsCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        fetchEvents={makeFetchEvents(buffEvents)}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText("Good")).toBeInTheDocument());
+    expect(
+      screen.queryByText("Informational — no judgement"),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows a loading message before the fetch resolves", () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => new Promise<never>(() => {});

@@ -29,7 +29,7 @@ type FetchResult =
   | { accessToken: string; error: string };
 
 const THRESHOLD =
-  "No Good/Fair/Bad — the right number of concurrent targets depends on your assignments, not a universal target.";
+  "Good when 2+ targets held Lifebloom's 3rd stack for at least 50% of the fight — a reward-only signal recognizing multi-target maintenance as the skill it is. Never fair or bad: anything below that bar may simply reflect your raid healing assignment, not weaker play.";
 
 const LEVEL_COLORS = [
   "var(--border)",
@@ -124,14 +124,15 @@ export function ConcurrentTargetsCard({
     );
   }
 
-  const { avgConcurrent, peakConcurrent, levels } = result.result;
+  const { avgConcurrent, peakConcurrent, levels, judgement } = result.result;
 
   return (
     <MetricCard
       icon={lifebloomIcon}
       title="Concurrent LB3 targets"
       value={`Avg ${avgConcurrent.toFixed(1)} · Peak ${peakConcurrent}`}
-      note="Informational — no judgement"
+      judgement={judgement}
+      note={judgement === null ? "Informational — no judgement" : undefined}
       threshold={THRESHOLD}
     >
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
