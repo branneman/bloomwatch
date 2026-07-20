@@ -695,17 +695,6 @@ I want a validated set of real reports/fights from genuinely dreamstate-spec, dr
 - Exemplars are tagged via story 900's bucketing so they're queryable alongside the rest of the corpus.
 - Story 905's dreamstate Regrowth-direct overheal band (`<60%/60-85%/>85%`, currently marked provisional in `docs/thresholds.md`) is re-reviewed against this new exemplar set specifically, and either confirmed or adjusted — with the provisional flag removed either way.
 
-### 913 — Recalibrate re-stack tax thresholds 🔲 Todo
-
-I want re-stack tax's duration-scaled formula reviewed against real exemplar data, so it stops being the one Lifebloom-discipline metric 902 didn't cover (902 was scoped to LB3 uptime and refresh cadence only) and the last remaining untouched original from Epic C.
-
-**Acceptance criteria**
-
-- Regenerate the calibration corpus with current code first (same note as 909-911).
-- Re-stack tax's current formula (`restackTax.ts`'s `judgeRestackTax`: good ≤1 cast per 2min elapsed, fair ≤1 cast per 1min elapsed) is tabulated against the story-901 exemplar corpus — this is a rate/formula threshold rather than a flat percentage, so the review needs to check the formula's shape (does the ratio between good/fair tiers hold up, not just a single cutoff number) rather than just one percentile line.
-- Any part of the formula that misjudges known-good exemplar play is adjusted, with reasoning recorded here; a formula that already fits is recorded as a real "no change" finding with supporting numbers.
-- `docs/thresholds.md` is updated with a dated calibration-review paragraph.
-
 ### 914 — Revisit metrics currently left un-judged (informational-only) 🔲 Todo
 
 I want every metric currently shipped as informational-only (no Good/Fair/Bad judgement) re-examined against real data and sharper thinking about whether "we don't have enough signal to judge this" still holds, rather than leaving that call unrevisited forever just because it was the original decision. Prompted directly: correcting story 910's initial framing above found that a metric can look uncalibratable before you're precise about what it's actually measuring (process vs. outcome) — the same sharpening may apply to the metrics below too.
@@ -747,6 +736,29 @@ The root cause is `lifebloomStacks.ts`'s `deriveLifebloomTargetState` (lines ~12
 - A target still ambiguous after the 60s lookback is excluded from `Lb3TargetResult`/the concurrent-targets sweep entirely (unjudged, `judgement: null` alongside the target simply not appearing, or an explicit "can't verify" marker — exact UI presentation is a design decision for this story, not predetermined here) rather than defaulting to a confident "bad."
 - Both `lb3Uptime.test.ts` and `concurrentLb3Targets.test.ts` gain fixtures for: (a) ambiguous-then-resolved-by-lookback, and (b) ambiguous-and-still-unresolved-after-lookback.
 - `docs/thresholds.md` documents the new behavior; the motivating real report/fight/druid/targets above are recorded as the validating example, matching this repo's convention of citing real data for every calibration-adjacent change.
+
+### 916 — Reframe re-stack tax and accidental blooms around stack-loss events, not raw cast/bloom counts 🔲 Todo
+
+I want re-stack tax and accidental blooms presented as one coherent picture of "how many times Lifebloom fell off a maintained target and how quickly you recovered it," instead of two disconnected raw counts that don't reconcile with each other, so a druid gets an actual diagnosis (which target, when, how slow) rather than two numbers that look contradictory on their face.
+
+Found directly while investigating a real discrepancy: on `mtRh3kJ9YMLazyvQ` fight 44 ("The Illidari Council", druid Olklo), accidental blooms read 2 while re-stack tax read 16 casts (judged bad) — numbers that look inconsistent unless you trace the raw event timelines by hand, which is what this session did. The full trace showed 6 real stack-loss events across 4 targets (Quanchï, Warpersona, Recktuss ×2, Giklotmc ×2): only 2 were reapplied within accidental-blooms' 3-second window (Quanchï 0.2s, Giklotmc 0.8s), while the other 4 took 3.4-11.4s to react to (clustered ~190-245s into the fight, plausibly an add-phase/movement stretch) yet still cost the same 3-cast rebuild each — accounting for the rest of the 16. Two root causes drive the mismatch:
+
+- `computeAccidentalBlooms`'s 3-second reapplication window (`src/metrics/accidentalBlooms.ts`) is a narrow, binary "did you scramble instantly" heuristic — it has no signal for the 4 "slower but still real" fall-offs.
+- `computeRestackTax`'s headline unit is casts, not stack-loss events (`src/metrics/restackTax.ts`) — a full 0→3 rebuild is 3 casts, so 6 real events read as "16," which reads far more severe than what happened and doesn't map onto the accidental-bloom count at all.
+
+Neither card currently exposes the underlying event list (target, timestamp, reaction latency) that would let a druid actually see which targets/moments drove the numbers — both `RestackTaxCard` and `AccidentalBloomsCard` show aggregate counts only.
+
+Supersedes story 913 (recalibrate re-stack tax thresholds), removed from this backlog: recalibrating the old cast-based formula's good/fair cutoffs against exemplar data would be throwaway work once the headline unit changes to rebuild events — that exemplar-backed calibration is folded into this story's acceptance criteria below instead.
+
+**Acceptance criteria**
+
+- Design a shared "stack-loss" event model (target, bloom timestamp, reapplication latency, rebuild cast count) that both cards can draw from, replacing the current fully independent computations — an architecture decision for this story, not predetermined here.
+- Re-stack tax's headline reports rebuild _events_ (with cast/mana cost as a derived stat), not raw cast count, so it's directly comparable to accidental-bloom counts instead of looking unrelated.
+- Accidental blooms' binary 3-second cutoff is reconsidered in favor of showing reaction latency on a spectrum (in the spirit of refresh cadence's own histogram, story 202) rather than a strict yes/no bucket — or, if the binary cutoff is kept, its rationale is documented clearly enough that a 2-vs-16-style mismatch no longer reads as a bug.
+- Each card (or a merged card, a design decision for this story) surfaces the actual per-event list — target, timestamp, reaction latency — so a druid can self-diagnose which specific moments drove a bad rollup, the way this session's manual trace did.
+- The new event-based good/fair/bad cutoffs (whatever the shared model settles on) are tabulated against the story-901 exemplar corpus, not just derived from the one motivating fight above — the same rigor 913 would have applied, now scoped to the new unit.
+- `docs/thresholds.md` is updated to reflect whatever new framing/thresholds result, including a dated calibration-review paragraph per the usual convention.
+- The real `mtRh3kJ9YMLazyvQ` fight 44 (Olklo) data above is recorded as the validating example, matching this repo's convention of citing real data for every calibration-adjacent change.
 
 ---
 
