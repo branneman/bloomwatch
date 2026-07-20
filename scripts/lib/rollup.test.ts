@@ -62,7 +62,13 @@ function aFightResult(
         levels: [],
         judgement: null,
       },
-      naturesSwiftnessAudit: { casts: [], castCount: 0, availableWindows: 0 },
+      naturesSwiftnessAudit: {
+        casts: [],
+        castCount: 0,
+        availableWindows: 0,
+        utilizationPct: 0,
+        judgement: "bad",
+      },
     },
   };
 }

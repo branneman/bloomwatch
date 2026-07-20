@@ -3,6 +3,7 @@ import type {
   DruidHealingSpell,
   ResolvedAbility,
 } from "../abilities/resolveAbilities";
+import { judgeThreshold, type Judgement } from "./judgement";
 
 // TBC: Nature's Swiftness has a 3-minute cooldown.
 export const NATURES_SWIFTNESS_COOLDOWN_MS = 180_000;
@@ -22,6 +23,8 @@ export interface NaturesSwiftnessAuditResult {
   casts: NaturesSwiftnessCast[];
   castCount: number;
   availableWindows: number;
+  utilizationPct: number;
+  judgement: Judgement;
 }
 
 // Scans the druid's own casts (already sorted) for the first one after
@@ -51,6 +54,24 @@ function findFollowUp(
     };
   }
   return null;
+}
+
+// good >= 75% / fair 50-75% / bad < 50% of theoretical 3-minute-cooldown
+// windows used, per docs/backlog.md story 304 (revised story 914, direct
+// request 2026-07-20). One exception: a fight with only 1 available window
+// (under 3 minutes) can only ever land on 0% or 100% utilization, and
+// holding Nature's Swiftness in reserve for a real emergency that may just
+// not occur is reasonable on a short fight — so 0 casts there reads fair,
+// not bad.
+function judgeUtilization(
+  castCount: number,
+  availableWindows: number,
+  utilizationPct: number,
+): Judgement {
+  if (availableWindows === 1) {
+    return castCount >= 1 ? "good" : "fair";
+  }
+  return judgeThreshold(utilizationPct, { goodMin: 75, fairMin: 50 });
 }
 
 export function computeNaturesSwiftnessAudit(
@@ -83,12 +104,18 @@ export function computeNaturesSwiftnessAudit(
     ),
   }));
 
+  // +1: NS is available at the pull (t=0), then again every cooldown
+  // period after — so a fight of any length has at least one window (and
+  // this is therefore always >= 1, never 0).
+  const availableWindows =
+    Math.floor(fightDurationMs / NATURES_SWIFTNESS_COOLDOWN_MS) + 1;
+  const utilizationPct = (casts.length / availableWindows) * 100;
+
   return {
     casts,
     castCount: casts.length,
-    // +1: NS is available at the pull (t=0), then again every cooldown
-    // period after — so a fight of any length has at least one window.
-    availableWindows:
-      Math.floor(fightDurationMs / NATURES_SWIFTNESS_COOLDOWN_MS) + 1,
+    availableWindows,
+    utilizationPct,
+    judgement: judgeUtilization(casts.length, availableWindows, utilizationPct),
   };
 }

@@ -23,7 +23,13 @@ describe("computeNaturesSwiftnessAudit", () => {
       400000,
     );
 
-    expect(result).toEqual({ casts: [], castCount: 0, availableWindows: 3 });
+    expect(result).toEqual({
+      casts: [],
+      castCount: 0,
+      availableWindows: 3,
+      utilizationPct: 0,
+      judgement: "bad",
+    });
   });
 
   it("matches a Nature's Swiftness cast to the next tracked healing spell cast, with its target", () => {
@@ -144,4 +150,38 @@ describe("computeNaturesSwiftnessAudit", () => {
 
     expect(result.availableWindows).toBe(2);
   });
+
+  it.each([
+    { durationMs: 100000, castCount: 0, expectedPct: 0, expected: "fair" }, // 1 window, unused — reserve is reasonable
+    { durationMs: 100000, castCount: 1, expectedPct: 100, expected: "good" }, // 1 window, used
+    { durationMs: 200000, castCount: 0, expectedPct: 0, expected: "bad" }, // 2 windows
+    { durationMs: 200000, castCount: 1, expectedPct: 50, expected: "fair" },
+    { durationMs: 200000, castCount: 2, expectedPct: 100, expected: "good" },
+    { durationMs: 400000, castCount: 1, expectedPct: 100 / 3, expected: "bad" }, // 3 windows
+    {
+      durationMs: 400000,
+      castCount: 2,
+      expectedPct: 200 / 3,
+      expected: "fair",
+    },
+    { durationMs: 400000, castCount: 3, expectedPct: 100, expected: "good" },
+  ])(
+    "judges $expected for $castCount casts of the windows available in a $durationMs ms fight",
+    ({ durationMs, castCount, expectedPct, expected }) => {
+      const castEvents = Array.from({ length: castCount }, (_, i) =>
+        aCastEvent({ timestamp: i * 1000, targetID: -1, abilityGameID: 17116 }),
+      );
+
+      const result = computeNaturesSwiftnessAudit(
+        castEvents,
+        DRUID_ID,
+        NS_IDS,
+        RESOLVED,
+        durationMs,
+      );
+
+      expect(result.utilizationPct).toBeCloseTo(expectedPct, 5);
+      expect(result.judgement).toBe(expected);
+    },
+  );
 });

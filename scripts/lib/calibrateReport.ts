@@ -414,7 +414,13 @@ export async function computeFightResult(
             ctx.resolvedAbilities,
             durationMs,
           ),
-        { casts: [], castCount: 0, availableWindows: 0 },
+        {
+          casts: [],
+          castCount: 0,
+          availableWindows: 0,
+          utilizationPct: 0,
+          judgement: "bad",
+        },
       ),
     },
   };
