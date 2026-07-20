@@ -54,7 +54,7 @@ describe("computeConsumableThroughput", () => {
     expect(result).toEqual({ exempt: true, rows: [], judgement: null });
   });
 
-  it("computes the floor as fight duration / 120s, floored", () => {
+  it("computes the Mana Potion floor as fight duration / 120s, floored", () => {
     expect(
       computeConsumableThroughput(
         [LOW_MANA_SAMPLE],
@@ -79,6 +79,19 @@ describe("computeConsumableThroughput", () => {
         241_000,
       ).rows[0].expectedFloor,
     ).toBe(2);
+  });
+
+  it("computes the Rune floor separately, as fight duration / 300s (story 911)", () => {
+    const runeFloor = (durationMs: number) =>
+      computeConsumableThroughput(
+        [LOW_MANA_SAMPLE],
+        DRUID_ID,
+        RESOLVED_ABILITIES,
+        durationMs,
+      ).rows.find((row) => row.label === "Rune")?.expectedFloor;
+    expect(runeFloor(299_999)).toBe(0);
+    expect(runeFloor(300_000)).toBe(1);
+    expect(runeFloor(600_000)).toBe(2);
   });
 
   it("counts Dark Rune and Demonic Rune together as one Rune row", () => {
@@ -137,16 +150,24 @@ describe("computeConsumableThroughput", () => {
   });
 
   it("judges bad when used is two or more below the floor", () => {
-    const result = computeConsumableThroughput(
+    // Mana Potion (120s interval): floor 3 at 360s, 0 used.
+    const potionResult = computeConsumableThroughput(
       [LOW_MANA_SAMPLE],
       DRUID_ID,
       RESOLVED_ABILITIES,
-      360_000, // floor 3, 0 used
+      360_000,
     );
     expect(
-      result.rows.find((row) => row.label === "Mana Potion")?.judgement,
+      potionResult.rows.find((row) => row.label === "Mana Potion")?.judgement,
     ).toBe("bad");
-    expect(result.rows.find((row) => row.label === "Rune")?.judgement).toBe(
+    // Rune (300s interval, story 911): floor 2 at 600s, 0 used.
+    const runeResult = computeConsumableThroughput(
+      [LOW_MANA_SAMPLE],
+      DRUID_ID,
+      RESOLVED_ABILITIES,
+      600_000,
+    );
+    expect(runeResult.rows.find((row) => row.label === "Rune")?.judgement).toBe(
       "bad",
     );
   });
@@ -157,12 +178,14 @@ describe("computeConsumableThroughput", () => {
       aConsumableCastEvent(1000, MANA_POTION_ID),
       aConsumableCastEvent(2000, MANA_POTION_ID),
       aConsumableCastEvent(3000, MANA_POTION_ID),
-    ]; // potions good (3/3), runes bad (0/3)
+      aConsumableCastEvent(4000, MANA_POTION_ID),
+      aConsumableCastEvent(5000, MANA_POTION_ID),
+    ]; // 600s: potions good (5/5, floor 5), runes bad (0/2, floor 2)
     const result = computeConsumableThroughput(
       events,
       DRUID_ID,
       RESOLVED_ABILITIES,
-      360_000,
+      600_000,
     );
     expect(result.judgement).toBe("bad");
   });

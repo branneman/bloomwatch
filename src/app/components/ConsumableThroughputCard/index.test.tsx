@@ -31,24 +31,17 @@ describe("ConsumableThroughputCard", () => {
   });
 
   it("renders a table row per consumable with its judgement chip", async () => {
-    const fight = aFight({ id: 6, startTime: 0, endTime: 360_000 }); // floor 3
+    // 600s: Mana Potion floor 5 (120s interval), Rune floor 2 (300s interval, story 911).
+    const fight = aFight({ id: 6, startTime: 0, endTime: 600_000 });
     const events = [
       aManaSampleEvent(500, 6000), // 60% — triggers judging
-      aCastEvent({
-        timestamp: 1000,
-        sourceID: DRUID_ID,
-        abilityGameID: MANA_POTION_ID,
-      }),
-      aCastEvent({
-        timestamp: 2000,
-        sourceID: DRUID_ID,
-        abilityGameID: MANA_POTION_ID,
-      }),
-      aCastEvent({
-        timestamp: 3000,
-        sourceID: DRUID_ID,
-        abilityGameID: MANA_POTION_ID,
-      }),
+      ...[1000, 2000, 3000, 4000, 5000].map((timestamp) =>
+        aCastEvent({
+          timestamp,
+          sourceID: DRUID_ID,
+          abilityGameID: MANA_POTION_ID,
+        }),
+      ),
     ];
     const fetchEvents = () => Promise.resolve(events);
 
@@ -71,9 +64,9 @@ describe("ConsumableThroughputCard", () => {
     );
     expect(screen.getByText("Rune")).toBeInTheDocument();
     // "Bad" appears twice: the card's own header chip (fight-level judgement is the
-    // worst-of, which is bad because of the 0/3 rune row) plus the rune row's own chip.
-    expect(screen.getAllByText("Good")).toHaveLength(1); // potions row, 3/3
-    expect(screen.getAllByText("Bad")).toHaveLength(2); // header chip + rune row, 0/3
+    // worst-of, which is bad because of the 0/2 rune row) plus the rune row's own chip.
+    expect(screen.getAllByText("Good")).toHaveLength(1); // potions row, 5/5
+    expect(screen.getAllByText("Bad")).toHaveLength(2); // header chip + rune row, 0/2
   });
 
   it("shows an informational note instead of a table when mana never drops below 70%", async () => {

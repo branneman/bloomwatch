@@ -55,14 +55,15 @@ describe("useManaEconomySummary", () => {
     expect(result.current).toEqual({ status: "loading" });
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
-    // Mana at 20% is below the 70% threshold, so consumables are judged: floor =
-    // 120_000/120_000 = 1, 0 potions and 0 runes used -> both rows fair (one below
-    // floor), which is the worst-of against the mana curve's own "good" and the (empty,
-    // good-default) overheal table.
+    // Mana at 20% is below the 70% threshold, so consumables are judged: Mana Potion
+    // floor = 120_000/120_000 = 1, 0 used -> fair (one below floor). Rune floor (story
+    // 911's 300s interval) = 120_000/300_000 = 0, 0 used -> good (meets its own floor).
+    // The worst-of that fair potion row against the rune's good, the mana curve's own
+    // "good", and the (empty, good-default) overheal table is still "fair".
     expect(result.current).toEqual({
       status: "ready",
       judgement: "fair",
-      stats: ["Ending mana: 20%", "Potions: 0/1, Runes: 0/1"],
+      stats: ["Ending mana: 20%", "Potions: 0/1, Runes: 0/0"],
     });
   });
 
