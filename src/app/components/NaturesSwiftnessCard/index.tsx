@@ -41,7 +41,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg";
 
 const THRESHOLD =
-  "Reports casts vs. theoretical availability (3 min cooldown). Informational — no judgement; Nature's Swiftness is situational by design. Unused-while-available during a raid death is cross-referenced separately in the death forensics audit.";
+  "Reports casts vs. theoretical availability (3 min cooldown). Utilization: good ≥75%, fair 50-75%, bad <50% — except fights with only 1 available window (under 3 minutes), where holding it in reserve is reasonable: 0 casts reads fair, 1 cast reads good. Unused-while-available during a raid death is cross-referenced separately in the death forensics audit.";
 
 function formatFollowUp(
   followUp: NaturesSwiftnessFollowUp | null,
@@ -211,14 +211,14 @@ export function NaturesSwiftnessCard({
     );
   }
 
-  const { casts, castCount, availableWindows } = result.result;
+  const { casts, castCount, availableWindows, judgement } = result.result;
 
   return (
     <MetricCard
       icon={ICON}
       title="Nature's Swiftness audit"
       value={`Used ${castCount}× of ${availableWindows} available windows`}
-      note="Informational — no judgement"
+      judgement={judgement}
       threshold={THRESHOLD}
     >
       {castCount === 0 ? (

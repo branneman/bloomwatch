@@ -75,6 +75,34 @@ describe("NaturesSwiftnessCard", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows a judgement chip instead of the informational note once loaded", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 400000 }); // 3 available windows
+    const castEvents = [
+      aCastEvent({ timestamp: 1000, targetID: -1, abilityGameID: 17116 }),
+      aCastEvent({ timestamp: 1500, targetID: 50, abilityGameID: 9758 }),
+    ];
+
+    render(
+      <NaturesSwiftnessCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        resolvedAbilities={RESOLVED}
+        targetNames={new Map([[50, "Maintank"]])}
+        fetchEvents={makeFetchEvents(castEvents)}
+      />,
+    );
+
+    // 1 cast of 3 windows = 33% -> bad, per the standard (non-1-window) bands.
+    await waitFor(() => expect(screen.getByText("Bad")).toBeInTheDocument());
+    expect(
+      screen.queryByText("Informational — no judgement"),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows 'no follow-up cast recorded' when nothing follows before the fight ends", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 400000 });
     const castEvents = [
