@@ -235,6 +235,45 @@ describe("LB3UptimeCard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("does not show a local error message when fetchLookbackEvents rejects (escalates to the app-level recovery overlay instead)", async () => {
+    const fightStart = 2011529;
+    const fightEnd = 2113050;
+    const fight = aFight({ id: 6, startTime: fightStart, endTime: fightEnd });
+    // Same carry-in fixture shape as the "fetches a lookback window" test
+    // above: the fight-window timeline opens with a "refresh" (no leading
+    // "open"), so detectCarryInTargets finds a carry-in target and
+    // fetchLookbackEvents actually gets called.
+    const events = [
+      aRefreshBuffEvent({ timestamp: 2016447, targetID: 5, sourceID: 2 }),
+    ];
+    const fetchEvents = () => Promise.resolve(events);
+    const fetchLookbackEvents = vi
+      .fn()
+      .mockRejectedValue(new Error("WCL API responded 500: server error"));
+
+    render(
+      <LB3UptimeCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[5, "Fanah"]])}
+        fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
+      />,
+    );
+
+    await waitFor(() => expect(fetchLookbackEvents).toHaveBeenCalledTimes(1));
+    // Let the rejection settle through the component's async chain.
+    await act(async () => {
+      await Promise.resolve().then(() => Promise.resolve());
+    });
+
+    expect(screen.getByText("Calculating…")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("never calls fetchLookbackEvents when no target's timeline is ambiguous", async () => {
     const fight = aFight({
       id: 6,

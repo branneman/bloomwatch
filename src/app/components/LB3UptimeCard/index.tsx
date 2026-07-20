@@ -61,11 +61,29 @@ export function LB3UptimeCard({
       "Buffs",
     )
       .then(async (events) => {
-        const carryInTargets = detectCarryInTargets(
-          events,
-          druidId,
-          lifebloomAbilityIds,
-        );
+        let carryInTargets: ReturnType<typeof detectCarryInTargets>;
+        try {
+          // Compute-stage, same as computeLb3Uptime below: a throw here is
+          // a bug in the metrics layer, not a fetch failure, so it renders
+          // the local card error rather than bubbling to the outer .catch
+          // (which is reserved for genuine fetch failures already
+          // escalated globally — see the comment there).
+          carryInTargets = detectCarryInTargets(
+            events,
+            druidId,
+            lifebloomAbilityIds,
+          );
+        } catch (err) {
+          setResult({
+            accessToken,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to calculate LB3 uptime.",
+          });
+          return;
+        }
+
         const lookbackEvents =
           carryInTargets.length > 0
             ? await fetchLookbackEvents(

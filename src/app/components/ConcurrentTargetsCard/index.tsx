@@ -72,11 +72,29 @@ export function ConcurrentTargetsCard({
       "Buffs",
     )
       .then(async (events) => {
-        const carryInTargets = detectCarryInTargets(
-          events,
-          druidId,
-          lifebloomAbilityIds,
-        );
+        let carryInTargets: ReturnType<typeof detectCarryInTargets>;
+        try {
+          // Compute-stage, same as computeConcurrentLb3Targets below: a
+          // throw here is a bug in the metrics layer, not a fetch failure,
+          // so it renders the local card error rather than bubbling to the
+          // outer .catch (which is reserved for genuine fetch failures
+          // already escalated globally — see the comment there).
+          carryInTargets = detectCarryInTargets(
+            events,
+            druidId,
+            lifebloomAbilityIds,
+          );
+        } catch (err) {
+          setResult({
+            accessToken,
+            error:
+              err instanceof Error
+                ? err.message
+                : "Failed to calculate concurrent LB3 targets.",
+          });
+          return;
+        }
+
         const lookbackEvents =
           carryInTargets.length > 0
             ? await fetchLookbackEvents(
