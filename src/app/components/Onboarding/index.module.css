@@ -37,6 +37,7 @@
   margin-bottom: var(--space-5);
 }
 .audienceList {
+  max-width: 65ch;
   margin: 0 0 var(--space-5);
   padding-left: var(--space-4);
 }
