@@ -7,8 +7,11 @@ import { computeRefreshCadence } from "../../../metrics/refreshCadence";
 import { computeAccidentalBlooms } from "../../../metrics/accidentalBlooms";
 import { computeRestackTax } from "../../../metrics/restackTax";
 import { computeConcurrentLb3Targets } from "../../../metrics/concurrentLb3Targets";
+import { detectCarryInTargets } from "../../../metrics/lifebloomStacks";
 import { summarizeLifebloomDiscipline } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
+
+const LOOKBACK_WINDOW_MS = 60_000;
 
 type TaggedState = { accessToken: string; summary: EpicSummaryStatus };
 
@@ -25,6 +28,14 @@ export function useLifebloomDisciplineSummary(
     dataType: WclEventDataType,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>,
+  fetchLookbackEvents: (
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources?: boolean,
+  ) => Promise<WclEvent[]>,
 ): EpicSummaryStatus {
   const [state, setState] = useState<TaggedState | null>(null);
 
@@ -39,13 +50,31 @@ export function useLifebloomDisciplineSummary(
       fetchEvents(accessToken, reportCode, fightArg, "Casts", true),
       fetchEvents(accessToken, reportCode, fightArg, "Healing", true),
     ])
-      .then(([buffEvents, castEvents, healEvents]) => {
+      .then(async ([buffEvents, castEvents, healEvents]) => {
+        const carryInTargets = detectCarryInTargets(
+          buffEvents,
+          druidId,
+          lifebloomAbilityIds,
+        );
+        const lookbackEvents =
+          carryInTargets.length > 0
+            ? await fetchLookbackEvents(
+                accessToken,
+                reportCode,
+                "Buffs",
+                fight.startTime - LOOKBACK_WINDOW_MS,
+                fight.startTime,
+                true,
+              )
+            : undefined;
+
         const lb3 = computeLb3Uptime(
           buffEvents,
           druidId,
           lifebloomAbilityIds,
           fight.startTime,
           fight.endTime,
+          lookbackEvents,
         );
         const refresh = computeRefreshCadence(
           buffEvents,
@@ -71,6 +100,7 @@ export function useLifebloomDisciplineSummary(
           lifebloomAbilityIds,
           fight.startTime,
           fight.endTime,
+          lookbackEvents,
         );
         setState({
           accessToken,
@@ -107,6 +137,7 @@ export function useLifebloomDisciplineSummary(
     druidId,
     lifebloomAbilityIds,
     fetchEvents,
+    fetchLookbackEvents,
   ]);
 
   if (state === null || state.accessToken !== accessToken) {
