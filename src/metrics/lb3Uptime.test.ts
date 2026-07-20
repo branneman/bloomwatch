@@ -3,6 +3,7 @@ import { computeLb3Uptime } from "./lb3Uptime";
 import {
   anApplyBuffEvent,
   anApplyBuffStackEvent,
+  aRefreshBuffEvent,
   aRemoveBuffEvent,
 } from "../testUtils/factories";
 
@@ -162,5 +163,91 @@ describe("computeLb3Uptime", () => {
     ];
     const result = computeLb3Uptime(events, 2, LB_IDS, 0, 10000);
     expect(result.targets).toEqual([]);
+  });
+
+  it("resolves a carry-in target's true stack-3 state using lookback events instead of reading 0%", () => {
+    const fightStart = 2011529;
+    const fightEnd = 2113050;
+    // Note: unlike the "backward compatible" test below, this fixture has
+    // no removebuff in the fight window - the buff (now known, via the
+    // lookback, to be at 3 stacks already) simply persists to fightEnd.
+    const events = [
+      aRefreshBuffEvent({ timestamp: 2016447, targetID: 5, sourceID: 1 }),
+    ];
+    const lookbackEvents = [
+      anApplyBuffEvent({ timestamp: 1960000, targetID: 5, sourceID: 1 }),
+      anApplyBuffStackEvent({
+        timestamp: 1970000,
+        stack: 3,
+        targetID: 5,
+        sourceID: 1,
+      }),
+    ];
+
+    const result = computeLb3Uptime(
+      events,
+      1,
+      LB_IDS,
+      fightStart,
+      fightEnd,
+      lookbackEvents,
+    );
+
+    expect(result.targets).toEqual([
+      {
+        targetId: 5,
+        lbUptimePct: 100,
+        lb3UptimeMs: fightEnd - fightStart,
+        windowMs: fightEnd - fightStart,
+        lb3UptimePct: 100,
+        judgement: "good",
+      },
+    ]);
+  });
+
+  it("excludes a carry-in target still ambiguous after the lookback, instead of reading a confident bad", () => {
+    const fightStart = 10199672;
+    const fightEnd = 10440305;
+    const events = [
+      aRefreshBuffEvent({ timestamp: fightStart, targetID: 30, sourceID: 10 }),
+    ];
+    const lookbackEvents: ReturnType<typeof anApplyBuffEvent>[] = [];
+
+    const result = computeLb3Uptime(
+      events,
+      10,
+      LB_IDS,
+      fightStart,
+      fightEnd,
+      lookbackEvents,
+    );
+
+    expect(result.targets).toEqual([]);
+  });
+
+  it("keeps today's exact backdate-to-fightStart behavior when lookbackEvents is omitted (backward compatible)", () => {
+    const fightStart = 2011529;
+    const fightEnd = 2113050;
+    const removedAt = 2064275;
+    const events = [
+      aRefreshBuffEvent({ timestamp: 2016447, targetID: 5, sourceID: 1 }),
+      aRemoveBuffEvent({ timestamp: removedAt, targetID: 5, sourceID: 1 }),
+    ];
+
+    const result = computeLb3Uptime(events, 1, LB_IDS, fightStart, fightEnd);
+
+    expect(result.targets).toEqual([
+      {
+        targetId: 5,
+        // Today's existing backdate-to-fightStart rule (deriveLifebloomTargetState)
+        // treats the target as "up" from fightStart until this removebuff,
+        // not for the whole fight - so lbUptimePct reflects only that span.
+        lbUptimePct: ((removedAt - fightStart) / (fightEnd - fightStart)) * 100,
+        lb3UptimeMs: 0,
+        windowMs: fightEnd - fightStart,
+        lb3UptimePct: 0,
+        judgement: "bad",
+      },
+    ]);
   });
 });

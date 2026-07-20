@@ -2,7 +2,9 @@ import type { WclEvent } from "../wcl/events";
 import { judgeThreshold, type Judgement } from "./judgement";
 import {
   deriveLifebloomTargetState,
+  detectCarryInTargets,
   reconstructLifebloomTimelines,
+  resolveCarryInTimeline,
 } from "./lifebloomStacks";
 
 // Backlog story 201: targets under 30% any-stack Lifebloom uptime are
@@ -33,19 +35,38 @@ export function computeLb3Uptime(
   lifebloomAbilityIds: Set<number>,
   fightStart: number,
   fightEnd: number,
+  lookbackEvents?: WclEvent[],
 ): Lb3UptimeResult {
   const timelines = reconstructLifebloomTimelines(
     events,
     druidId,
     lifebloomAbilityIds,
   );
+  const carryInTargets =
+    lookbackEvents !== undefined
+      ? new Set(detectCarryInTargets(events, druidId, lifebloomAbilityIds))
+      : new Set<number>();
 
   const fightDurationMs = fightEnd - fightStart;
   const results: Lb3TargetResult[] = [];
 
   for (const [targetId, timeline] of timelines) {
+    let resolvedTimeline = timeline;
+    if (carryInTargets.has(targetId)) {
+      const resolved = resolveCarryInTimeline(
+        timeline,
+        lookbackEvents as WclEvent[],
+        druidId,
+        lifebloomAbilityIds,
+        targetId,
+        fightStart,
+      );
+      if (resolved === null) continue; // still ambiguous - exclude, don't guess
+      resolvedTimeline = resolved;
+    }
+
     const { totalAnyStackMs, stack3Intervals } = deriveLifebloomTargetState(
-      timeline,
+      resolvedTimeline,
       fightStart,
       fightEnd,
     );
