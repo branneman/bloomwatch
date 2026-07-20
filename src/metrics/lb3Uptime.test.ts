@@ -120,7 +120,7 @@ describe("computeLb3Uptime", () => {
     ]);
   });
 
-  it("judges fair between 75% and 90%, good at or above 90%", () => {
+  it("judges fair between 60% and 80%, good at or above 80%", () => {
     const baseEvents = (dropAt: number, reopenAt: number) => [
       anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
       anApplyBuffStackEvent({ timestamp: 500, stack: 2, targetID: 42 }),
@@ -140,13 +140,13 @@ describe("computeLb3Uptime", () => {
     expect(goodResult.targets[0].judgement).toBe("good");
 
     const fairResult = computeLb3Uptime(
-      baseEvents(6000, 8000),
+      baseEvents(6000, 9000),
       2,
       LB_IDS,
       0,
       11000,
     );
-    expect(fairResult.targets[0].lb3UptimePct).toBe(80);
+    expect(fairResult.targets[0].lb3UptimePct).toBe(70);
     expect(fairResult.targets[0].judgement).toBe("fair");
   });
 

@@ -9,9 +9,10 @@ import {
 // one-off casts, not "maintained" targets, and are excluded entirely.
 export const MAINTAINED_MIN_UPTIME_PCT = 30;
 
-// Good/Fair/Bad thresholds per docs/backlog.md story 201: good >= 90%, fair 75-90%, bad < 75%.
-const GOOD_MIN_PCT = 90;
-const FAIR_MIN_PCT = 75;
+// Good/Fair/Bad thresholds per docs/backlog.md story 201, revised by direct
+// request 2026-07-20 (docs/thresholds.md): good >= 80%, fair 60-80%, bad < 60%.
+const GOOD_MIN_PCT = 80;
+const FAIR_MIN_PCT = 60;
 
 export interface Lb3TargetResult {
   targetId: number;
