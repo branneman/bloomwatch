@@ -22,7 +22,6 @@ import type {
   OverhealRollupRow,
   DeathForensicsRollup,
   PrepHygieneRollup,
-  InformationalRollup,
   DruidRollup,
 } from "./types";
 
@@ -142,6 +141,8 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
   let accidentalBloomsTotal = 0;
   let restackTaxCastsTotal = 0;
   let restackTaxEstimatedManaTotal = 0;
+  const concurrentEntries: { value: number; weightMs: number }[] = [];
+  let concurrentPeakMax = 0;
   for (const entry of lbReady) {
     for (const target of entry.metrics.lb3Uptime.targets) {
       const list = targetWindows.get(target.targetId) ?? [];
@@ -160,6 +161,13 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     accidentalBloomsTotal += entry.metrics.accidentalBlooms.count;
     restackTaxCastsTotal += entry.metrics.restackTax.castCount;
     restackTaxEstimatedManaTotal += entry.metrics.restackTax.estimatedMana;
+    concurrentEntries.push({
+      value: entry.metrics.concurrentLb3Targets.avgConcurrent,
+      weightMs: entry.durationMs,
+    });
+    if (entry.metrics.concurrentLb3Targets.peakConcurrent > concurrentPeakMax) {
+      concurrentPeakMax = entry.metrics.concurrentLb3Targets.peakConcurrent;
+    }
   }
   const bucketCountTotal =
     bucketTotals.badEarly +
@@ -193,6 +201,8 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     accidentalBloomsTotal,
     restackTaxCastsTotal,
     restackTaxEstimatedManaTotal,
+    concurrentLb3AvgPooled: durationWeightedAverage(concurrentEntries),
+    concurrentLb3PeakMax: concurrentPeakMax,
   };
 
   // --- Spell discipline ---
@@ -203,6 +213,7 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
   const rejuvEntries: { value: number; weight: number }[] = [];
   const regrowthEntries: { value: number; weight: number }[] = [];
   const swiftmendEntries: { value: number; weight: number }[] = [];
+  const swiftmendUtilizationEntries: { value: number; weight: number }[] = [];
   let downrankingFlaggedTotal = 0;
   for (const entry of spellReady) {
     rejuvEntries.push({
@@ -217,14 +228,58 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
       value: entry.metrics.swiftmendAudit.wastefulPct,
       weight: entry.metrics.swiftmendAudit.casts.length,
     });
+    swiftmendUtilizationEntries.push({
+      value: entry.metrics.swiftmendAudit.utilizationPct,
+      weight: entry.metrics.swiftmendAudit.availableWindows,
+    });
     downrankingFlaggedTotal += entry.metrics.downrankingDiscipline.flaggedCount;
   }
+
+  // Story 907: a fight where this druid's build can't reach Nature's
+  // Swiftness's 20-Restoration requirement has no real availability --
+  // computeNaturesSwiftnessAudit's cooldown-based availableWindows
+  // estimate is fictitious there (the player could never actually cast
+  // it), so this pool excludes those fights the same way story 903c
+  // already excludes them from the live app's NaturesSwiftnessCard.
+  const naturesSwiftnessEntries: {
+    castCount: number;
+    availableWindows: number;
+  }[] = [];
+  for (const f of fights) {
+    if (!f.hasNaturesSwiftness) continue;
+    const epic = f.epics.spellDiscipline;
+    if (!isReady(epic)) continue;
+    naturesSwiftnessEntries.push({
+      castCount: epic.metrics.naturesSwiftnessAudit.castCount,
+      availableWindows: epic.metrics.naturesSwiftnessAudit.availableWindows,
+    });
+  }
+  const naturesSwiftnessCastsTotal = sum(
+    naturesSwiftnessEntries.map((e) => e.castCount),
+  );
+  const naturesSwiftnessAvailableWindowsTotal = sum(
+    naturesSwiftnessEntries.map((e) => e.availableWindows),
+  );
+  const naturesSwiftnessUtilizationPctPooled = countWeightedAverage(
+    naturesSwiftnessEntries.map((e) => ({
+      value:
+        e.availableWindows === 0 ? 0 : (e.castCount / e.availableWindows) * 100,
+      weight: e.availableWindows,
+    })),
+  );
+
   const spellDiscipline: SpellDisciplineRollup = {
     ...epicRollupBase(fights.length, spellReady),
     rejuvenationClipPctPooled: countWeightedAverage(rejuvEntries),
     regrowthClipPctPooled: countWeightedAverage(regrowthEntries),
     swiftmendWastefulPctPooled: countWeightedAverage(swiftmendEntries),
+    swiftmendUtilizationPctPooled: countWeightedAverage(
+      swiftmendUtilizationEntries,
+    ),
     downrankingFlaggedTotal,
+    naturesSwiftnessCastsTotal,
+    naturesSwiftnessAvailableWindowsTotal,
+    naturesSwiftnessUtilizationPctPooled,
   };
 
   // --- Mana economy ---
@@ -330,38 +385,6 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     fightsWithOil,
   };
 
-  // --- Informational (no epic judgement) ---
-  const concurrentEntries = fights.map((f) => ({
-    value: f.informational.concurrentLb3Targets.avgConcurrent,
-    weightMs: f.durationMs,
-  }));
-  const informational: InformationalRollup = {
-    concurrentLb3AvgPooled: durationWeightedAverage(concurrentEntries),
-    concurrentLb3PeakMax:
-      fights.length === 0
-        ? 0
-        : Math.max(
-            ...fights.map(
-              (f) => f.informational.concurrentLb3Targets.peakConcurrent,
-            ),
-          ),
-    // Story 907: a fight where this druid's build can't reach Nature's Swiftness's
-    // 20-Restoration requirement has no real availability -- computeNaturesSwiftnessAudit's
-    // cooldown-based availableWindows estimate is fictitious there (the player could
-    // never actually cast it), so both totals below exclude those fights the same way
-    // story 903c already excludes them from the live app's NaturesSwiftnessCard.
-    naturesSwiftnessCastsTotal: sum(
-      fights
-        .filter((f) => f.hasNaturesSwiftness)
-        .map((f) => f.informational.naturesSwiftnessAudit.castCount),
-    ),
-    naturesSwiftnessAvailableWindowsTotal: sum(
-      fights
-        .filter((f) => f.hasNaturesSwiftness)
-        .map((f) => f.informational.naturesSwiftnessAudit.availableWindows),
-    ),
-  };
-
   return {
     gcdEconomy,
     lifebloomDiscipline,
@@ -369,6 +392,5 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     manaEconomy,
     deathForensics,
     prepHygiene,
-    informational,
   };
 }

@@ -55,21 +55,6 @@ function aFightResult(
       deathForensics: erroredEpic(),
       prepHygiene: erroredEpic(),
     },
-    informational: {
-      concurrentLb3Targets: {
-        avgConcurrent: 0,
-        peakConcurrent: 0,
-        levels: [],
-        judgement: null,
-      },
-      naturesSwiftnessAudit: {
-        casts: [],
-        castCount: 0,
-        availableWindows: 0,
-        utilizationPct: 0,
-        judgement: "bad",
-      },
-    },
   };
 }
 

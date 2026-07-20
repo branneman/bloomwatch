@@ -148,14 +148,6 @@ function toEpicResult<M>(
   }
 }
 
-function safeInformational<T>(compute: () => T, fallback: T): T {
-  try {
-    return compute();
-  } catch {
-    return fallback;
-  }
-}
-
 export async function computeFightResult(
   ctx: ReportContext,
   candidate: DruidCandidate,
@@ -260,11 +252,6 @@ export async function computeFightResult(
       ctx.lifebloomAbilityIds,
       durationMs,
     );
-    // Duplicates the computation also done below for
-    // `informational.concurrentLb3Targets` — Task 6 needs the value here to
-    // satisfy summarizeLifebloomDiscipline's new 5th param, and sharing a
-    // single computed value across both spots is Task 10's restructuring to
-    // do, not this task's.
     const concurrentLb3Targets = computeConcurrentLb3Targets(
       buffEvents,
       druidId,
@@ -280,7 +267,13 @@ export async function computeFightResult(
         restackTax,
         concurrentLb3Targets,
       ),
-      metrics: { lb3Uptime, refreshCadence, accidentalBlooms, restackTax },
+      metrics: {
+        lb3Uptime,
+        refreshCadence,
+        accidentalBlooms,
+        restackTax,
+        concurrentLb3Targets,
+      },
     };
   });
 
@@ -308,12 +301,6 @@ export async function computeFightResult(
       druidId,
       ctx.resolvedAbilities,
     );
-    // Duplicates the computation also done below for
-    // `informational.naturesSwiftnessAudit` — Task 6 needs the value here to
-    // satisfy summarizeSpellDiscipline's new 5th/6th params, and sharing a
-    // single computed value across both spots is Task 10's restructuring to
-    // do, not this task's. `hasNaturesSwiftness` is already computed above
-    // (line 212).
     const naturesSwiftnessAudit = computeNaturesSwiftnessAudit(
       castEvents,
       druidId,
@@ -330,7 +317,12 @@ export async function computeFightResult(
         naturesSwiftnessAudit,
         hasNaturesSwiftness,
       ),
-      metrics: { hotClipDetection, swiftmendAudit, downrankingDiscipline },
+      metrics: {
+        hotClipDetection,
+        swiftmendAudit,
+        downrankingDiscipline,
+        naturesSwiftnessAudit,
+      },
     };
   });
 
@@ -420,36 +412,6 @@ export async function computeFightResult(
       manaEconomy,
       deathForensics,
       prepHygiene,
-    },
-    informational: {
-      concurrentLb3Targets: safeInformational(
-        () =>
-          computeConcurrentLb3Targets(
-            buffEvents,
-            druidId,
-            ctx.lifebloomAbilityIds,
-            fight.startTime,
-            fight.endTime,
-          ),
-        { avgConcurrent: 0, peakConcurrent: 0, levels: [], judgement: null },
-      ),
-      naturesSwiftnessAudit: safeInformational(
-        () =>
-          computeNaturesSwiftnessAudit(
-            castEvents,
-            druidId,
-            ctx.naturesSwiftnessAbilityIds,
-            ctx.resolvedAbilities,
-            durationMs,
-          ),
-        {
-          casts: [],
-          castCount: 0,
-          availableWindows: 0,
-          utilizationPct: 0,
-          judgement: "bad",
-        },
-      ),
     },
   };
 }

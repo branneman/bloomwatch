@@ -26,11 +26,13 @@ export interface LifebloomDisciplineMetrics {
   refreshCadence: RefreshCadenceResult;
   accidentalBlooms: AccidentalBloomsResult;
   restackTax: RestackTaxResult;
+  concurrentLb3Targets: ConcurrentLb3Result;
 }
 export interface SpellDisciplineMetrics {
   hotClipDetection: HotClipDetectionResult;
   swiftmendAudit: SwiftmendAuditResult;
   downrankingDiscipline: DownrankingDisciplineResult;
+  naturesSwiftnessAudit: NaturesSwiftnessAuditResult;
 }
 export interface ManaEconomyMetrics {
   manaCurve: ManaCurveResult;
@@ -64,10 +66,6 @@ export interface FightResult {
     manaEconomy: EpicResult<ManaEconomyMetrics>;
     deathForensics: EpicResult<DeathForensicsMetrics>;
     prepHygiene: EpicResult<PrepHygieneMetrics>;
-  };
-  informational: {
-    concurrentLb3Targets: ConcurrentLb3Result;
-    naturesSwiftnessAudit: NaturesSwiftnessAuditResult;
   };
 }
 
@@ -106,12 +104,18 @@ export interface LifebloomDisciplineRollup extends EpicRollupBase {
   accidentalBloomsTotal: number;
   restackTaxCastsTotal: number;
   restackTaxEstimatedManaTotal: number;
+  concurrentLb3AvgPooled: number | null;
+  concurrentLb3PeakMax: number;
 }
 export interface SpellDisciplineRollup extends EpicRollupBase {
   rejuvenationClipPctPooled: number | null;
   regrowthClipPctPooled: number | null;
   swiftmendWastefulPctPooled: number | null;
+  swiftmendUtilizationPctPooled: number | null;
   downrankingFlaggedTotal: number;
+  naturesSwiftnessCastsTotal: number;
+  naturesSwiftnessAvailableWindowsTotal: number;
+  naturesSwiftnessUtilizationPctPooled: number | null;
 }
 export interface OverhealRollupRow {
   category: string;
@@ -138,12 +142,6 @@ export interface PrepHygieneRollup extends EpicRollupBase {
   fightsWithFood: number;
   fightsWithOil: number;
 }
-export interface InformationalRollup {
-  concurrentLb3AvgPooled: number | null;
-  concurrentLb3PeakMax: number;
-  naturesSwiftnessCastsTotal: number;
-  naturesSwiftnessAvailableWindowsTotal: number;
-}
 export interface DruidRollup {
   gcdEconomy: GcdEconomyRollup;
   lifebloomDiscipline: LifebloomDisciplineRollup;
@@ -151,7 +149,6 @@ export interface DruidRollup {
   manaEconomy: ManaEconomyRollup;
   deathForensics: DeathForensicsRollup;
   prepHygiene: PrepHygieneRollup;
-  informational: InformationalRollup;
 }
 export interface DruidResult extends DruidFights {
   rollup: DruidRollup;
