@@ -260,12 +260,25 @@ export async function computeFightResult(
       ctx.lifebloomAbilityIds,
       durationMs,
     );
+    // Duplicates the computation also done below for
+    // `informational.concurrentLb3Targets` — Task 6 needs the value here to
+    // satisfy summarizeLifebloomDiscipline's new 5th param, and sharing a
+    // single computed value across both spots is Task 10's restructuring to
+    // do, not this task's.
+    const concurrentLb3Targets = computeConcurrentLb3Targets(
+      buffEvents,
+      druidId,
+      ctx.lifebloomAbilityIds,
+      fight.startTime,
+      fight.endTime,
+    );
     return {
       summary: summarizeLifebloomDiscipline(
         lb3Uptime,
         refreshCadence,
         accidentalBlooms,
         restackTax,
+        concurrentLb3Targets,
       ),
       metrics: { lb3Uptime, refreshCadence, accidentalBlooms, restackTax },
     };
@@ -295,12 +308,27 @@ export async function computeFightResult(
       druidId,
       ctx.resolvedAbilities,
     );
+    // Duplicates the computation also done below for
+    // `informational.naturesSwiftnessAudit` — Task 6 needs the value here to
+    // satisfy summarizeSpellDiscipline's new 5th/6th params, and sharing a
+    // single computed value across both spots is Task 10's restructuring to
+    // do, not this task's. `hasNaturesSwiftness` is already computed above
+    // (line 212).
+    const naturesSwiftnessAudit = computeNaturesSwiftnessAudit(
+      castEvents,
+      druidId,
+      ctx.naturesSwiftnessAbilityIds,
+      ctx.resolvedAbilities,
+      durationMs,
+    );
     return {
       summary: summarizeSpellDiscipline(
         hotClipDetection,
         swiftmendAudit,
         downrankingDiscipline,
         hasSwiftmend,
+        naturesSwiftnessAudit,
+        hasNaturesSwiftness,
       ),
       metrics: { hotClipDetection, swiftmendAudit, downrankingDiscipline },
     };

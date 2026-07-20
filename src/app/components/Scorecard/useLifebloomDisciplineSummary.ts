@@ -6,6 +6,7 @@ import { computeLb3Uptime } from "../../../metrics/lb3Uptime";
 import { computeRefreshCadence } from "../../../metrics/refreshCadence";
 import { computeAccidentalBlooms } from "../../../metrics/accidentalBlooms";
 import { computeRestackTax } from "../../../metrics/restackTax";
+import { computeConcurrentLb3Targets } from "../../../metrics/concurrentLb3Targets";
 import { summarizeLifebloomDiscipline } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -64,11 +65,24 @@ export function useLifebloomDisciplineSummary(
           lifebloomAbilityIds,
           fight.endTime - fight.startTime,
         );
+        const concurrent = computeConcurrentLb3Targets(
+          buffEvents,
+          druidId,
+          lifebloomAbilityIds,
+          fight.startTime,
+          fight.endTime,
+        );
         setState({
           accessToken,
           summary: {
             status: "ready",
-            ...summarizeLifebloomDiscipline(lb3, refresh, blooms, restack),
+            ...summarizeLifebloomDiscipline(
+              lb3,
+              refresh,
+              blooms,
+              restack,
+              concurrent,
+            ),
           },
         });
       })

@@ -25,6 +25,23 @@ import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
 import type { OverhealTableResult } from "./overhealTable";
 import type { InnervateAuditResult } from "./innervateAudit";
+import type { ConcurrentLb3Result } from "./concurrentLb3Targets";
+import type { NaturesSwiftnessAuditResult } from "./naturesSwiftnessAudit";
+
+const NEUTRAL_CONCURRENT: ConcurrentLb3Result = {
+  avgConcurrent: 0,
+  peakConcurrent: 0,
+  levels: [],
+  judgement: null,
+};
+
+const NEUTRAL_NS: NaturesSwiftnessAuditResult = {
+  casts: [],
+  castCount: 0,
+  availableWindows: 1,
+  utilizationPct: 0,
+  judgement: "fair",
+};
 
 describe("worstJudgement", () => {
   it("returns the worst of a mix of judgements", () => {
@@ -124,12 +141,18 @@ describe("summarizeLifebloomDiscipline", () => {
       judgement: "fair",
     };
 
-    expect(summarizeLifebloomDiscipline(lb3, refresh, blooms, restack)).toEqual(
-      {
-        judgement: "fair",
-        stats: ["LB3 uptime: 79–91%", "Refresh cadence: 6.4s median"],
-      },
-    );
+    expect(
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        NEUTRAL_CONCURRENT,
+      ),
+    ).toEqual({
+      judgement: "fair",
+      stats: ["LB3 uptime: 79–91%", "Refresh cadence: 6.4s median"],
+    });
   });
 
   it("formats a single maintained target without a range", () => {
@@ -163,12 +186,18 @@ describe("summarizeLifebloomDiscipline", () => {
       judgement: "good",
     };
 
-    expect(summarizeLifebloomDiscipline(lb3, refresh, blooms, restack)).toEqual(
-      {
-        judgement: "good",
-        stats: ["LB3 uptime: 91%", "Refresh cadence: no refreshes"],
-      },
-    );
+    expect(
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        NEUTRAL_CONCURRENT,
+      ),
+    ).toEqual({
+      judgement: "good",
+      stats: ["LB3 uptime: 91%", "Refresh cadence: no refreshes"],
+    });
   });
 
   it("reports no maintained targets when there are none", () => {
@@ -192,7 +221,13 @@ describe("summarizeLifebloomDiscipline", () => {
     };
 
     expect(
-      summarizeLifebloomDiscipline(lb3, refresh, blooms, restack).stats[0],
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        NEUTRAL_CONCURRENT,
+      ).stats[0],
     ).toBe("LB3 uptime: no maintained targets");
   });
 
@@ -228,7 +263,125 @@ describe("summarizeLifebloomDiscipline", () => {
     };
 
     expect(
-      summarizeLifebloomDiscipline(lb3, refresh, blooms, restack).judgement,
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        NEUTRAL_CONCURRENT,
+      ).judgement,
+    ).toBe("fair");
+  });
+
+  it("reduces 3 similarly-weighted per-target judgements (good/fair/good) to good before combining with other good siblings", () => {
+    // Real-world motivating case: 3 well-maintained targets at 96%/75%/94%
+    // uptime (good/fair/good under the 80/60 bands) should read as
+    // excellent Lifebloom discipline, not "fair" from a flat worst-of.
+    const lb3: Lb3UptimeResult = {
+      targets: [
+        {
+          targetId: 1,
+          lbUptimePct: 96,
+          lb3UptimeMs: 96000,
+          windowMs: 100000,
+          lb3UptimePct: 96,
+          judgement: "good",
+        },
+        {
+          targetId: 2,
+          lbUptimePct: 75,
+          lb3UptimeMs: 75000,
+          windowMs: 100000,
+          lb3UptimePct: 75,
+          judgement: "fair",
+        },
+        {
+          targetId: 3,
+          lbUptimePct: 94,
+          lb3UptimeMs: 94000,
+          windowMs: 100000,
+          lb3UptimePct: 94,
+          judgement: "good",
+        },
+      ],
+    };
+    const refresh: RefreshCadenceResult = {
+      intervalCount: 5,
+      medianMs: 6400,
+      judgement: "good",
+      buckets: [],
+    };
+    const blooms: AccidentalBloomsResult = {
+      accidentalBlooms: [],
+      count: 0,
+      judgement: "good",
+    };
+    const restack: RestackTaxResult = {
+      casts: [],
+      castCount: 0,
+      estimatedMana: 0,
+      judgement: "good",
+    };
+    const concurrent: ConcurrentLb3Result = {
+      avgConcurrent: 2.4,
+      peakConcurrent: 3,
+      levels: [],
+      judgement: "good",
+    };
+
+    expect(
+      summarizeLifebloomDiscipline(lb3, refresh, blooms, restack, concurrent)
+        .judgement,
+    ).toBe("good");
+  });
+
+  it("keeps the epic at fair when the weighted median genuinely favors the weaker target", () => {
+    const lb3: Lb3UptimeResult = {
+      targets: [
+        {
+          targetId: 1,
+          lbUptimePct: 96,
+          lb3UptimeMs: 9600,
+          windowMs: 10000,
+          lb3UptimePct: 96,
+          judgement: "good",
+        },
+        {
+          targetId: 2,
+          lbUptimePct: 65,
+          lb3UptimeMs: 58500,
+          windowMs: 90000,
+          lb3UptimePct: 65,
+          judgement: "fair",
+        },
+      ],
+    };
+    const refresh: RefreshCadenceResult = {
+      intervalCount: 5,
+      medianMs: 6400,
+      judgement: "good",
+      buckets: [],
+    };
+    const blooms: AccidentalBloomsResult = {
+      accidentalBlooms: [],
+      count: 0,
+      judgement: "good",
+    };
+    const restack: RestackTaxResult = {
+      casts: [],
+      castCount: 0,
+      estimatedMana: 0,
+      judgement: "good",
+    };
+
+    expect(
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        NEUTRAL_CONCURRENT,
+      ).judgement,
     ).toBe("fair");
   });
 });
@@ -274,6 +427,8 @@ describe("summarizeSpellDiscipline", () => {
         swiftmendAudit,
         GOOD_DOWNRANKING,
         true,
+        NEUTRAL_NS,
+        false,
       ),
     ).toEqual({
       judgement: "fair",
@@ -310,8 +465,14 @@ describe("summarizeSpellDiscipline", () => {
     };
 
     expect(
-      summarizeSpellDiscipline(hotClips, swiftmendAudit, GOOD_DOWNRANKING, true)
-        .judgement,
+      summarizeSpellDiscipline(
+        hotClips,
+        swiftmendAudit,
+        GOOD_DOWNRANKING,
+        true,
+        NEUTRAL_NS,
+        false,
+      ).judgement,
     ).toBe("good");
   });
 
@@ -344,8 +505,14 @@ describe("summarizeSpellDiscipline", () => {
     };
 
     expect(
-      summarizeSpellDiscipline(hotClips, swiftmendAudit, GOOD_DOWNRANKING, true)
-        .judgement,
+      summarizeSpellDiscipline(
+        hotClips,
+        swiftmendAudit,
+        GOOD_DOWNRANKING,
+        true,
+        NEUTRAL_NS,
+        false,
+      ).judgement,
     ).toBe("fair");
   });
 
@@ -397,6 +564,8 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendAudit,
       downranking,
       true,
+      NEUTRAL_NS,
+      false,
     );
 
     expect(result.judgement).toBe("fair");
@@ -439,10 +608,95 @@ describe("summarizeSpellDiscipline", () => {
       swiftmendAudit,
       GOOD_DOWNRANKING,
       false,
+      NEUTRAL_NS,
+      false,
     );
 
     expect(result.judgement).toBe("good");
     expect(result.stats).toEqual(["Rejuvenation clips: 1.0%"]);
+  });
+
+  const GOOD_SWIFTMEND: SwiftmendAuditResult = {
+    casts: [],
+    swiftmendCastCount: 20,
+    wastefulCount: 0,
+    wastefulPct: 0,
+    judgement: "good",
+    availableWindows: 22,
+    utilizationPct: 90,
+    utilizationJudgement: "good",
+  };
+  const GOOD_HOT_CLIPS: HotClipDetectionResult = {
+    rejuvenation: {
+      spell: "Rejuvenation",
+      castCount: 100,
+      clipCount: 1,
+      clipPct: 1,
+      judgement: "good",
+    },
+    regrowth: { spell: "Regrowth", castCount: 30, clipCount: 0, clipPct: 0 },
+    clipEvents: [],
+  };
+
+  it("folds Nature's Swiftness's judgement in when the build is eligible", () => {
+    const badNS: NaturesSwiftnessAuditResult = {
+      casts: [],
+      castCount: 0,
+      availableWindows: 2,
+      utilizationPct: 0,
+      judgement: "bad",
+    };
+
+    const result = summarizeSpellDiscipline(
+      GOOD_HOT_CLIPS,
+      GOOD_SWIFTMEND,
+      GOOD_DOWNRANKING,
+      true,
+      badNS,
+      true,
+    );
+
+    expect(result.judgement).toBe("fair");
+  });
+
+  it("excludes Nature's Swiftness's judgement when the build can't reach its talent", () => {
+    const badNS: NaturesSwiftnessAuditResult = {
+      casts: [],
+      castCount: 0,
+      availableWindows: 2,
+      utilizationPct: 0,
+      judgement: "bad",
+    };
+
+    const result = summarizeSpellDiscipline(
+      GOOD_HOT_CLIPS,
+      GOOD_SWIFTMEND,
+      GOOD_DOWNRANKING,
+      true,
+      badNS,
+      false,
+    );
+
+    expect(result.judgement).toBe("good");
+  });
+
+  it("folds Swiftmend's utilization judgement in separately from its wasteful-share judgement", () => {
+    const swiftmendGoodWastefulBadUtilization: SwiftmendAuditResult = {
+      ...GOOD_SWIFTMEND,
+      utilizationPct: 20,
+      utilizationJudgement: "bad",
+    };
+
+    const result = summarizeSpellDiscipline(
+      GOOD_HOT_CLIPS,
+      swiftmendGoodWastefulBadUtilization,
+      GOOD_DOWNRANKING,
+      true,
+      NEUTRAL_NS,
+      false,
+    );
+
+    expect(result.judgement).toBe("fair");
   });
 });
 

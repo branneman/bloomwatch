@@ -1,4 +1,8 @@
-import { mixedJudgement, type Judgement } from "./judgement";
+import {
+  mixedJudgement,
+  weightedMedianJudgement,
+  type Judgement,
+} from "./judgement";
 export { worstJudgement } from "./judgement";
 import type { GcdUtilizationResult } from "./gcdUtilization";
 import type { IdleGapsResult } from "./idleGaps";
@@ -16,6 +20,8 @@ import type { PrepHygieneResult } from "./prepHygiene";
 import type { ConsumableThroughputResult } from "./consumableThroughput";
 import type { OverhealTableResult } from "./overhealTable";
 import type { InnervateAuditResult } from "./innervateAudit";
+import type { ConcurrentLb3Result } from "./concurrentLb3Targets";
+import type { NaturesSwiftnessAuditResult } from "./naturesSwiftnessAudit";
 
 export interface EpicSummary {
   judgement: Judgement;
@@ -47,12 +53,30 @@ export function summarizeLifebloomDiscipline(
   refresh: RefreshCadenceResult,
   blooms: AccidentalBloomsResult,
   restack: RestackTaxResult,
+  concurrent: ConcurrentLb3Result,
 ): EpicSummary {
+  // Per-target LB3 judgements are reduced to one representative judgement
+  // via weightedMedianJudgement (weighted by each target's own tracked-
+  // uptime window) before joining the other siblings below — added
+  // 2026-07-19, direct request. Previously every target was folded in
+  // flatly alongside refresh/blooms/restack, which meant a fight with
+  // several well-maintained targets and just one middling one (no target
+  // actually "bad") fell back to strict worst-of and read "fair" even
+  // when the middling target's weight was small — see docs/thresholds.md's
+  // compounding-factors section for the motivating real example.
+  const lb3Reduced = weightedMedianJudgement(
+    lb3.targets.map((target) => ({
+      judgement: target.judgement,
+      weightMs: target.windowMs,
+    })),
+  );
+
   const judgement = mixedJudgement([
-    ...lb3.targets.map((target) => target.judgement),
+    lb3Reduced,
     refresh.judgement,
     blooms.judgement,
     restack.judgement,
+    concurrent.judgement,
   ]);
 
   const cadenceStat =
@@ -71,6 +95,8 @@ export function summarizeSpellDiscipline(
   swiftmendAudit: SwiftmendAuditResult,
   downranking: DownrankingDisciplineResult,
   hasSwiftmend: boolean,
+  naturesSwiftnessAudit: NaturesSwiftnessAuditResult,
+  hasNaturesSwiftness: boolean,
 ): EpicSummary {
   // Regrowth clipping has no judgement of its own (informational only —
   // see docs/backlog.md story 301), so it can't move this verdict; the
@@ -80,14 +106,22 @@ export function summarizeSpellDiscipline(
   // compounding-factors section for the full rationale, formerly its own
   // design doc, retired once this shipped) but doesn't get its own stat
   // line — story 701 caps a dashboard widget at 1-2 stats. Swiftmend's
-  // judgement/stat line are excluded entirely (not scored, not shown as a
-  // spurious good) when the druid's build can't reach Swiftmend's talent —
-  // story 903c.
+  // judgements/stat line are excluded entirely (not scored, not shown as
+  // a spurious good) when the druid's build can't reach Swiftmend's
+  // talent — story 903c. Swiftmend now contributes two judgements when
+  // eligible (wasteful share and utilization, story 302 revised direct
+  // request 2026-07-20) and Nature's Swiftness contributes its own
+  // utilization judgement when the build can reach its talent (story 304
+  // revised story 914, same date) — neither gets its own stat line, same
+  // precedent as downranking.
   return {
     judgement: mixedJudgement([
       hotClips.rejuvenation.judgement,
-      ...(hasSwiftmend ? [swiftmendAudit.judgement] : []),
+      ...(hasSwiftmend
+        ? [swiftmendAudit.judgement, swiftmendAudit.utilizationJudgement]
+        : []),
       downranking.judgement,
+      ...(hasNaturesSwiftness ? [naturesSwiftnessAudit.judgement] : []),
     ]),
     stats: [
       `Rejuvenation clips: ${hotClips.rejuvenation.clipPct.toFixed(1)}%`,

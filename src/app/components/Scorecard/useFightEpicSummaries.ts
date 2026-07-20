@@ -75,6 +75,7 @@ export function useFightEpicSummaries(
     rejuvenationAbilityIds,
     regrowthAbilityIds,
     swiftmendAbilityIds,
+    naturesSwiftnessAbilityIds,
     resolvedAbilities,
     fetchEvents,
   );

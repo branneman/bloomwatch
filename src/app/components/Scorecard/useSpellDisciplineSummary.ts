@@ -6,10 +6,12 @@ import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { computeHotClipDetection } from "../../../metrics/hotClipDetection";
 import { computeSwiftmendAudit } from "../../../metrics/swiftmendAudit";
 import { computeDownrankingDiscipline } from "../../../metrics/downrankingDiscipline";
+import { computeNaturesSwiftnessAudit } from "../../../metrics/naturesSwiftnessAudit";
 import { summarizeSpellDiscipline } from "../../../metrics/epicSummary";
 import {
   parseTalentPoints,
   SWIFTMEND_MIN_RESTORATION,
+  NATURES_SWIFTNESS_MIN_RESTORATION,
 } from "../../../report/archetypeDetection";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -23,6 +25,7 @@ export function useSpellDisciplineSummary(
   rejuvenationAbilityIds: Set<number>,
   regrowthAbilityIds: Set<number>,
   swiftmendAbilityIds: Set<number>,
+  naturesSwiftnessAbilityIds: Set<number>,
   resolvedAbilities: Map<number, ResolvedAbility>,
   fetchEvents: (
     accessToken: string,
@@ -50,6 +53,8 @@ export function useSpellDisciplineSummary(
         const talents = parseTalentPoints(combatantInfoEvents, druidId);
         const restoration = talents === null ? 0 : talents[2];
         const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
+        const hasNaturesSwiftness =
+          restoration >= NATURES_SWIFTNESS_MIN_RESTORATION;
         const hotClips = computeHotClipDetection(
           buffEvents,
           castEvents,
@@ -67,6 +72,13 @@ export function useSpellDisciplineSummary(
           regrowthAbilityIds,
           fight.endTime - fight.startTime,
         );
+        const naturesSwiftnessAudit = computeNaturesSwiftnessAudit(
+          castEvents,
+          druidId,
+          naturesSwiftnessAbilityIds,
+          resolvedAbilities,
+          fight.endTime - fight.startTime,
+        );
         const downranking = computeDownrankingDiscipline(
           castEvents,
           healingEvents,
@@ -82,6 +94,8 @@ export function useSpellDisciplineSummary(
               swiftmendAudit,
               downranking,
               hasSwiftmend,
+              naturesSwiftnessAudit,
+              hasNaturesSwiftness,
             ),
           },
         });
@@ -108,6 +122,7 @@ export function useSpellDisciplineSummary(
     rejuvenationAbilityIds,
     regrowthAbilityIds,
     swiftmendAbilityIds,
+    naturesSwiftnessAbilityIds,
     resolvedAbilities,
     fetchEvents,
   ]);
