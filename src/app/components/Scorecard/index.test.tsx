@@ -33,6 +33,7 @@ const baseProps = {
   ]),
   targetNames: new Map(),
   actorClasses: new Map(),
+  fetchLookbackEvents: () => Promise.resolve([]),
   activeEpic: null,
   onSelectEpic: vi.fn(),
   onBackToFights: vi.fn(),

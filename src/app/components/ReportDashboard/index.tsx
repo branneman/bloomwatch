@@ -48,6 +48,14 @@ export interface ReportDashboardProps {
     dataType: WclEventDataType,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>;
+  fetchLookbackEvents: (
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources?: boolean,
+  ) => Promise<WclEvent[]>;
   openFightId: number | null;
   onOpenFight: (fightId: number) => void;
   onCloseFight: () => void;
@@ -97,6 +105,7 @@ interface FightRowProps {
   resolvedAbilities: Map<number, ResolvedAbility>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: ReportDashboardProps["fetchEvents"];
+  fetchLookbackEvents: ReportDashboardProps["fetchLookbackEvents"];
 }
 
 function FightRow({
@@ -116,6 +125,7 @@ function FightRow({
   resolvedAbilities,
   actorClasses,
   fetchEvents,
+  fetchLookbackEvents,
 }: FightRowProps) {
   const summaries = useFightEpicSummaries(
     accessToken,
@@ -130,6 +140,7 @@ function FightRow({
     resolvedAbilities,
     actorClasses,
     fetchEvents,
+    fetchLookbackEvents,
   );
   const healingRole = useHealingRoleThisFight(
     accessToken,
@@ -208,6 +219,7 @@ export function ReportDashboard({
   targetNames,
   actorClasses,
   fetchEvents,
+  fetchLookbackEvents,
   openFightId,
   onOpenFight,
   onCloseFight,
@@ -264,6 +276,7 @@ export function ReportDashboard({
         targetNames={targetNames}
         actorClasses={actorClasses}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
         activeEpic={activeEpicId}
         onSelectEpic={onSelectEpic}
         onBackToFights={onCloseFight}
@@ -352,6 +365,7 @@ export function ReportDashboard({
             resolvedAbilities={resolvedAbilities}
             actorClasses={actorClasses}
             fetchEvents={fetchEvents}
+            fetchLookbackEvents={fetchLookbackEvents}
           />
         ))}
       </div>

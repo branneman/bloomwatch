@@ -54,6 +54,14 @@ export interface ScorecardProps {
     dataType: WclEventDataType,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>;
+  fetchLookbackEvents: (
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources?: boolean,
+  ) => Promise<WclEvent[]>;
   activeEpic: EpicId | null;
   onSelectEpic: (epicId: EpicId | null) => void;
   onBackToFights: () => void;
@@ -100,6 +108,7 @@ export function Scorecard({
   targetNames,
   actorClasses,
   fetchEvents,
+  fetchLookbackEvents,
   activeEpic,
   onSelectEpic,
   onBackToFights,
@@ -126,6 +135,7 @@ export function Scorecard({
     resolvedAbilities,
     actorClasses,
     fetchEvents,
+    fetchLookbackEvents,
   );
   const healingAbilityIds = useMemo(
     () => getHealingAbilityIds(resolvedAbilities),
@@ -423,6 +433,7 @@ export function Scorecard({
             lifebloomAbilityIds={lifebloomAbilityIds}
             targetNames={targetNames}
             fetchEvents={fetchEvents}
+            fetchLookbackEvents={fetchLookbackEvents}
           />
         </div>
       )}

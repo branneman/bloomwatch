@@ -35,6 +35,7 @@ const baseProps = {
   ]),
   targetNames: new Map(),
   actorClasses: new Map(),
+  fetchLookbackEvents: () => Promise.resolve([]),
   openFightId: null as number | null,
   onOpenFight: vi.fn(),
   onCloseFight: vi.fn(),

@@ -34,6 +34,15 @@ type FetchEvents = (
   includeResources?: boolean,
 ) => Promise<WclEvent[]>;
 
+type FetchLookbackEvents = (
+  accessToken: string,
+  reportCode: string,
+  dataType: WclEventDataType,
+  startTime: number,
+  endTime: number,
+  includeResources?: boolean,
+) => Promise<WclEvent[]>;
+
 // Wraps the seven per-epic summary hooks Scorecard needs for its widget
 // grid, so both Scorecard and ReportDashboard's per-fight rows can get all
 // seven without each re-writing the same seven hook calls in the same
@@ -51,6 +60,7 @@ export function useFightEpicSummaries(
   resolvedAbilities: Map<number, ResolvedAbility>,
   actorClasses: Map<number, ActorClass>,
   fetchEvents: FetchEvents,
+  fetchLookbackEvents: FetchLookbackEvents,
 ): FightEpicSummaries {
   const gcd = useGcdEconomySummary(
     accessToken,
@@ -66,6 +76,7 @@ export function useFightEpicSummaries(
     druidId,
     lifebloomAbilityIds,
     fetchEvents,
+    fetchLookbackEvents,
   );
   const spell = useSpellDisciplineSummary(
     accessToken,

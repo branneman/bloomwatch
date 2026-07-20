@@ -8,6 +8,7 @@ describe("LifebloomDisciplineContent", () => {
   it("renders all five Lifebloom-discipline cards", () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => Promise.resolve([]);
+    const fetchLookbackEvents = () => Promise.resolve([]);
 
     render(
       <LifebloomDisciplineContent
@@ -19,6 +20,7 @@ describe("LifebloomDisciplineContent", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
       />,
     );
 

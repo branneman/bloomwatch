@@ -23,6 +23,14 @@ export interface LifebloomDisciplineContentProps {
     fight: EventFetcherFight,
     dataType: WclEventDataType,
   ) => Promise<WclEvent[]>;
+  fetchLookbackEvents: (
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources?: boolean,
+  ) => Promise<WclEvent[]>;
 }
 
 export function LifebloomDisciplineContent({
@@ -34,6 +42,7 @@ export function LifebloomDisciplineContent({
   lifebloomAbilityIds,
   targetNames,
   fetchEvents,
+  fetchLookbackEvents,
 }: LifebloomDisciplineContentProps) {
   return (
     <div className={styles.group}>
@@ -45,6 +54,7 @@ export function LifebloomDisciplineContent({
         lifebloomAbilityIds={lifebloomAbilityIds}
         targetNames={targetNames}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
       />
       <RefreshCadenceCard
         accessToken={accessToken}
@@ -81,6 +91,7 @@ export function LifebloomDisciplineContent({
         druidId={druidId}
         lifebloomAbilityIds={lifebloomAbilityIds}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
       />
     </div>
   );

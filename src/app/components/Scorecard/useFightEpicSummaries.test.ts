@@ -7,6 +7,7 @@ describe("useFightEpicSummaries", () => {
   it("starts every epic loading, then resolves all seven once their fetches settle", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => Promise.resolve([]);
+    const fetchLookbackEvents = () => Promise.resolve([]);
 
     const { result } = renderHook(() =>
       useFightEpicSummaries(
@@ -22,6 +23,7 @@ describe("useFightEpicSummaries", () => {
         new Map(),
         new Map(),
         fetchEvents,
+        fetchLookbackEvents,
       ),
     );
 

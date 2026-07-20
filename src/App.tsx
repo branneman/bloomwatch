@@ -115,6 +115,17 @@ function App() {
       ),
     [eventFetcher, reportRateLimited, reportError],
   );
+  const wrappedFetchLookbackEvents = useMemo(
+    () =>
+      withErrorReporting(
+        withRateLimitDetection(
+          eventFetcher.fetchLookbackEvents,
+          reportRateLimited,
+        ),
+        reportError,
+      ),
+    [eventFetcher, reportRateLimited, reportError],
+  );
 
   function resetReportState() {
     setLoadedReport(null);
@@ -544,6 +555,7 @@ function App() {
                   targetNames={actorNames}
                   actorClasses={actorClasses}
                   fetchEvents={wrappedFetchEvents}
+                  fetchLookbackEvents={wrappedFetchLookbackEvents}
                   openFightId={openFightId}
                   onOpenFight={handleOpenFight}
                   onCloseFight={handleCloseFight}
