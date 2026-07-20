@@ -264,6 +264,8 @@ describe("summarizeSpellDiscipline", () => {
       wastefulPct: 0,
       judgement: "good",
       availableWindows: 22,
+      utilizationPct: 90,
+      utilizationJudgement: "good",
     };
 
     expect(
@@ -303,6 +305,8 @@ describe("summarizeSpellDiscipline", () => {
       wastefulPct: 0,
       judgement: "good",
       availableWindows: 22,
+      utilizationPct: 90,
+      utilizationJudgement: "good",
     };
 
     expect(
@@ -335,6 +339,8 @@ describe("summarizeSpellDiscipline", () => {
       wastefulPct: 83.3,
       judgement: "bad",
       availableWindows: 22,
+      utilizationPct: 90,
+      utilizationJudgement: "good",
     };
 
     expect(
@@ -367,6 +373,8 @@ describe("summarizeSpellDiscipline", () => {
       wastefulPct: 0,
       judgement: "good",
       availableWindows: 22,
+      utilizationPct: 90,
+      utilizationJudgement: "good",
     };
     const downranking: DownrankingDisciplineResult = {
       breakdown: [
@@ -422,6 +430,8 @@ describe("summarizeSpellDiscipline", () => {
       wastefulPct: 0,
       judgement: "bad",
       availableWindows: 22,
+      utilizationPct: 0,
+      utilizationJudgement: "bad",
     };
 
     const result = summarizeSpellDiscipline(

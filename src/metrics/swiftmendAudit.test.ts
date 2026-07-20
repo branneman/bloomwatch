@@ -32,6 +32,8 @@ describe("computeSwiftmendAudit", () => {
       wastefulPct: 0,
       judgement: "good",
       availableWindows: 22,
+      utilizationPct: 0,
+      utilizationJudgement: "bad",
     });
   });
 
@@ -383,6 +385,38 @@ describe("computeSwiftmendAudit", () => {
 
       expect(result.wastefulCount).toBe(wastefulCount);
       expect(result.judgement).toBe(expected);
+    },
+  );
+
+  it.each([
+    { castCount: 20, expectedPct: (20 / 22) * 100, expected: "good" }, // 22 windows in a 341000ms fight
+    { castCount: 12, expectedPct: (12 / 22) * 100, expected: "fair" },
+    { castCount: 5, expectedPct: (5 / 22) * 100, expected: "bad" },
+  ])(
+    "judges $expected utilization for $castCount casts of 22 available windows",
+    ({ castCount, expectedPct, expected }) => {
+      const castEvents = Array.from({ length: castCount }, (_, i) =>
+        aCastEvent({
+          timestamp: i * 15000,
+          targetID: 50,
+          abilityGameID: 18562,
+        }),
+      );
+
+      const result = computeSwiftmendAudit(
+        [],
+        castEvents,
+        [],
+        DRUID_ID,
+        SWIFTMEND_IDS,
+        REJUV_IDS,
+        REGROWTH_IDS,
+        341000,
+      );
+
+      expect(result.swiftmendCastCount).toBe(castCount);
+      expect(result.utilizationPct).toBeCloseTo(expectedPct, 5);
+      expect(result.utilizationJudgement).toBe(expected);
     },
   );
 

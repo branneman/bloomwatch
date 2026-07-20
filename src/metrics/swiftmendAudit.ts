@@ -1,6 +1,6 @@
 import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
-import { judgeThresholdBelow } from "./judgement";
+import { judgeThreshold, judgeThresholdBelow } from "./judgement";
 import {
   type HotClipSpell,
   CLIP_THRESHOLD_MS,
@@ -35,6 +35,8 @@ export interface SwiftmendAuditResult {
   wastefulPct: number;
   judgement: Judgement;
   availableWindows: number;
+  utilizationPct: number;
+  utilizationJudgement: Judgement;
 }
 
 interface HotRemoval {
@@ -54,6 +56,16 @@ interface HotRemoval {
 // docs/thresholds.md's spell discipline calibration-review paragraph).
 function judgeWastefulShare(wastefulPct: number): Judgement {
   return judgeThresholdBelow(wastefulPct, { goodMax: 40, fairMax: 80 });
+}
+
+// good >= 75% / fair 50-75% / bad < 50% of theoretical 15s-cooldown windows
+// used, per docs/backlog.md story 302, revised by direct request
+// 2026-07-20 (docs/thresholds.md) — separate from (and combined with, in
+// epicSummary.ts) the wasteful-share judgement above: this measures
+// whether Swiftmend was used often enough, not whether each use was
+// justified.
+function judgeUtilization(utilizationPct: number): Judgement {
+  return judgeThreshold(utilizationPct, { goodMin: 75, fairMin: 50 });
 }
 
 function trackHotRemovals(
@@ -219,12 +231,20 @@ export function computeSwiftmendAudit(
   const wastefulPct =
     casts.length === 0 ? 0 : (wastefulCount / casts.length) * 100;
 
+  const availableWindows = Math.floor(fightDurationMs / SWIFTMEND_COOLDOWN_MS);
+  const utilizationPct =
+    availableWindows === 0
+      ? 0
+      : (swiftmendCasts.length / availableWindows) * 100;
+
   return {
     casts,
     swiftmendCastCount: swiftmendCasts.length,
     wastefulCount,
     wastefulPct,
     judgement: judgeWastefulShare(wastefulPct),
-    availableWindows: Math.floor(fightDurationMs / SWIFTMEND_COOLDOWN_MS),
+    availableWindows,
+    utilizationPct,
+    utilizationJudgement: judgeUtilization(utilizationPct),
   };
 }
