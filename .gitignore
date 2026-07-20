@@ -42,9 +42,7 @@ docs/design_v*
 # (story 802/900-902). Durable findings get distilled into docs/testing.md's
 # known-reports table and docs/thresholds.md instead; the raw per-report JSON
 # is scratch material, not itself worth committing at the volume a real
-# calibration pass generates. (One pre-existing committed file predates this
-# policy — calibration-data/4GYHZRdtL3bvhpc8.json — left as historical, not
-# retroactively removed.)
+# calibration pass generates.
 calibration-data/
 
 # Local git worktree checkouts (superpowers:using-git-worktrees) — never committed.
