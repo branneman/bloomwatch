@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConcurrentTargetsCard } from "./index";
 import type { WclEvent } from "../../../wcl/events";
 import * as concurrentLb3TargetsModule from "../../../metrics/concurrentLb3Targets";
+import * as lifebloomStacksModule from "../../../metrics/lifebloomStacks";
 import {
   aFight,
   anApplyBuffEvent,
@@ -139,6 +140,32 @@ describe("ConcurrentTargetsCard", () => {
     ).mockImplementation(() => {
       throw new Error("boom");
     });
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = () => Promise.resolve([]);
+
+    render(
+      <ConcurrentTargetsCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("boom"),
+    );
+  });
+
+  it("shows a local error message when detecting carry-in targets throws (isolated from the rest of the scorecard)", async () => {
+    vi.spyOn(lifebloomStacksModule, "detectCarryInTargets").mockImplementation(
+      () => {
+        throw new Error("boom");
+      },
+    );
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => Promise.resolve([]);
 

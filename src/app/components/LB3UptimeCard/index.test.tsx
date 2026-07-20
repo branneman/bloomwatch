@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LB3UptimeCard } from "./index";
 import * as lb3UptimeModule from "../../../metrics/lb3Uptime";
+import * as lifebloomStacksModule from "../../../metrics/lifebloomStacks";
 import {
   aFight,
   anApplyBuffEvent,
@@ -157,6 +158,33 @@ describe("LB3UptimeCard", () => {
     vi.spyOn(lb3UptimeModule, "computeLb3Uptime").mockImplementation(() => {
       throw new Error("boom");
     });
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = () => Promise.resolve([]);
+
+    render(
+      <LB3UptimeCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("boom"),
+    );
+  });
+
+  it("shows a local error message when detecting carry-in targets throws (isolated from the rest of the scorecard)", async () => {
+    vi.spyOn(lifebloomStacksModule, "detectCarryInTargets").mockImplementation(
+      () => {
+        throw new Error("boom");
+      },
+    );
     const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
     const fetchEvents = () => Promise.resolve([]);
 
