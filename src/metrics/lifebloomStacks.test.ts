@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   reconstructLifebloomTimelines,
   deriveLifebloomTargetState,
+  detectCarryInTargets,
 } from "./lifebloomStacks";
 import {
   anApplyBuffEvent,
@@ -275,5 +276,36 @@ describe("deriveLifebloomTargetState", () => {
       totalAnyStackMs: 4000,
       stack3Intervals: [],
     });
+  });
+});
+
+describe("detectCarryInTargets", () => {
+  it("flags a target whose timeline opens with a refresh instead of an open", () => {
+    const events = [
+      aRefreshBuffEvent({ timestamp: 2016447, targetID: 5, sourceID: 1 }),
+      aRemoveBuffEvent({ timestamp: 2064275, targetID: 5, sourceID: 1 }),
+    ];
+
+    expect(detectCarryInTargets(events, 1, LB_IDS)).toEqual([5]);
+  });
+
+  it("does not flag a target whose timeline opens with a genuine open", () => {
+    const events = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      aRemoveBuffEvent({ timestamp: 1000, targetID: 42 }),
+    ];
+
+    expect(detectCarryInTargets(events, 2, LB_IDS)).toEqual([]);
+  });
+
+  it("flags only the ambiguous target among several", () => {
+    const events = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      aRemoveBuffEvent({ timestamp: 1000, targetID: 42 }),
+      aRefreshBuffEvent({ timestamp: 0, targetID: 47, sourceID: 1 }),
+      aRemoveBuffEvent({ timestamp: 1000, targetID: 47, sourceID: 1 }),
+    ];
+
+    expect(detectCarryInTargets(events, 1, LB_IDS)).toEqual([47]);
   });
 });

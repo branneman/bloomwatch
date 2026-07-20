@@ -103,6 +103,31 @@ export function reconstructLifebloomTimelines(
   return result;
 }
 
+// Story 915: flags targets whose fight-window timeline opens mid-stream
+// (anything other than "open" as the first event) - proof the buff was
+// already active before this fetch window began, per
+// deriveLifebloomTargetState's own existing carry-in comment. Callers use
+// this, from the fight-window events they've already fetched, to decide
+// whether a second (lookback) fetch is worth making at all.
+export function detectCarryInTargets(
+  events: WclEvent[],
+  druidId: number,
+  lifebloomAbilityIds: Set<number>,
+): number[] {
+  const timelines = reconstructLifebloomTimelines(
+    events,
+    druidId,
+    lifebloomAbilityIds,
+  );
+  const flagged: number[] = [];
+  for (const [targetId, timeline] of timelines) {
+    if (timeline.length > 0 && timeline[0].kind !== "open") {
+      flagged.push(targetId);
+    }
+  }
+  return flagged;
+}
+
 export interface LifebloomTargetState {
   totalAnyStackMs: number;
   stack3Intervals: { start: number; end: number }[];
