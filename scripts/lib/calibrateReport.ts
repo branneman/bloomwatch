@@ -27,6 +27,7 @@ import { computeRefreshCadence } from "../../src/metrics/refreshCadence";
 import { computeAccidentalBlooms } from "../../src/metrics/accidentalBlooms";
 import { computeRestackTax } from "../../src/metrics/restackTax";
 import { computeConcurrentLb3Targets } from "../../src/metrics/concurrentLb3Targets";
+import { detectCarryInTargets } from "../../src/metrics/lifebloomStacks";
 import { computeHotClipDetection } from "../../src/metrics/hotClipDetection";
 import { computeSwiftmendAudit } from "../../src/metrics/swiftmendAudit";
 import { computeDownrankingDiscipline } from "../../src/metrics/downrankingDiscipline";
@@ -74,6 +75,9 @@ export interface ReportContext {
   naturesSwiftnessAbilityIds: Set<number>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: ReturnType<typeof createEventFetcher>["fetchEvents"];
+  fetchLookbackEvents: ReturnType<
+    typeof createEventFetcher
+  >["fetchLookbackEvents"];
 }
 
 export async function buildReportContext(
@@ -104,7 +108,7 @@ export async function buildReportContext(
   );
   const resolvedAbilities = resolveAbilities(reportAbilities);
 
-  const { fetchEvents } = createEventFetcher();
+  const { fetchEvents, fetchLookbackEvents } = createEventFetcher();
 
   return {
     accessToken,
@@ -126,6 +130,7 @@ export async function buildReportContext(
     ),
     actorClasses,
     fetchEvents,
+    fetchLookbackEvents,
   };
 }
 
@@ -198,6 +203,23 @@ export async function computeFightResult(
     ),
   ]);
 
+  const carryInTargets = detectCarryInTargets(
+    buffEvents,
+    druidId,
+    ctx.lifebloomAbilityIds,
+  );
+  const lookbackEvents =
+    carryInTargets.length > 0
+      ? await ctx.fetchLookbackEvents(
+          ctx.accessToken,
+          ctx.reportCode,
+          "Buffs",
+          fight.startTime - 60_000,
+          fight.startTime,
+          true,
+        )
+      : undefined;
+
   const talents = parseTalentPoints(combatantInfoEvents, druidId);
   const restoration = talents === null ? 0 : talents[2];
   const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
@@ -233,6 +255,7 @@ export async function computeFightResult(
       ctx.lifebloomAbilityIds,
       fight.startTime,
       fight.endTime,
+      lookbackEvents,
     );
     const refreshCadence = computeRefreshCadence(
       buffEvents,
@@ -258,6 +281,7 @@ export async function computeFightResult(
       ctx.lifebloomAbilityIds,
       fight.startTime,
       fight.endTime,
+      lookbackEvents,
     );
     return {
       summary: summarizeLifebloomDiscipline(
