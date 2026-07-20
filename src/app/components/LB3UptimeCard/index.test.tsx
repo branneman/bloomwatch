@@ -6,8 +6,11 @@ import {
   aFight,
   anApplyBuffEvent,
   anApplyBuffStackEvent,
+  aRefreshBuffEvent,
   aRemoveBuffEvent,
 } from "../../../testUtils/factories";
+
+const noopFetchLookbackEvents = () => Promise.resolve([]);
 
 describe("LB3UptimeCard", () => {
   afterEach(() => {
@@ -38,6 +41,7 @@ describe("LB3UptimeCard", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map([[42, "Fanah"]])}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
       />,
     );
 
@@ -68,6 +72,7 @@ describe("LB3UptimeCard", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
       />,
     );
 
@@ -89,6 +94,7 @@ describe("LB3UptimeCard", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
       />,
     );
 
@@ -110,6 +116,7 @@ describe("LB3UptimeCard", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
       />,
     );
 
@@ -133,6 +140,7 @@ describe("LB3UptimeCard", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
       />,
     );
 
@@ -161,11 +169,102 @@ describe("LB3UptimeCard", () => {
         lifebloomAbilityIds={new Set([33763])}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
+        fetchLookbackEvents={noopFetchLookbackEvents}
       />,
     );
 
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("boom"),
     );
+  });
+
+  it("fetches a lookback window and resolves a carry-in target instead of excluding it", async () => {
+    const fightStart = 2011529;
+    const fightEnd = 2113050;
+    const fight = aFight({ id: 6, startTime: fightStart, endTime: fightEnd });
+    // Same fixture shape as lb3Uptime.test.ts's "resolves a carry-in
+    // target" test: the fight-window timeline opens with a "refresh" (no
+    // leading "open"), which is only possible if the buff was already
+    // active before this fetch window began.
+    const events = [
+      aRefreshBuffEvent({ timestamp: 2016447, targetID: 5, sourceID: 2 }),
+    ];
+    const lookbackEvents = [
+      anApplyBuffEvent({ timestamp: 1960000, targetID: 5, sourceID: 2 }),
+      anApplyBuffStackEvent({
+        timestamp: 1970000,
+        stack: 3,
+        targetID: 5,
+        sourceID: 2,
+      }),
+    ];
+    const fetchEvents = () => Promise.resolve(events);
+    const fetchLookbackEvents = vi.fn().mockResolvedValue(lookbackEvents);
+
+    render(
+      <LB3UptimeCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[5, "Fanah"]])}
+        fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText("Fanah")).toBeInTheDocument());
+
+    expect(fetchLookbackEvents).toHaveBeenCalledTimes(1);
+    expect(fetchLookbackEvents).toHaveBeenCalledWith(
+      "test-token",
+      "4GYHZRdtL3bvhpc8",
+      "Buffs",
+      fightStart - 60_000,
+      fightStart,
+      true,
+    );
+
+    // Resolved to 100% LB3 uptime/"Good" rather than excluded ("No
+    // maintained targets.") or read as a confident 0%/bad.
+    expect(screen.getByText("100%")).toBeInTheDocument();
+    expect(screen.getByText("Good")).toBeInTheDocument();
+    expect(
+      screen.queryByText("No maintained targets."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("never calls fetchLookbackEvents when no target's timeline is ambiguous", async () => {
+    const fight = aFight({
+      id: 6,
+      name: "The Lurker Below",
+      startTime: 0,
+      endTime: 11000,
+    });
+    const events = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 500, stack: 2, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 1000, stack: 3, targetID: 42 }),
+      aRemoveBuffEvent({ timestamp: 11000, targetID: 42 }),
+    ];
+    const fetchEvents = () => Promise.resolve(events);
+    const fetchLookbackEvents = vi.fn().mockResolvedValue([]);
+
+    render(
+      <LB3UptimeCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[42, "Fanah"]])}
+        fetchEvents={fetchEvents}
+        fetchLookbackEvents={fetchLookbackEvents}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText("Fanah")).toBeInTheDocument());
+    expect(fetchLookbackEvents).not.toHaveBeenCalled();
   });
 });

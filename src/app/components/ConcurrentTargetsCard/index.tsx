@@ -6,9 +6,12 @@ import {
   computeConcurrentLb3Targets,
   type ConcurrentLb3Result,
 } from "../../../metrics/concurrentLb3Targets";
+import { detectCarryInTargets } from "../../../metrics/lifebloomStacks";
 import { MetricCard } from "../ui/MetricCard";
 import { StackedBar } from "../ui/StackedBar";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
+
+const LOOKBACK_WINDOW_MS = 60_000;
 
 export interface ConcurrentTargetsCardProps {
   accessToken: string;
@@ -21,6 +24,14 @@ export interface ConcurrentTargetsCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+  ) => Promise<WclEvent[]>;
+  fetchLookbackEvents: (
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -49,6 +60,7 @@ export function ConcurrentTargetsCard({
   druidId,
   lifebloomAbilityIds,
   fetchEvents,
+  fetchLookbackEvents,
 }: ConcurrentTargetsCardProps) {
   const [result, setResult] = useState<FetchResult | null>(null);
 
@@ -59,14 +71,32 @@ export function ConcurrentTargetsCard({
       { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
       "Buffs",
     )
-      .then((events) => {
+      .then(async (events) => {
         try {
+          const carryInTargets = detectCarryInTargets(
+            events,
+            druidId,
+            lifebloomAbilityIds,
+          );
+          const lookbackEvents =
+            carryInTargets.length > 0
+              ? await fetchLookbackEvents(
+                  accessToken,
+                  reportCode,
+                  "Buffs",
+                  fight.startTime - LOOKBACK_WINDOW_MS,
+                  fight.startTime,
+                  true,
+                )
+              : undefined;
+
           const computed = computeConcurrentLb3Targets(
             events,
             druidId,
             lifebloomAbilityIds,
             fight.startTime,
             fight.endTime,
+            lookbackEvents,
           );
           setResult({ accessToken, result: computed });
         } catch (err) {
@@ -94,6 +124,7 @@ export function ConcurrentTargetsCard({
     druidId,
     lifebloomAbilityIds,
     fetchEvents,
+    fetchLookbackEvents,
   ]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;

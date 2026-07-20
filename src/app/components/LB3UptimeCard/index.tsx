@@ -6,10 +6,13 @@ import {
   computeLb3Uptime,
   type Lb3UptimeResult,
 } from "../../../metrics/lb3Uptime";
+import { detectCarryInTargets } from "../../../metrics/lifebloomStacks";
 import { MetricCard } from "../ui/MetricCard";
 import { JudgementChip } from "../ui/JudgementChip";
 import { ProgressBar } from "../ui/ProgressBar";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
+
+const LOOKBACK_WINDOW_MS = 60_000;
 
 export interface LB3UptimeCardProps {
   accessToken: string;
@@ -23,6 +26,14 @@ export interface LB3UptimeCardProps {
     reportCode: string,
     fight: EventFetcherFight,
     dataType: WclEventDataType,
+  ) => Promise<WclEvent[]>;
+  fetchLookbackEvents: (
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources?: boolean,
   ) => Promise<WclEvent[]>;
 }
 
@@ -38,6 +49,7 @@ export function LB3UptimeCard({
   lifebloomAbilityIds,
   targetNames,
   fetchEvents,
+  fetchLookbackEvents,
 }: LB3UptimeCardProps) {
   const [result, setResult] = useState<FetchResult | null>(null);
 
@@ -48,14 +60,32 @@ export function LB3UptimeCard({
       { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
       "Buffs",
     )
-      .then((events) => {
+      .then(async (events) => {
         try {
+          const carryInTargets = detectCarryInTargets(
+            events,
+            druidId,
+            lifebloomAbilityIds,
+          );
+          const lookbackEvents =
+            carryInTargets.length > 0
+              ? await fetchLookbackEvents(
+                  accessToken,
+                  reportCode,
+                  "Buffs",
+                  fight.startTime - LOOKBACK_WINDOW_MS,
+                  fight.startTime,
+                  true,
+                )
+              : undefined;
+
           const computed = computeLb3Uptime(
             events,
             druidId,
             lifebloomAbilityIds,
             fight.startTime,
             fight.endTime,
+            lookbackEvents,
           );
           setResult({ accessToken, result: computed });
         } catch (err) {
@@ -83,6 +113,7 @@ export function LB3UptimeCard({
     druidId,
     lifebloomAbilityIds,
     fetchEvents,
+    fetchLookbackEvents,
   ]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;
