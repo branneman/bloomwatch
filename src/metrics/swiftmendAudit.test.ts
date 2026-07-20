@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { computeSwiftmendAudit } from "./swiftmendAudit";
+import {
+  computeSwiftmendAudit,
+  combineSwiftmendCardJudgement,
+} from "./swiftmendAudit";
 import {
   aCastEvent,
   anApplyBuffEvent,
@@ -434,4 +437,25 @@ describe("computeSwiftmendAudit", () => {
 
     expect(result.availableWindows).toBe(22);
   });
+});
+
+describe("combineSwiftmendCardJudgement", () => {
+  it.each([
+    { efficiency: "good", utilization: "good", expected: "good" },
+    { efficiency: "good", utilization: "fair", expected: "good" },
+    { efficiency: "good", utilization: "bad", expected: "fair" },
+    { efficiency: "fair", utilization: "good", expected: "fair" },
+    { efficiency: "fair", utilization: "fair", expected: "fair" },
+    { efficiency: "fair", utilization: "bad", expected: "bad" },
+    { efficiency: "bad", utilization: "good", expected: "bad" },
+    { efficiency: "bad", utilization: "fair", expected: "bad" },
+    { efficiency: "bad", utilization: "bad", expected: "bad" },
+  ] as const)(
+    "combines efficiency=$efficiency + utilization=$utilization into $expected",
+    ({ efficiency, utilization, expected }) => {
+      expect(combineSwiftmendCardJudgement(efficiency, utilization)).toBe(
+        expected,
+      );
+    },
+  );
 });

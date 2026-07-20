@@ -4,6 +4,7 @@ import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import {
   computeSwiftmendAudit,
+  combineSwiftmendCardJudgement,
   type SwiftmendAuditResult,
   type SwiftmendClassification,
 } from "../../../metrics/swiftmendAudit";
@@ -44,7 +45,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_relics_idolofrejuvenation.jpg";
 
 const THRESHOLD =
-  "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Good < 40% wasteful, fair 40-80%, bad > 80% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast — if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Utilization (casts vs. 15s-cooldown availability): good ≥50%, fair 25-50%, bad <25% — provisional pending real calibration.";
+  "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Good < 40% wasteful, fair 40-80%, bad > 80% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast — if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Utilization (casts vs. 15s-cooldown availability): good ≥50%, fair 25-50%, bad <25% — provisional pending real calibration. The header chip combines both judgements, with efficiency weighing heavier — a bad utilization can drag a good/fair efficiency down one notch, but never the reverse.";
 
 const CLASSIFICATION_LABEL: Record<SwiftmendClassification, string> = {
   efficient: "Efficient",
@@ -219,12 +220,17 @@ export function SwiftmendAuditCard({
     utilizationJudgement,
   } = result.result;
 
+  const headerJudgement = combineSwiftmendCardJudgement(
+    judgement,
+    utilizationJudgement,
+  );
+
   return (
     <MetricCard
       icon={ICON}
       title="Swiftmend quality audit"
       value={`${wastefulCount} wasteful of ${casts.length} (${wastefulPct.toFixed(0)}%)`}
-      judgement={judgement}
+      judgement={headerJudgement}
       threshold={THRESHOLD}
     >
       {casts.length === 0 ? (

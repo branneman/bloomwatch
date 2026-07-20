@@ -174,7 +174,7 @@ describe("SwiftmendAuditCard", () => {
     expect(screen.getByText("Wasteful")).toBeInTheDocument();
   });
 
-  it("shows a message and good judgement when there are no Swiftmends", async () => {
+  it("shows a message and a fair header judgement (good efficiency downgraded by bad utilization) when there are no Swiftmends", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 200000 });
 
     render(
@@ -197,7 +197,12 @@ describe("SwiftmendAuditCard", () => {
         screen.getByText("No Swiftmends cast this fight."),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Good")).toBeInTheDocument();
+    // 0 casts of 0 -> wasteful-share is trivially good, but utilization is
+    // 0 of 13 available 15s windows (200000ms fight) -> bad -> drags the
+    // header down one notch to fair. The inline utilization chip still
+    // shows the raw "Bad" on its own.
+    expect(screen.getByText("Fair")).toBeInTheDocument();
+    expect(screen.getByText("Bad")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

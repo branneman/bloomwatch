@@ -257,3 +257,26 @@ export function computeSwiftmendAudit(
     utilizationJudgement: judgeUtilization(utilizationPct),
   };
 }
+
+// The card's header chip combines both of Swiftmend's judgements, with
+// efficiency (wasteful-share) weighing heavier than utilization — direct
+// request 2026-07-20: how a Swiftmend cast was justified matters more than
+// how often it was cast. Utilization can only drag efficiency down one
+// notch (good -> fair, fair -> bad), never pull it up; a good/fair
+// utilization leaves efficiency's own judgement unchanged. Scoped to this
+// card's own header chip only — epicSummary.ts's Spell Discipline epic
+// verdict already independently folds both judgements in via
+// mixedJudgement, at a different level, and is unaffected by this.
+const DOWNGRADE_ONE_NOTCH: Record<Judgement, Judgement> = {
+  good: "fair",
+  fair: "bad",
+  bad: "bad",
+};
+
+export function combineSwiftmendCardJudgement(
+  efficiency: Judgement,
+  utilization: Judgement,
+): Judgement {
+  if (utilization === "bad") return DOWNGRADE_ONE_NOTCH[efficiency];
+  return efficiency;
+}
