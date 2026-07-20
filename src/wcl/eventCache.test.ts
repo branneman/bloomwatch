@@ -207,3 +207,66 @@ describe("createEventFetcher", () => {
     );
   });
 });
+
+describe("createEventFetcher - fetchLookbackEvents", () => {
+  it("paginates via the injected lookback page-fetcher and concatenates results", async () => {
+    const fakeFetchLookbackPage = vi
+      .fn()
+      .mockResolvedValueOnce({
+        events: [anEvent({ timestamp: 1 })],
+        nextPageTimestamp: 500,
+      })
+      .mockResolvedValueOnce({
+        events: [anEvent({ timestamp: 2 })],
+        nextPageTimestamp: null,
+      });
+
+    const { fetchLookbackEvents } = createEventFetcher(
+      undefined,
+      fakeFetchLookbackPage,
+    );
+    const result = await fetchLookbackEvents(
+      "token",
+      "report1",
+      "Buffs",
+      0,
+      1000,
+    );
+
+    expect(result.map((e) => e.timestamp)).toEqual([1, 2]);
+    expect(fakeFetchLookbackPage).toHaveBeenNthCalledWith(
+      1,
+      "token",
+      "report1",
+      "Buffs",
+      0,
+      1000,
+      false,
+    );
+    expect(fakeFetchLookbackPage).toHaveBeenNthCalledWith(
+      2,
+      "token",
+      "report1",
+      "Buffs",
+      500,
+      1000,
+      false,
+    );
+  });
+
+  it("does not cache - two calls with the same arguments fetch twice", async () => {
+    const fakeFetchLookbackPage = vi.fn().mockResolvedValue({
+      events: [anEvent()],
+      nextPageTimestamp: null,
+    });
+
+    const { fetchLookbackEvents } = createEventFetcher(
+      undefined,
+      fakeFetchLookbackPage,
+    );
+    await fetchLookbackEvents("token", "report1", "Buffs", 0, 1000);
+    await fetchLookbackEvents("token", "report1", "Buffs", 0, 1000);
+
+    expect(fakeFetchLookbackPage).toHaveBeenCalledTimes(2);
+  });
+});

@@ -1,4 +1,4 @@
-import { fetchEventsPage } from "./events";
+import { fetchEventsPage, fetchLookbackEventsPage } from "./events";
 import type { WclEvent, WclEventDataType } from "./events";
 
 export interface EventFetcherFight {
@@ -9,6 +9,7 @@ export interface EventFetcherFight {
 
 export function createEventFetcher(
   fetchPage: typeof fetchEventsPage = fetchEventsPage,
+  fetchLookbackPage: typeof fetchLookbackEventsPage = fetchLookbackEventsPage,
 ) {
   const cache = new Map<string, Promise<WclEvent[]>>();
 
@@ -67,5 +68,35 @@ export function createEventFetcher(
     return promise;
   }
 
-  return { fetchEvents };
+  // Story 915: a bounded pre-fightStart lookback, deliberately uncached (see
+  // plan) and deliberately not fightIDs-filtered (see fetchLookbackEventsPage's
+  // own comment) — callers gate this behind a one-time ambiguity check, so
+  // repeated requests for the same window shouldn't happen in practice.
+  async function fetchLookbackEvents(
+    accessToken: string,
+    reportCode: string,
+    dataType: WclEventDataType,
+    startTime: number,
+    endTime: number,
+    includeResources = false,
+  ): Promise<WclEvent[]> {
+    const events: WclEvent[] = [];
+    let cursor = startTime;
+    for (;;) {
+      const page = await fetchLookbackPage(
+        accessToken,
+        reportCode,
+        dataType,
+        cursor,
+        endTime,
+        includeResources,
+      );
+      events.push(...page.events);
+      if (page.nextPageTimestamp === null) break;
+      cursor = page.nextPageTimestamp;
+    }
+    return events;
+  }
+
+  return { fetchEvents, fetchLookbackEvents };
 }
