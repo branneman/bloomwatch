@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OverhealTableCard } from "./index";
 import * as overhealTableModule from "../../../metrics/overhealTable";
@@ -36,7 +36,8 @@ describe("OverhealTableCard", () => {
   it("shows the judgement and a per-spell table once loaded", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
     const healingEvents = [
-      aHealEvent({ abilityGameID: 33763, amount: 670, overheal: 330 }),
+      aHealEvent({ abilityGameID: 33763, amount: 335, overheal: 165 }),
+      aHealEvent({ abilityGameID: 33763, amount: 335, overheal: 165 }),
       aHealEvent({ abilityGameID: 18562, amount: 400, overheal: 600 }),
     ];
 
@@ -57,11 +58,26 @@ describe("OverhealTableCard", () => {
     await waitFor(() =>
       expect(screen.getByText("Lifebloom")).toBeInTheDocument(),
     );
+    expect(screen.getByText("Casts")).toBeInTheDocument();
     expect(screen.getByText("Bloom")).toBeInTheDocument();
     expect(screen.getByText("33%")).toBeInTheDocument();
     expect(screen.getByText("Swiftmend")).toBeInTheDocument();
     expect(screen.getByText("Direct")).toBeInTheDocument();
     expect(screen.getByText("60%")).toBeInTheDocument();
+    // Two Lifebloom bloom events aggregate into one row with casts: 2, while
+    // the lone Swiftmend event keeps its row at casts: 1 -- distinguishes
+    // "one row" from "one cast" so this can't pass with the count hardcoded.
+    // Column order is Category, Spell, Casts, Overheal %, Judgement.
+    const bloomCells = within(screen.getAllByRole("row")[1]).getAllByRole(
+      "cell",
+    );
+    expect(bloomCells[1]).toHaveTextContent("Lifebloom");
+    expect(bloomCells[2]).toHaveTextContent("2");
+    const directCells = within(screen.getAllByRole("row")[2]).getAllByRole(
+      "cell",
+    );
+    expect(directCells[1]).toHaveTextContent("Swiftmend");
+    expect(directCells[2]).toHaveTextContent("1");
     expect(screen.queryAllByText("Bad").length).toBeGreaterThan(0);
   });
 

@@ -41,4 +41,17 @@ describe("Footer", () => {
       screen.getByText("WCL rate limit budget: 465/3000."),
     ).toBeInTheDocument();
   });
+
+  it("rounds a fractional points-spent value in the rate-limit budget line", () => {
+    render(
+      <Footer
+        onReopenOnboarding={vi.fn()}
+        rateLimitUsage={{ limitPerHour: 9000, pointsSpentThisHour: 76.02 }}
+      />,
+    );
+
+    expect(
+      screen.getByText("WCL rate limit budget: 76/9000."),
+    ).toBeInTheDocument();
+  });
 });

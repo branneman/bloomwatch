@@ -533,6 +533,7 @@ describe("summarizeManaEconomy", () => {
         {
           category: "direct",
           spell: "Swiftmend",
+          casts: 1,
           amount: 400,
           overheal: 600,
           overhealPct: 60,

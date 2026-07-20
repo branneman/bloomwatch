@@ -46,6 +46,7 @@ describe("computeOverhealTable", () => {
       {
         category: "hot-tick",
         spell: "Rejuvenation",
+        casts: 2,
         amount: 600,
         overheal: 400,
         overhealPct: 40,
@@ -76,6 +77,7 @@ describe("computeOverhealTable", () => {
       {
         category: "hot-tick",
         spell: "Regrowth (HoT portion)",
+        casts: 1,
         amount: 390,
         overheal: 610,
         overhealPct: 61,
@@ -84,6 +86,7 @@ describe("computeOverhealTable", () => {
       {
         category: "direct",
         spell: "Regrowth (direct)",
+        casts: 1,
         amount: 780,
         overheal: 220,
         overhealPct: 22,
@@ -113,6 +116,7 @@ describe("computeOverhealTable", () => {
       {
         category: "bloom",
         spell: "Lifebloom",
+        casts: 1,
         amount: 670,
         overheal: 330,
         overhealPct: 33,
@@ -137,6 +141,7 @@ describe("computeOverhealTable", () => {
       {
         category: "direct",
         spell: "Healing Touch",
+        casts: 1,
         amount: 420,
         overheal: 580,
         overhealPct: 58,
@@ -145,6 +150,7 @@ describe("computeOverhealTable", () => {
       {
         category: "direct",
         spell: "Swiftmend",
+        casts: 1,
         amount: 810,
         overheal: 190,
         overhealPct: 19,

@@ -147,10 +147,11 @@ export function OverhealTableCard({
         <p>No heals to report this fight.</p>
       ) : (
         <DataTable
-          columns={["Category", "Spell", "Overheal %", "Judgement"]}
+          columns={["Category", "Spell", "Casts", "Overheal %", "Judgement"]}
           rows={rows.map((row) => [
             CATEGORY_LABEL[row.category],
             row.spell,
+            row.casts,
             `${row.overhealPct}%`,
             row.judgement === null ? (
               "—"

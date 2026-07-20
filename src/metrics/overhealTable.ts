@@ -9,6 +9,7 @@ export type OverhealCategory = "hot-tick" | "bloom" | "direct";
 export interface OverhealRow {
   category: OverhealCategory;
   spell: string;
+  casts: number;
   amount: number;
   overheal: number;
   overhealPct: number;
@@ -135,6 +136,7 @@ function classify(
 }
 
 interface Accumulator {
+  casts: number;
   amount: number;
   overheal: number;
 }
@@ -159,7 +161,12 @@ export function computeOverhealTable(
     const rowSpec = classify(resolved, event.tick === true);
     if (rowSpec === null) continue;
 
-    const existing = totals.get(rowSpec) ?? { amount: 0, overheal: 0 };
+    const existing = totals.get(rowSpec) ?? {
+      casts: 0,
+      amount: 0,
+      overheal: 0,
+    };
+    existing.casts += 1;
     existing.amount += typeof event.amount === "number" ? event.amount : 0;
     existing.overheal +=
       typeof event.overheal === "number" ? event.overheal : 0;
@@ -178,6 +185,7 @@ export function computeOverhealTable(
     rows.push({
       category: rowSpec.category,
       spell: rowSpec.spell,
+      casts: totalsForRow.casts,
       amount: totalsForRow.amount,
       overheal: totalsForRow.overheal,
       overhealPct,

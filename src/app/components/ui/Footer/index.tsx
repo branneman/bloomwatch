@@ -20,7 +20,8 @@ export function Footer({ onReopenOnboarding, rateLimitUsage }: FooterProps) {
         <div className={styles.meta}>
           {rateLimitUsage && (
             <span className={styles.rateLimit}>
-              WCL rate limit budget: {rateLimitUsage.pointsSpentThisHour}/
+              WCL rate limit budget:{" "}
+              {Math.round(rateLimitUsage.pointsSpentThisHour)}/
               {rateLimitUsage.limitPerHour}.
             </span>
           )}
