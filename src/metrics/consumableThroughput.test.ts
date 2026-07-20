@@ -172,7 +172,7 @@ describe("computeConsumableThroughput", () => {
     );
   });
 
-  it("takes the fight-level judgement as the worst of both rows", () => {
+  it("reads fair, not a flat bad, when one row is good and the other is bad", () => {
     const events = [
       LOW_MANA_SAMPLE,
       aConsumableCastEvent(1000, MANA_POTION_ID),
@@ -187,7 +187,7 @@ describe("computeConsumableThroughput", () => {
       RESOLVED_ABILITIES,
       600_000,
     );
-    expect(result.judgement).toBe("bad");
+    expect(result.judgement).toBe("fair");
   });
 
   it("judges normally on what would be a wipe — there is no kill restriction", () => {

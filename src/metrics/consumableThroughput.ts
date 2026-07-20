@@ -1,7 +1,7 @@
 import type { WclEvent } from "../wcl/events";
 import type { ResolvedAbility } from "../abilities/resolveAbilities";
 import type { Judgement } from "./judgement";
-import { worstJudgement } from "./judgement";
+import { mixedJudgement } from "./judgement";
 import { extractManaSamples } from "./manaSamples";
 
 // docs/backlog.md story 402: expected floor = fight duration / each consumable's own
@@ -91,6 +91,10 @@ export function computeConsumableThroughput(
   return {
     exempt: false,
     rows,
-    judgement: worstJudgement(rows.map((row) => row.judgement)),
+    // mixedJudgement, not worstJudgement — a good potions row and a bad
+    // runes row (or vice versa) reads fair, matching every other
+    // multi-part judgement in the codebase (see docs/thresholds.md's
+    // compounding-factors section). Requested directly, 2026-07-20.
+    judgement: mixedJudgement(rows.map((row) => row.judgement)),
   };
 }
