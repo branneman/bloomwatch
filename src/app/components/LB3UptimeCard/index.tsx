@@ -61,24 +61,24 @@ export function LB3UptimeCard({
       "Buffs",
     )
       .then(async (events) => {
-        try {
-          const carryInTargets = detectCarryInTargets(
-            events,
-            druidId,
-            lifebloomAbilityIds,
-          );
-          const lookbackEvents =
-            carryInTargets.length > 0
-              ? await fetchLookbackEvents(
-                  accessToken,
-                  reportCode,
-                  "Buffs",
-                  fight.startTime - LOOKBACK_WINDOW_MS,
-                  fight.startTime,
-                  true,
-                )
-              : undefined;
+        const carryInTargets = detectCarryInTargets(
+          events,
+          druidId,
+          lifebloomAbilityIds,
+        );
+        const lookbackEvents =
+          carryInTargets.length > 0
+            ? await fetchLookbackEvents(
+                accessToken,
+                reportCode,
+                "Buffs",
+                fight.startTime - LOOKBACK_WINDOW_MS,
+                fight.startTime,
+                true,
+              )
+            : undefined;
 
+        try {
           const computed = computeLb3Uptime(
             events,
             druidId,
