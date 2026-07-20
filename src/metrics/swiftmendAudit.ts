@@ -58,14 +58,23 @@ function judgeWastefulShare(wastefulPct: number): Judgement {
   return judgeThresholdBelow(wastefulPct, { goodMax: 40, fairMax: 80 });
 }
 
-// good >= 75% / fair 50-75% / bad < 50% of theoretical 15s-cooldown windows
+// good >= 50% / fair 25-50% / bad < 25% of theoretical 15s-cooldown windows
 // used, per docs/backlog.md story 302, revised by direct request
 // 2026-07-20 (docs/thresholds.md) — separate from (and combined with, in
 // epicSummary.ts) the wasteful-share judgement above: this measures
 // whether Swiftmend was used often enough, not whether each use was
-// justified.
+// justified. These bands were initially set to mirror Nature's
+// Swiftness's utilization judgement (75%/50%), but a final review caught
+// that Swiftmend's 15s cooldown makes that bar unreachable in practice:
+// story 909's real corpus (440 casts, 20 elite players, 134 fights)
+// averages only ~3.3 Swiftmend casts per fight, far below the ~15 casts a
+// 75% bar demands on a typical 5-minute fight's 20 windows. Softened to
+// 50%/25% same-day — still a placeholder pending real calibration (unlike
+// the wasteful-share judgement above, this utilization band has no corpus
+// validation of its own yet), documented as provisional in
+// docs/thresholds.md.
 function judgeUtilization(utilizationPct: number): Judgement {
-  return judgeThreshold(utilizationPct, { goodMin: 75, fairMin: 50 });
+  return judgeThreshold(utilizationPct, { goodMin: 50, fairMin: 25 });
 }
 
 function trackHotRemovals(

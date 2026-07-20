@@ -131,7 +131,11 @@ describe("SwiftmendAuditCard", () => {
         ),
       ).toBeInTheDocument(),
     );
-    expect(screen.getByText("Fair")).toBeInTheDocument();
+    // Two "Good" chips: the header's wasteful-share judgement (this
+    // fixture's one cast is efficient, so 0% wasteful) and this fixture's
+    // 50% utilization, which lands exactly on the new good boundary
+    // (goodMin: 50).
+    expect(screen.getAllByText("Good")).toHaveLength(2);
   });
 
   it("shows a dash for Target HP% when no Healing sample is available", async () => {

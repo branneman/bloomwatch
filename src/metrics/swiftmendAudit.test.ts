@@ -389,9 +389,9 @@ describe("computeSwiftmendAudit", () => {
   );
 
   it.each([
-    { castCount: 20, expectedPct: (20 / 22) * 100, expected: "good" }, // 22 windows in a 341000ms fight
-    { castCount: 12, expectedPct: (12 / 22) * 100, expected: "fair" },
-    { castCount: 5, expectedPct: (5 / 22) * 100, expected: "bad" },
+    { castCount: 12, expectedPct: (12 / 22) * 100, expected: "good" }, // 22 windows in a 341000ms fight, 54.5%
+    { castCount: 8, expectedPct: (8 / 22) * 100, expected: "fair" }, // 36.4%
+    { castCount: 5, expectedPct: (5 / 22) * 100, expected: "bad" }, // 22.7%
   ])(
     "judges $expected utilization for $castCount casts of 22 available windows",
     ({ castCount, expectedPct, expected }) => {
