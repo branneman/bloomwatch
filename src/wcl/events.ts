@@ -70,3 +70,49 @@ export async function fetchEventsPage(
     nextPageTimestamp: events.nextPageTimestamp,
   };
 }
+
+// Used only for backlog story 915's bounded pre-pull lookback: querying
+// with a fightIDs filter never returns events before that fight's own
+// startTime, even with an earlier startTime argument (confirmed live
+// against report DRtXV4ChA2Kw3c81, fights 24->25 - a fightIDs-filtered
+// query for the 60s before fight 25 returned nothing, while the same
+// window with fightIDs omitted correctly returned an event tagged to the
+// earlier fight 24). Omitting fightIDs is therefore load-bearing, not
+// cosmetic - it's the only way to see a carry-in application that lives
+// in a different WCL fight ID than the one being judged.
+export async function fetchLookbackEventsPage(
+  accessToken: string,
+  reportCode: string,
+  dataType: WclEventDataType,
+  startTime: number,
+  endTime: number,
+  includeResources = false,
+): Promise<WclEventsPage> {
+  let data;
+  try {
+    data = await postGraphQL(
+      accessToken,
+      `query {
+  rateLimitData { limitPerHour pointsSpentThisHour }
+  reportData {
+    report(code: "${reportCode}") {
+      events(dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}) {
+        data
+        nextPageTimestamp
+      }
+    }
+  }
+}`,
+    );
+  } catch (err) {
+    if (err instanceof WclApiError && err.status === 429) {
+      throw new WclRateLimitError(err.status, err.body);
+    }
+    throw err;
+  }
+  const events = data.reportData.report.events;
+  return {
+    events: events.data,
+    nextPageTimestamp: events.nextPageTimestamp,
+  };
+}
