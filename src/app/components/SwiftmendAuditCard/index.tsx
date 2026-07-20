@@ -13,6 +13,7 @@ import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
 import { DataTable } from "../ui/DataTable";
 import { ClassTag } from "../ui/ClassTag";
+import { JudgementChip } from "../ui/JudgementChip";
 import { useArchetypeBucket } from "../Scorecard/useArchetypeBucket";
 import { SWIFTMEND_MIN_RESTORATION } from "../../../report/archetypeDetection";
 
@@ -43,7 +44,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_relics_idolofrejuvenation.jpg";
 
 const THRESHOLD =
-  "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Good < 40% wasteful, fair 40-80%, bad > 80% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast — if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Usage vs. 15s-cooldown availability is informational context only.";
+  "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Good < 40% wasteful, fair 40-80%, bad > 80% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast — if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Utilization (casts vs. 15s-cooldown availability): good ≥75%, fair 50-75%, bad <50%.";
 
 const CLASSIFICATION_LABEL: Record<SwiftmendClassification, string> = {
   efficient: "Efficient",
@@ -214,10 +215,9 @@ export function SwiftmendAuditCard({
     wastefulPct,
     judgement,
     availableWindows,
+    utilizationPct,
+    utilizationJudgement,
   } = result.result;
-
-  const utilizationPct =
-    availableWindows === 0 ? 0 : (swiftmendCastCount / availableWindows) * 100;
 
   return (
     <MetricCard
@@ -263,10 +263,20 @@ export function SwiftmendAuditCard({
           ])}
         />
       )}
-      <p>
-        {swiftmendCastCount} Swiftmend{swiftmendCastCount === 1 ? "" : "s"} cast
-        of {availableWindows} possible 15s windows — {utilizationPct.toFixed(0)}
-        % utilization (informational).
+      <p
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}
+      >
+        <span>
+          {swiftmendCastCount} Swiftmend{swiftmendCastCount === 1 ? "" : "s"}{" "}
+          cast of {availableWindows} possible 15s windows —{" "}
+          {utilizationPct.toFixed(0)}% utilization
+        </span>
+        <JudgementChip judgement={utilizationJudgement} />
       </p>
     </MetricCard>
   );

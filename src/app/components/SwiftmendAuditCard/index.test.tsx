@@ -90,7 +90,48 @@ describe("SwiftmendAuditCard", () => {
     expect(screen.getByText("Rejuvenation")).toBeInTheDocument();
     expect(screen.getByText("80%")).toBeInTheDocument();
     expect(screen.getByText("Wasteful")).toBeInTheDocument();
-    expect(screen.getByText("Bad")).toBeInTheDocument();
+    // Two "Bad" chips: the header's wasteful-share judgement, and this
+    // fixture's low-utilization (1 cast of 22 possible windows) chip.
+    expect(screen.getAllByText("Bad")).toHaveLength(2);
+  });
+
+  it("shows the utilization judgement chip next to the usage sentence", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 30000 }); // 2 available 15s windows
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 26982 }),
+      aRemoveBuffEvent({
+        timestamp: 9501,
+        targetID: 50,
+        abilityGameID: 26982,
+      }),
+    ];
+    const castEvents = [
+      aCastEvent({ timestamp: 9500, targetID: 50, abilityGameID: 18562 }),
+    ];
+
+    render(
+      <SwiftmendAuditCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map([[50, "Maintank"]])}
+        fetchEvents={makeFetchEvents(buffEvents, castEvents, [])}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "1 Swiftmend cast of 2 possible 15s windows — 50% utilization",
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Fair")).toBeInTheDocument();
   });
 
   it("shows a dash for Target HP% when no Healing sample is available", async () => {
