@@ -96,6 +96,20 @@ Covers: metric-calculation modules (GCD utilization, LB3 uptime, idle-gap detect
 
 One CI secret: `WCL_TEST_ACCESS_TOKEN` — a bearer access token obtained once via PKCE against a separate test-only Public Client ID (see the Tier 4 note above on why this is a dedicated Client ID rather than a fully separate account). Requires manual refresh roughly yearly. No client secret is introduced anywhere; the product's own build/deploy path requires zero secrets (principle 2).
 
+### Obtaining your own `WCL_TEST_ACCESS_TOKEN` locally
+
+This is a one-time setup per developer (the token is long-lived, ~360 days) and is only needed for Tier 4/5 tests and the `wcl:query`/`calibrate` scripts — not for everyday feature work.
+
+1. Register a dedicated Public Client at [warcraftlogs.com/api/clients](https://www.warcraftlogs.com/api/clients/) (see `docs/wcl-auth.md`) — any name (e.g. "Bloomwatch (test)"), redirect URL set to your local dev server's URL exactly, including the trailing slash (e.g. `http://localhost:5173/`), and check "Public Client". Don't reuse the app's default production client (`src/wcl/defaultClient.ts`) for this — Tier 4's whole point is isolating test traffic onto its own rate-limit budget.
+2. Run `npm run dev` and open the app. On the connect screen, use the "own Client ID" field to paste the Client ID from step 1, then click Connect.
+3. Complete WCL's login/consent screen — you'll be redirected back into the app, now authenticated.
+4. Open your browser's devtools → Application (Chrome) / Storage (Firefox) → Session Storage → your dev server's origin, and copy the value of the `wcl_access_token` key.
+5. Create `.env.local` in the repo root (gitignored) and add:
+   ```
+   WCL_TEST_ACCESS_TOKEN="<paste the token from step 4>"
+   ```
+6. `npm run test:contract`, `npm run test:e2e`, `npm run wcl:query`, and `npm run calibrate` all read this automatically (`scripts/lib/env.ts` / `test/e2e/smoke.spec.ts`) — no further config needed.
+
 ## Known real test reports
 
 Real TBC Anniversary report codes used for live spot-checks (`CLAUDE.md`'s "Running live WCL queries yourself") and for capturing Tier 2 fixtures. All are the same guild's raid nights unless noted. Add to this list whenever a new report is used to validate an assumption — the "why" is what makes a report worth coming back to, not just its code.

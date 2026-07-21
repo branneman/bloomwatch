@@ -14,7 +14,7 @@ Live: https://branneman.github.io/bloomwatch/
 
 ### Prerequisites
 
-- Node.js 20.19+ or 22.12+ (matches Vite's own requirement), with npm.
+- Node.js 20.19+ or 22.12+ (matches Vite's own requirement), with npm. The repo pins an exact version in `.nvmrc` — run `nvm use` if you use [nvm](https://github.com/nvm-sh/nvm).
 - A [Warcraft Logs](https://www.warcraftlogs.com/) account, if you want to actually use the app against a real report (paste a report link, log in via WCL OAuth in the browser).
 
 No secrets are required to build or run the app (see `CLAUDE.md`'s "No backend" principle) — the app ships with a public, no-secret OAuth Client ID (story 008), so a fresh clone works out of the box.
@@ -45,7 +45,7 @@ See [`docs/testing.md`](docs/testing.md) for the full test pyramid.
 
 ### Optional: real-WCL-API tooling
 
-A few things need a `WCL_TEST_ACCESS_TOKEN` in a gitignored `.env.local` file, because they talk to the _real_ WCL API instead of the app's mocked/local paths. None of this is required for everyday feature work — see [`docs/testing.md`](docs/testing.md)'s "Secrets & credentials" section for how to obtain your own token (you'll register a separate, dedicated test-only Public Client — never reuse the app's default production client for this).
+A few things need a `WCL_TEST_ACCESS_TOKEN` in a gitignored `.env.local` file, because they talk to the _real_ WCL API instead of the app's mocked/local paths. None of this is required for everyday feature work.
 
 ```bash
 npm run test:contract              # Tier 4 contract tests, real WCL API
@@ -53,6 +53,18 @@ npm run test:e2e                   # Tier 5 Playwright smoke test, real deployed
 npm run wcl:query -- '<query>'     # run any GraphQL query against WCL's API
 npm run calibrate -- <reportCode>  # compute every metric for a real report, writes calibration-data/<reportCode>.json
 ```
+
+**Getting a token**, one-time (it's long-lived, ~360 days):
+
+1. Register your own free client at [warcraftlogs.com/api/clients](https://www.warcraftlogs.com/api/clients/) — check "Public Client", set the redirect URL to your dev server's address exactly, trailing slash included (e.g. `http://localhost:5173/`).
+2. `npm run dev`, open the app, and use the "own Client ID" field to connect with the Client ID from step 1. Log in with your WCL account when prompted.
+3. Once you're back in the app, open your browser's devtools → **Application** tab in Chrome (**Storage** in Firefox) → **Session Storage** → your dev server's origin, and copy the value of the `wcl_access_token` key.
+4. Create `.env.local` in the repo root and add:
+   ```
+   WCL_TEST_ACCESS_TOKEN="<paste the token here>"
+   ```
+
+See [`docs/testing.md`](docs/testing.md)'s "Secrets & credentials" section for the full rationale (why a dedicated test-only Client ID, why not a client secret, etc.).
 
 ## Architecture
 
