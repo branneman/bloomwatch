@@ -67,6 +67,14 @@ import {
   REGROWTH_OVERHEAL_DREAMSTATE_GOOD_MAX_PCT,
   REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT,
 } from "../../../metrics/overhealTable";
+import { DEATH_IDLE_WINDOW_MS } from "../../../metrics/deathForensics";
+import { CRISIS_THRESHOLD_PCT } from "../../../metrics/nearDeathResponse";
+import {
+  FLASK_NAMES,
+  BATTLE_ELIXIR_NAMES,
+  GUARDIAN_ELIXIR_NAMES,
+} from "../../../metrics/prepHygiene";
+import { GraphQLExample } from "./GraphQLExample";
 
 <h1>How Bloomwatch judges you</h1>
 
@@ -358,4 +366,61 @@ import {
   {REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT}%, bad above it. Rejuvenation and
   Regrowth's HoT-tick overheal is shown for context only, with no verdict — high
   overheal is inherent to a HoT ticking on an already-topped-off target.
+</p>
+
+<h2 id="death-forensics">Death forensics</h2>
+<p>
+  Every death of a target the druid was actively maintaining (per Lifebloom
+  discipline's own "maintained target" bar above) is checked for unspent
+  resources at the moment it happened: was Swiftmend off cooldown, was Nature's
+  Swiftness off cooldown, and had the druid gone idle (no cast) for at least{" "}
+  {DEATH_IDLE_WINDOW_MS / 1000}s beforehand. Zero unspent resources reads good,
+  one reads fair, 2 or more unspent reads bad — a death where every safety net
+  was still available and unused is the clearest sign something could have gone
+  differently. Deaths of targets the druid wasn't maintaining aren't judged at
+  all — they're outside what this tool can fairly attribute to the druid's own
+  play.
+</p>
+
+<h2 id="crisis-response">Crisis response</h2>
+<p>
+  The same unspent-resource check as death forensics, but for near-misses: any
+  raid member whose health dropped to {CRISIS_THRESHOLD_PCT}% or below and
+  survived. Responding with a heal in time reads good outright, regardless of
+  what else was in reserve. Not responding falls back to the same 0/1/2+
+  unspent-resources scale death forensics uses. Crises outside a druid's clear
+  one-or-two-target assignment are shown for context only, not judged — the same
+  scope limit death forensics doesn't need, since it only ever looks at targets
+  the druid was already maintaining.
+</p>
+
+<h2 id="prep-hygiene">Prep hygiene</h2>
+<p>
+  Checked once per fight, from the raid buffs already active at pull: flask or
+  elixir coverage (a real flask, or both a battle elixir and a guardian elixir
+  together, reads good; exactly one of the two reads fair; neither reads bad), a
+  food buff (present or missing), and Superior Wizard Oil on the main-hand
+  weapon (present or missing). The last two are binary — no fair band, just
+  present or missing.
+</p>
+
+<h2 id="where-the-data-comes-from">Where the data comes from</h2>
+<p>
+  Every number on this page and every scorecard in the app is computed from data
+  pulled directly from Warcraft Logs' own public API (GraphQL, API v2) — from
+  your browser, not from any Bloomwatch server, because there isn't one. Nothing
+  is stored anywhere: closing the tab and pasting the same report link again
+  re-fetches and re-computes everything from scratch.
+</p>
+<p>
+  The pipeline, in order: the report's metadata and fight list, then which raid
+  member is the druid being judged, then that druid's own casts, buffs, and
+  resource events for whichever fight (or fights) are selected — all of it
+  recombined in your browser into the metrics above.
+</p>
+<GraphQLExample />
+<p>
+  <a href="https://github.com/branneman/bloomwatch#readme">
+    Read more on GitHub →
+  </a>
 </p>

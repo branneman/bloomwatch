@@ -11,3 +11,12 @@
 .toc a {
   color: var(--accent);
 }
+
+.query {
+  overflow-x: auto;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: var(--text-small-size);
+}

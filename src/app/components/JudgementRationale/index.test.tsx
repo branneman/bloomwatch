@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { JudgementRationale } from "./index";
 
@@ -65,5 +66,38 @@ describe("JudgementRationale", () => {
     render(<JudgementRationale />);
 
     expect(screen.getByText(/hoarding/)).toBeInTheDocument();
+  });
+
+  it("renders live death-forensics and crisis-response thresholds", () => {
+    render(<JudgementRationale />);
+
+    expect(screen.getByText(/2 or more unspent/)).toBeInTheDocument();
+    expect(screen.getByText(/15% or below/)).toBeInTheDocument();
+  });
+
+  it("explains the data pipeline conceptually, with no verdict data ever stored", () => {
+    render(<JudgementRationale />);
+
+    expect(screen.getByText(/nothing is stored anywhere/i)).toBeInTheDocument();
+  });
+
+  it("keeps the one real query example collapsed by default, behind a disclosure", async () => {
+    render(<JudgementRationale />);
+
+    expect(screen.queryByText(/reportData/)).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "See a real example query" }),
+    );
+
+    expect(screen.getByText(/reportData/)).toBeInTheDocument();
+  });
+
+  it("links out to the GitHub repository for the full technical picture", () => {
+    render(<JudgementRationale />);
+
+    expect(
+      screen.getByRole("link", { name: /Read more on GitHub/ }),
+    ).toHaveAttribute("href", "https://github.com/branneman/bloomwatch#readme");
   });
 });
