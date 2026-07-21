@@ -1,5 +1,7 @@
 import { publishRateLimitUsage } from "./rateLimitUsage";
 
+export type Host = "fresh" | "classic";
+
 export const TOKEN_URL = "https://www.warcraftlogs.com/oauth/token";
 export const USER_API_URL = "https://www.warcraftlogs.com/api/v2/user";
 

@@ -1,8 +1,10 @@
+import type { Host } from "../wcl/client";
+
 const REPORT_CODE_PATTERN = /^[A-Za-z0-9]{16}$/;
 const WCL_HOSTNAME_PATTERN = /^([a-z0-9]+)\.warcraftlogs\.com$/;
 const REPORT_PATH_PATTERN = /\/reports\/([A-Za-z0-9]{16})(?![A-Za-z0-9])/;
 
-export type Host = "fresh" | "classic";
+export type { Host };
 
 function isHost(value: string): value is Host {
   return value === "fresh" || value === "classic";
