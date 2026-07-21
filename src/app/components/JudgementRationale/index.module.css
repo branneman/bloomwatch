@@ -15,7 +15,7 @@
 .query {
   overflow-x: auto;
   padding: 12px;
-  background: var(--surface);
+  background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: 4px;
   font-size: var(--text-small-size);
