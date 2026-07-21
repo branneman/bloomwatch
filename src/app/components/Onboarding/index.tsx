@@ -8,7 +8,7 @@ export interface OnboardingProps {
 
 export function Onboarding({ onContinue }: OnboardingProps) {
   return (
-    <>
+    <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <img src={logo} width={40} height={40} alt="" />
@@ -112,6 +112,6 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         Shown once on your first visit. Reachable anytime after that from an
         &quot;About&quot; link in the footer.
       </p>
-    </>
+    </div>
   );
 }

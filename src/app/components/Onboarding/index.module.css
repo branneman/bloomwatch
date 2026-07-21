@@ -1,3 +1,11 @@
+/* Matches JudgementRationale's own .page exactly (same max-width, same
+   centering) — the two content pages are directly linked to each other
+   and should read as one consistent visual pattern, not two different
+   layouts. */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+}
 .header {
   display: flex;
   align-items: flex-start;
@@ -33,11 +41,9 @@
   min-height: 44px;
 }
 .section {
-  max-width: 65ch;
   margin-bottom: var(--space-5);
 }
 .audienceList {
-  max-width: 65ch;
   margin: 0 0 var(--space-5);
   padding-left: var(--space-4);
 }
