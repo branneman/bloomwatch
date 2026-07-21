@@ -444,7 +444,7 @@ I want any error — an uncaught bug, a failed WCL request, or a GraphQL request
 - The overlay shows: an apology ("Sorry, something went wrong"), a collapsed-by-default "View details" disclosure with the error's message, stack trace (when available), and a timestamp, a "Start over" button that navigates to `#/` and reloads the app, and a prompt to open an issue at `https://github.com/branneman/bloomwatch/issues` (with the same details) if a retry doesn't fix it.
 - No error-reporting/telemetry service is introduced (principles 2/4 — no backend, FOSS) — "View details" is for the user to copy into a manually-filed GitHub issue; nothing is sent anywhere automatically.
 
-### 709 — Judgement Rationale page ✅ Done
+### 710 — Judgement Rationale page ✅ Done
 
 I want a plain-language page explaining how Bloomwatch collects its data and turns it into Good/Fair/Bad verdicts, so that a druid new to the tool, an experienced druid who wants the exact numbers, or a raid lead judging a healer's play can all understand the scorecard without guessing.
 
