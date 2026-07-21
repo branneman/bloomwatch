@@ -2,8 +2,12 @@ import { readFile, writeFile } from "node:fs/promises";
 import { loadAccessToken } from "./lib/env";
 import { detectDruids } from "../src/report/druidDetection";
 import { buildFightRows } from "../src/report/fightRows";
-import type { Fight, CastTableEntry } from "../src/wcl/client";
-import type { WclEvent } from "../src/wcl/events";
+import {
+  fetchReportFights,
+  fetchCastsTable,
+  type Host,
+} from "../src/wcl/client";
+import { createEventFetcher } from "../src/wcl/eventCache";
 import {
   classifyBucket,
   BUCKET_DEFINITIONS,
@@ -11,101 +15,31 @@ import {
   type TalentBucket,
 } from "../src/report/archetypeDetection";
 
-// This script has its own small host-parameterized fetch layer rather than
-// reusing src/wcl/client.ts (hardcoded to www.warcraftlogs.com) or
-// scripts/lib/calibrateReport.ts (same). Story 012 — making the WCL client
-// itself host-flexible — is in progress in a separate worktree; duplicating
-// a few fetch calls here avoids merge conflicts with that work.
-
-const HOSTS = {
-  fresh: "https://www.warcraftlogs.com/api/v2/user",
-  classic: "https://classic.warcraftlogs.com/api/v2/user",
-} as const;
-
-type HostKey = keyof typeof HOSTS;
-
-function isHostKey(value: string): value is HostKey {
+function isHostKey(value: string): value is Host {
   return value === "fresh" || value === "classic";
-}
-
-async function graphql(
-  accessToken: string,
-  host: HostKey,
-  query: string,
-): Promise<unknown> {
-  const resp = await fetch(HOSTS[host], {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({ query }),
-  });
-  const bodyText = await resp.text();
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${bodyText}`);
-  const parsed: unknown = JSON.parse(bodyText);
-  const { data, errors } = parsed as {
-    data?: unknown;
-    errors?: { message?: string }[];
-  };
-  if (Array.isArray(errors) && errors.length > 0) {
-    throw new Error(`GraphQL error: ${JSON.stringify(errors)}`);
-  }
-  return data;
-}
-
-async function fetchReportFights(
-  accessToken: string,
-  host: HostKey,
-  reportCode: string,
-): Promise<Fight[]> {
-  const data = (await graphql(
-    accessToken,
-    host,
-    `query { reportData { report(code: "${reportCode}") { fights { id name startTime endTime encounterID kill bossPercentage gameZone { id name } } } } }`,
-  )) as { reportData: { report: { fights: Fight[] } | null } };
-  const report = data.reportData.report;
-  if (!report) throw new Error("report not found");
-  return report.fights;
-}
-
-async function fetchCastsTable(
-  accessToken: string,
-  host: HostKey,
-  reportCode: string,
-  fightIds: number[],
-): Promise<CastTableEntry[]> {
-  const data = (await graphql(
-    accessToken,
-    host,
-    `query { reportData { report(code: "${reportCode}") { table(fightIDs: [${fightIds.join(",")}], dataType: Casts) } } }`,
-  )) as {
-    reportData: { report: { table: { data: { entries: CastTableEntry[] } } } };
-  };
-  return data.reportData.report.table.data.entries;
 }
 
 async function fetchTalents(
   accessToken: string,
-  host: HostKey,
+  host: Host,
   reportCode: string,
   fight: { id: number; startTime: number; endTime: number },
   druidId: number,
 ): Promise<[number, number, number] | null> {
-  const data = (await graphql(
+  const { fetchEvents } = createEventFetcher(undefined, undefined, host);
+  const events = await fetchEvents(
     accessToken,
-    host,
-    `query { reportData { report(code: "${reportCode}") { events(fightIDs: [${fight.id}], startTime: ${fight.startTime}, endTime: ${fight.endTime}, dataType: CombatantInfo) { data } } } }`,
-  )) as {
-    reportData: { report: { events: { data: WclEvent[] } } };
-  };
-  return parseTalentPoints(data.reportData.report.events.data, druidId);
+    reportCode,
+    fight,
+    "CombatantInfo",
+  );
+  return parseTalentPoints(events, druidId);
 }
 
 interface ArchetypeEntry {
   druidId: number;
   druidName: string;
-  source: HostKey;
+  source: Host;
   balance: number | null;
   feral: number | null;
   restoration: number | null;
@@ -145,16 +79,22 @@ async function main() {
   const host = hostArg;
   const accessToken = loadAccessToken();
 
-  const fights = await fetchReportFights(accessToken, host, reportCode);
+  const { fights } = await fetchReportFights(
+    accessToken,
+    reportCode,
+    undefined,
+    host,
+  );
   const nonTrashFights = buildFightRows(fights)
     .filter((row) => !row.isTrash)
     .map((row) => row.fight);
 
   const castTableEntries = await fetchCastsTable(
     accessToken,
-    host,
     reportCode,
     nonTrashFights.map((f) => f.id),
+    undefined,
+    host,
   );
   const candidates = detectDruids(castTableEntries);
 
