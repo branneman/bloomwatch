@@ -363,6 +363,44 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
   rows.
 - Item/flask/elixir/oil recognition lists are data-driven (easy to adjust per phase/tier).
 
+### 602 — Enchant & gem check 🔲 Todo
+
+I want each of my enchantable gear slots checked for a recognized healer-appropriate permanent enchant, and each socketed gem checked for a recognized healer-appropriate stat, at pull, so that gaps in gearing prep are caught the same way missing flask/food/weapon-oil already are by story 601.
+
+**Confirmed live** (`4GYHZRdtL3bvhpc8`, fight 6, `events(dataType: CombatantInfo)`) — the same `CombatantInfo` event story 601/903a already read carries a full per-slot `gear` array, one entry per WoW's fixed 19-slot equipment order (the same positional convention `MAIN_HAND_GEAR_INDEX` already relies on for the weapon-oil check — this event carries no `slot` label field at all). A slot entry looks like:
+
+```json
+{
+  "id": 28964,
+  "quality": 4,
+  "icon": "inv_chest_cloth_43.jpg",
+  "itemLevel": 120,
+  "permanentEnchant": 2661,
+  "gems": [
+    {
+      "id": 31867,
+      "itemLevel": 70,
+      "icon": "inv_jewelcrafting_nobletopaz_03.jpg"
+    }
+  ],
+  "setID": 646
+}
+```
+
+`permanentEnchant`/`gems`/`setID` are all present only when populated — a gemless or unenchanted slot simply omits the key.
+
+**Acceptance criteria**
+
+- Reuses `computePrepHygiene`'s existing pattern exactly: matched by `sourceID === druidId` off the same `CombatantInfo` events already fetched for 601/903a — no new WCL query.
+- Enchant and gem recognition are matched by numeric ID (`permanentEnchant`, `gems[].id`), never by name — `CombatantInfo`'s `gear` array carries no name/slot-label fields at all to match against (only the sibling `table(dataType: Casts)` query exposes human-readable `name`/`slot`/`permanentEnchantName`, and that endpoint's gear data is currently discarded by `fetchCastsTable`; this story keeps reading from the existing `CombatantInfo`/events path). This also follows story 906's precedent of preferring locale-independent game IDs over name-matching wherever possible.
+- Enchant coverage is judged only on the subset of the 19 slots that are both enchantable in TBC and relevant to a resto healer: Head, Shoulder, Back, Chest, Wrist, Hands, Legs, Feet, MainHand (9 slots — MainHand's _permanent_ enchant is new scope here, distinct from 601's existing _temporary_ weapon-oil check at the same index). Neck/Waist/Finger/Trinket/OffHand/Ranged/Tabard are never enchantable in TBC (or not relevant for a healer) and are excluded.
+- Each of those 9 slots' recognized-good enchant ID(s) are a curated, data-driven table (same convention as 601's `FLASK_NAMES`/`GUARDIAN_ELIXIR_NAMES`), sourced from a TBC resto-druid prep/BiS guide and documented per slot with its source, per principle 3. The exact ID list is compiled during implementation, not enumerated in this story.
+- Gem judgement is scoped to _only the gems actually present_ in a slot's `gems` array — matched by ID against a curated "good healer gem" table (e.g. Teardrop Living Ruby) — flagging a present-but-wrong-stat gem (e.g. a pure-strength/agility gem) as a miss. **Explicit, confirmed limitation:** WCL's `CombatantInfo` gear entries never distinguish "this item has an unfilled socket" from "this item has no socket at all" — live capture across a full 25-combatant `CombatantInfo` payload showed the `gems` key is either absent or a non-empty array, never an empty array. This story cannot detect an intentionally-or-accidentally empty socket — only whether an occupied socket holds a good gem.
+- The meta gem gets its own recognized-good check (a single best-in-slot healing meta ID, e.g. Insightful Earthstorm Diamond) rather than folding into the general per-color gem table, since a meta's socket-bonus activation requirement isn't visible in this data at all (WCL exposes which gem occupies a socket, not the socket's own color or an item's total socket-bonus). The check is scoped to "is the correct meta gem ID present," not whether its activation bonus is actually active.
+- Open design questions for the spec phase (deliberately not resolved here): (1) whether a rep/profession-gated slot's missing enchant (Head needs Sha'tar exalted; Legs needs Tailoring) is judged identically to any other missing enchant, or given a softer caveat acknowledging the gate; (2) the exact good/fair/bad count thresholds across up to 9 enchant slots and a variable number of gem sockets — unlike 601's three simple binary/tri-state rows, these are count-based across more slots and need real design work, most likely followed by its own future calibration pass against real corpus data (matching every other Epic G/I threshold's lifecycle).
+- New rows extend Prep Hygiene's existing `mixedJudgement`-based structure (`computePrepHygiene`) rather than becoming a separate epic/card.
+- `docs/thresholds.md`'s Prep hygiene section gains rows for the two new dimensions once implemented, matching the existing three rows' format.
+
 ---
 
 ## Epic H — Reporting & UX

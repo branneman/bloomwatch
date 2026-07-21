@@ -978,6 +978,24 @@ describe("summarizeNearDeathResponse", () => {
   });
 });
 
+// summarizePrepHygiene (story 602) reads only prep.judgement, never these
+// two rows' own content directly (see docs/specs/602-enchant-gem-check-design.md
+// judgement call 7 — no new stat line) — this fixture keeps them a
+// realistic "fully covered" shape so the type is satisfied without
+// affecting any assertion in this describe block.
+const A_GOOD_ENCHANT_COVERAGE: PrepHygieneResult["enchantCoverage"] = {
+  missingSlots: [],
+  acceptableSlots: [],
+  judgement: "good",
+};
+const A_GOOD_GEM_COVERAGE: PrepHygieneResult["gemCoverage"] = {
+  missingOrWrongCount: 0,
+  acceptableCount: 0,
+  metaGemRecognized: true,
+  metaGemTier: "bis",
+  judgement: "good",
+};
+
 describe("summarizePrepHygiene", () => {
   it("passes through the judgement and formats both stat lines", () => {
     const prep: PrepHygieneResult = {
@@ -989,6 +1007,8 @@ describe("summarizePrepHygiene", () => {
       },
       foodBuffPresent: true,
       weaponOilPresent: false,
+      enchantCoverage: A_GOOD_ENCHANT_COVERAGE,
+      gemCoverage: A_GOOD_GEM_COVERAGE,
       judgement: "bad",
     };
 
@@ -1008,6 +1028,8 @@ describe("summarizePrepHygiene", () => {
       },
       foodBuffPresent: true,
       weaponOilPresent: true,
+      enchantCoverage: A_GOOD_ENCHANT_COVERAGE,
+      gemCoverage: A_GOOD_GEM_COVERAGE,
       judgement: "good",
     };
 
@@ -1027,6 +1049,8 @@ describe("summarizePrepHygiene", () => {
       },
       foodBuffPresent: false,
       weaponOilPresent: false,
+      enchantCoverage: A_GOOD_ENCHANT_COVERAGE,
+      gemCoverage: A_GOOD_GEM_COVERAGE,
       judgement: "bad",
     };
     expect(summarizePrepHygiene(onlyBattle).stats[0]).toBe(
@@ -1057,6 +1081,8 @@ describe("summarizePrepHygiene", () => {
       },
       foodBuffPresent: false,
       weaponOilPresent: false,
+      enchantCoverage: A_GOOD_ENCHANT_COVERAGE,
+      gemCoverage: A_GOOD_GEM_COVERAGE,
       judgement: "bad",
     };
 
