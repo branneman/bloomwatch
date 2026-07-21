@@ -2,6 +2,7 @@ import { mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { loadAccessToken } from "./lib/env";
 import { calibrateReport } from "./lib/calibrateReport";
+import { parseReportInput } from "../src/report/parseReportInput";
 import { WclApiError } from "../src/wcl/client";
 import { WclRateLimitError } from "../src/wcl/events";
 
@@ -19,23 +20,33 @@ async function writeCalibrationOutput(
 }
 
 async function main(): Promise<void> {
-  const reportCode = process.argv[2];
-  if (!reportCode) {
-    console.error("Usage: npm run calibrate -- <reportCode>");
+  const input = process.argv[2];
+  if (!input) {
+    console.error("Usage: npm run calibrate -- <reportCode or report URL>");
+    process.exit(1);
+  }
+
+  const parsed = parseReportInput(input);
+  if (!parsed.ok) {
+    console.error(parsed.message);
     process.exit(1);
   }
 
   const accessToken = loadAccessToken();
-  const output = await calibrateReport(accessToken, reportCode);
+  const output = await calibrateReport(
+    accessToken,
+    parsed.reportCode,
+    parsed.host,
+  );
 
   if (output.druids.length === 0) {
     console.log(
-      `No resto druid candidates detected in report ${reportCode}. Nothing written.`,
+      `No resto druid candidates detected in report ${parsed.reportCode}. Nothing written.`,
     );
     return;
   }
 
-  const filePath = await writeCalibrationOutput(reportCode, output);
+  const filePath = await writeCalibrationOutput(parsed.reportCode, output);
   console.log(
     `Wrote ${filePath} — ${output.druids.length} druid(s), ` +
       `${output.druids[0].fights.length} fight(s) each.`,
