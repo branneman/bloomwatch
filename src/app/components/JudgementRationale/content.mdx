@@ -1,4 +1,30 @@
 import styles from "./index.module.css";
+import {
+  GOOD_MIN_PCT as GCD_GOOD_MIN_PCT,
+  FAIR_MIN_PCT as GCD_FAIR_MIN_PCT,
+} from "../../../metrics/gcdUtilization";
+import {
+  GOOD_MAX_PCT as IDLE_GOOD_MAX_PCT,
+  FAIR_MAX_PCT as IDLE_FAIR_MAX_PCT,
+  IDLE_GAP_THRESHOLD_MS,
+} from "../../../metrics/idleGaps";
+import {
+  MAINTAINED_MIN_UPTIME_PCT,
+  GOOD_MIN_PCT as LB3_GOOD_MIN_PCT,
+  FAIR_MIN_PCT as LB3_FAIR_MIN_PCT,
+} from "../../../metrics/lb3Uptime";
+import {
+  GOOD_MIN_MS as CADENCE_GOOD_MIN_MS,
+  GOOD_MAX_MS as CADENCE_GOOD_MAX_MS,
+  FAIR_MIN_MS as CADENCE_FAIR_MIN_MS,
+} from "../../../metrics/refreshCadence";
+import {
+  GOOD_MAX_COUNT as BLOOM_GOOD_MAX_COUNT,
+  FAIR_MAX_COUNT as BLOOM_FAIR_MAX_COUNT,
+  ACCIDENTAL_WINDOW_MS,
+} from "../../../metrics/accidentalBlooms";
+import { LIFEBLOOM_MANA_COST } from "../../../metrics/restackTax";
+import { CONCURRENT_MIN_TIME_PCT } from "../../../metrics/concurrentLb3Targets";
 
 <h1>How Bloomwatch judges you</h1>
 
@@ -109,4 +135,84 @@ import styles from "./index.module.css";
   Swiftness need specific Restoration talent points, for example) is hidden from
   your scorecard entirely for that build, rather than judged "bad" — Bloomwatch
   only judges what your build could actually have done.
+</p>
+
+<h2 id="gcd-economy">GCD economy</h2>
+
+<p>
+  How much of the fight you spent actually casting, versus standing idle with
+  nothing on cooldown.
+</p>
+
+<h3 id="gcd-utilization">GCD utilization</h3>
+<p>
+  Time spent on the global cooldown (or a cast-time spell's actual cast time) as
+  a share of the fight's total duration. Good at {GCD_GOOD_MIN_PCT}% or above,
+  fair from {GCD_FAIR_MIN_PCT}–{GCD_GOOD_MIN_PCT}%, bad below that. 100% isn't a
+  realistic target — it's the theoretical ceiling the percentage is measured
+  against, not something anyone actually reaches.
+</p>
+
+<h3 id="idle-gap-dead-time">Idle-gap dead time</h3>
+<p>
+  A gap longer than {IDLE_GAP_THRESHOLD_MS / 1000}s between casts counts as
+  idle. Good under {IDLE_GOOD_MAX_PCT}% of the fight spent idle, fair from{" "}
+  {IDLE_GOOD_MAX_PCT}–{IDLE_FAIR_MAX_PCT}%, bad above {IDLE_FAIR_MAX_PCT}%.
+</p>
+
+<h2 id="lifebloom-discipline">Lifebloom discipline</h2>
+
+<p>
+  How well Lifebloom was maintained on the target(s) it was actually kept up on
+  — a target only counts as "maintained" once it's held at least{" "}
+  {MAINTAINED_MIN_UPTIME_PCT}% any-stack Lifebloom uptime; anything below that
+  is treated as an incidental one-off cast, not excluded from the fight
+  entirely.
+</p>
+
+<h3 id="lb3-uptime-per-target">LB3 uptime per target</h3>
+<p>
+  Measured from the moment a target first reaches 3 stacks. Good at{" "}
+  {LB3_GOOD_MIN_PCT}% or above, fair from {LB3_FAIR_MIN_PCT}–{LB3_GOOD_MIN_PCT}
+  %, bad below {LB3_FAIR_MIN_PCT}%, per target. This metric is strongest as a
+  read on a dedicated tank-healer assignment — a druid splitting attention
+  across many raid-wide targets by design will structurally show lower
+  per-target numbers here without having played any worse.
+</p>
+
+<h3 id="refresh-cadence">Refresh cadence</h3>
+<p>
+  How long after reaching 3 stacks each refresh actually landed. Good from{" "}
+  {CADENCE_GOOD_MIN_MS / 1000}–{CADENCE_GOOD_MAX_MS / 1000}s, fair from{" "}
+  {CADENCE_FAIR_MIN_MS / 1000}–{CADENCE_GOOD_MIN_MS / 1000}s, bad both below{" "}
+  {CADENCE_FAIR_MIN_MS / 1000}s (too eager, wasting the stack) and above{" "}
+  {CADENCE_GOOD_MAX_MS / 1000}s (too late, risking a natural bloom).
+</p>
+
+<h3 id="accidental-blooms">Accidental blooms</h3>
+<p>
+  A bloom counts as accidental when Lifebloom is re-applied to the same target
+  within {ACCIDENTAL_WINDOW_MS / 1000}s of it blooming — evidence the bloom
+  itself wasn't the intended play. Good at{" "}
+  {BLOOM_GOOD_MAX_COUNT === 1 ? "0" : `under ${BLOOM_GOOD_MAX_COUNT}`}, fair
+  from {BLOOM_GOOD_MAX_COUNT}–{BLOOM_FAIR_MAX_COUNT}, bad at{" "}
+  {BLOOM_FAIR_MAX_COUNT + 1} or more.
+</p>
+
+<h3 id="restack-tax">Re-stack tax</h3>
+<p>
+  A "tax" cast is one spent re-establishing Lifebloom on a target that had
+  already reached 3 stacks and then dropped it entirely — each one costs an
+  estimated {LIFEBLOOM_MANA_COST} mana that a clean refresh cycle wouldn't have
+  needed. The Good/Fair/Bad bar scales with fight length rather than a fixed
+  count, since a longer fight has more opportunities for a stack to drop.
+</p>
+
+<h3 id="concurrent-lb3-targets">Concurrent LB3 targets</h3>
+<p>
+  Reward-only: holding 2 or more targets at 3 stacks for at least{" "}
+  {CONCURRENT_MIN_TIME_PCT}% of the fight reads good. There's no fair or bad
+  here — how many targets a druid should be juggling at once depends on raid
+  healing assignments this tool can't see, so falling short of that bar simply
+  isn't judged rather than being counted against you.
 </p>

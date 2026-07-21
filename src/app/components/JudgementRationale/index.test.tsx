@@ -41,4 +41,17 @@ describe("JudgementRationale", () => {
 
     expect(scrollIntoViewMock).not.toHaveBeenCalled();
   });
+
+  it("renders live GCD utilization thresholds, not hardcoded prose", () => {
+    render(<JudgementRationale />);
+
+    expect(screen.getByText(/85% or above/)).toBeInTheDocument();
+    expect(screen.getByText(/70–85%/)).toBeInTheDocument();
+  });
+
+  it("renders live LB3 uptime thresholds", () => {
+    render(<JudgementRationale />);
+
+    expect(screen.getByText(/80% or above/)).toBeInTheDocument();
+  });
 });
