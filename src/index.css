@@ -95,7 +95,8 @@ body {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
@@ -118,6 +119,17 @@ h2 {
   @media (min-width: 1024px) {
     font-size: 24px;
   }
+}
+/* No h3 usage in the app relied on a specific size before this rule existed
+   (MetricCard's own .title class only sets margin, never font-size) — h3
+   previously fell back to each browser's own default heading size, which is
+   why it could render bigger than h2 in some viewports. Fixed at 18px,
+   weight 600 (bolder than h2's 500) so it always reads as a step below h2
+   regardless of viewport, without needing h2's responsive size bump. */
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 130%;
 }
 p {
   margin: 0;

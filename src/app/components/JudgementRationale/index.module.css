@@ -3,6 +3,19 @@
   margin: 0 auto;
 }
 
+/* This page is long-form prose, unlike the rest of the app's card/widget UI
+   that the shared h1/h2/h3/p rules in index.css were actually tuned for
+   (single hero headings, single-title screens, MetricCard headers that
+   override their own margin to 0). Reverting margin here restores each
+   browser's own default vertical rhythm for headings and paragraphs,
+   scoped to this page only — nothing outside .page is affected. */
+.page :global(h1),
+.page :global(h2),
+.page :global(h3),
+.page :global(p) {
+  margin: revert;
+}
+
 .toc {
   padding-left: 20px;
   line-height: 1.8;
