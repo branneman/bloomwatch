@@ -9,11 +9,16 @@ import {
 } from "vitest";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
-import { fetchEventsPage, WclRateLimitError } from "../../src/wcl/events";
+import {
+  fetchEventsPage,
+  fetchLookbackEventsPage,
+  WclRateLimitError,
+} from "../../src/wcl/events";
 import {
   WclApiError,
   WclGraphQLError,
   USER_API_URL,
+  CLASSIC_USER_API_URL,
 } from "../../src/wcl/client";
 import singlePageFixture from "./fixtures/events-healing-single-page.json";
 import paginatedPage1Fixture from "./fixtures/events-healing-paginated-page1.json";
@@ -107,6 +112,25 @@ describe("fetchEventsPage", () => {
     expect(requestBody?.query).toContain("dataType: Healing");
     expect(requestBody?.query).toContain("startTime: 1879119");
     expect(requestBody?.query).toContain("endTime: 2036920");
+  });
+
+  it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
+    server.use(
+      http.post(CLASSIC_USER_API_URL, () => HttpResponse.json(singlePageFixture)),
+    );
+
+    const result = await fetchEventsPage(
+      "test-token",
+      "mtRh3kJ9YMLazyvQ",
+      6,
+      "Healing",
+      1879119,
+      2036920,
+      false,
+      "classic",
+    );
+
+    expect(result.events).toHaveLength(5);
   });
 
   it("throws WclRateLimitError with a retryable message on HTTP 429", async () => {
@@ -289,5 +313,27 @@ describe("fetchEventsPage", () => {
       true,
     );
     expect(requestBody?.query).toContain("includeResources: true");
+  });
+});
+
+describe("fetchLookbackEventsPage", () => {
+  it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
+    server.use(
+      http.post(CLASSIC_USER_API_URL, () =>
+        HttpResponse.json(singlePageFixture),
+      ),
+    );
+
+    const result = await fetchLookbackEventsPage(
+      "test-token",
+      "mtRh3kJ9YMLazyvQ",
+      "Buffs",
+      0,
+      1000,
+      false,
+      "classic",
+    );
+
+    expect(result.events).toHaveLength(5);
   });
 });

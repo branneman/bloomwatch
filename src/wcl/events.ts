@@ -1,4 +1,5 @@
 import { WclApiError, postGraphQL } from "./client";
+import type { Host } from "./client";
 
 export type WclEventDataType =
   | "Casts"
@@ -37,6 +38,7 @@ async function postEventsQuery(
   accessToken: string,
   reportCode: string,
   eventsFieldArgs: string,
+  host: Host = "fresh",
 ): Promise<WclEventsPage> {
   let data;
   try {
@@ -53,6 +55,8 @@ async function postEventsQuery(
     }
   }
 }`,
+      undefined,
+      host,
     );
   } catch (err) {
     if (err instanceof WclApiError && err.status === 429) {
@@ -75,11 +79,13 @@ export async function fetchEventsPage(
   startTime: number,
   endTime: number,
   includeResources = false,
+  host: Host = "fresh",
 ): Promise<WclEventsPage> {
   return postEventsQuery(
     accessToken,
     reportCode,
     `fightIDs: [${fightId}], dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}`,
+    host,
   );
 }
 
@@ -99,10 +105,12 @@ export async function fetchLookbackEventsPage(
   startTime: number,
   endTime: number,
   includeResources = false,
+  host: Host = "fresh",
 ): Promise<WclEventsPage> {
   return postEventsQuery(
     accessToken,
     reportCode,
     `dataType: ${dataType}, startTime: ${startTime}, endTime: ${endTime}, includeResources: ${includeResources}`,
+    host,
   );
 }
