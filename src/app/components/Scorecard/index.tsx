@@ -165,7 +165,7 @@ export function Scorecard({
         : "Trash";
   const duration = formatDuration(fight.endTime - fight.startTime);
   const druidLabel = druid.isRestoSpec
-    ? `${druid.name} — Restoration`
+    ? `${druid.name} · Restoration`
     : druid.name;
 
   return (
@@ -189,7 +189,7 @@ export function Scorecard({
           <Alert tone="warning">
             This fight&apos;s detected build (
             {ARCHETYPE_LABELS[archetypeStatus.bucket]}) isn&apos;t one
-            Bloomwatch judges well yet — the process judgements below may not be
+            Bloomwatch judges well yet; the process judgements below may not be
             a fair read on this playstyle.
           </Alert>
         )}
@@ -197,7 +197,7 @@ export function Scorecard({
         !healingRoleStatus.isHealingThisFight && (
           <Alert tone="warning">
             {druid.name} cast {healingRoleStatus.healingCastCount} healing spell
-            {healingRoleStatus.healingCastCount === 1 ? "" : "s"} this fight —
+            {healingRoleStatus.healingCastCount === 1 ? "" : "s"} this fight;
             the judgements below may not be meaningful for an off-role pull.
           </Alert>
         )}
@@ -593,7 +593,7 @@ export function Scorecard({
       <div className={styles.footer}>
         <Alert tone="warning">
           This scorecard can&apos;t judge target selection, assignment
-          adherence, or positioning — only your process.
+          adherence, or positioning; only your process.
         </Alert>
       </div>
     </div>

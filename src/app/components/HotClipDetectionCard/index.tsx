@@ -41,7 +41,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/ability_druid_empoweredrejuvination.jpg";
 
 const THRESHOLD =
-  "A refresh counts as a clip if the existing aura had > 1 tick (> 3s) remaining. Clips consumed by Swiftmend are excluded — that's audited separately under Spell discipline. Rejuvenation's clip rate always drives this card's judgement (good < 5%, fair 5-15%, bad > 15% of its casts). For a deep-resto (Tree of Life-eligible) druid, Regrowth's clip rate is shown for information only and never turns this bad — in Tree of Life form, Regrowth is the only direct heal available without a cooldown (Healing Touch forces a shapeshift out of form), so once Swiftmend is on cooldown, spamming Regrowth for its direct-heal component is the correct response to burst damage, even though it clips Regrowth's own HoT tail as a side effect. For every other detected archetype — which never reaches Tree of Life and so keeps Healing Touch available with no form-swap tax — Regrowth's clip rate is judged by the same bands as Rejuvenation's and also feeds this card's judgement. A failed talent read (archetype undetermined) is treated like deep-resto here: informational only, since Tree of Life eligibility can't be ruled out.";
+  "A refresh counts as a clip if the existing aura had > 1 tick (> 3s) remaining. Clips consumed by Swiftmend are excluded; that's audited separately under Spell discipline. Rejuvenation's clip rate always drives this card's judgement (good < 5%, fair 5-15%, bad > 15% of its casts). For a deep-resto (Tree of Life-eligible) druid, Regrowth's clip rate is shown for information only and never turns this bad; in Tree of Life form, Regrowth is the only direct heal available without a cooldown (Healing Touch forces a shapeshift out of form), so once Swiftmend is on cooldown, spamming Regrowth for its direct-heal component is the correct response to burst damage, even though it clips Regrowth's own HoT tail as a side effect. For every other detected archetype (which never reaches Tree of Life and so keeps Healing Touch available with no form-swap tax), Regrowth's clip rate is judged by the same bands as Rejuvenation's and also feeds this card's judgement. A failed talent read (archetype undetermined) is treated like deep-resto here: informational only, since Tree of Life eligibility can't be ruled out.";
 
 export function HotClipDetectionCard({
   accessToken,
@@ -181,7 +181,7 @@ export function HotClipDetectionCard({
             `${regrowth.clipCount}`,
             `${regrowth.clipPct.toFixed(1)}%`,
             regrowth.judgement === undefined ? (
-              "—"
+              "n/a"
             ) : (
               <JudgementChip judgement={regrowth.judgement} />
             ),
@@ -211,7 +211,7 @@ export function HotClipDetectionCard({
                 target="_blank"
                 rel="noreferrer"
               >
-                {formatDuration(clip.timestampMs - fight.startTime)} —{" "}
+                {formatDuration(clip.timestampMs - fight.startTime)} ·{" "}
                 {clip.spell} on{" "}
                 {targetNames.get(clip.targetId) ?? `Target #${clip.targetId}`}
               </a>

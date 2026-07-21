@@ -30,13 +30,11 @@ describe("MetricCard", () => {
       <MetricCard
         title="Concurrent LB3 targets"
         value="Avg 1.6 · Peak 2"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold="No Good/Fair/Bad."
       />,
     );
-    expect(
-      screen.getByText("Informational — no judgement"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Informational: no judgement")).toBeInTheDocument();
     expect(screen.queryByText("Good")).not.toBeInTheDocument();
   });
 

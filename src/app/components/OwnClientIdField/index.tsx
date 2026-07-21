@@ -29,7 +29,7 @@ export function OwnClientIdField({ onConnect }: OwnClientIdFieldProps) {
         >
           Register a free client
         </a>{" "}
-        at warcraftlogs.com — check &quot;Public Client&quot;, and use this
+        at warcraftlogs.com: check &quot;Public Client&quot;, and use this
         page&apos;s URL as the redirect.
       </p>
       <Button

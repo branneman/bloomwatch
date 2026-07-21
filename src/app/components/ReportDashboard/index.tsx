@@ -170,7 +170,7 @@ function FightRow({
     EPIC_META.map(({ id }) => summaries[id]),
   );
   const label =
-    pullNumber === null ? fight.name : `Pull ${pullNumber} — ${fight.name}`;
+    pullNumber === null ? fight.name : `Pull ${pullNumber} · ${fight.name}`;
   const duration = formatDuration(fight.endTime - fight.startTime);
 
   const isOffRole =
@@ -300,7 +300,7 @@ export function ReportDashboard({
         e !== undefined,
     );
   const druidLabel = druid.isRestoSpec
-    ? `${druid.name} — Restoration`
+    ? `${druid.name} · Restoration`
     : druid.name;
 
   return (
@@ -372,7 +372,7 @@ export function ReportDashboard({
 
       <Alert tone="warning">
         This dashboard can&apos;t judge target selection, assignment adherence,
-        or positioning — only your process, aggregated across the report.
+        or positioning; only your process, aggregated across the report.
       </Alert>
     </div>
   );

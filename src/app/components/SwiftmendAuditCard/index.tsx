@@ -45,7 +45,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_relics_idolofrejuvenation.jpg";
 
 const THRESHOLD =
-  "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Good < 40% wasteful, fair 40-80%, bad > 80% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast — if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Utilization (casts vs. 15s-cooldown availability): good ≥50%, fair 25-50%, bad <25% — provisional pending real calibration. The header chip combines both judgements, with efficiency weighing heavier — a bad utilization can drag a good/fair efficiency down one notch, but never the reverse.";
+  "Classification: efficient (consumed HoT ≤ 3s remaining, regardless of HP), emergency (not efficient, and target ≤ 50% HP), wasteful (neither). Good < 40% wasteful, fair 40-80%, bad > 80% of Swiftmend casts. Target HP% is read from the most recent Healing event on that target before the cast; if damage landed in the gap between that sample and the cast, the true HP may have been lower than shown. Utilization (casts vs. 15s-cooldown availability): good ≥50%, fair 25-50%, bad <25%, provisional pending real calibration. The header chip combines both judgements, with efficiency weighing heavier; a bad utilization can drag a good/fair efficiency down one notch, but never the reverse.";
 
 const CLASSIFICATION_LABEL: Record<SwiftmendClassification, string> = {
   efficient: "Efficient",
@@ -178,7 +178,7 @@ export function SwiftmendAuditCard({
         rationaleSlug="swiftmend-quality-audit"
       >
         <p>
-          Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+          Not shown: this fight&apos;s talent data couldn&apos;t be read, so
           eligibility for Swiftmend (needs {SWIFTMEND_MIN_RESTORATION}+
           Restoration points) can&apos;t be confirmed.
         </p>
@@ -199,13 +199,13 @@ export function SwiftmendAuditCard({
       >
         {archetypeStatus.bucket === "unknown-no-talent-data" ? (
           <p>
-            Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+            Not shown: this fight&apos;s talent data couldn&apos;t be read, so
             eligibility for Swiftmend (needs {SWIFTMEND_MIN_RESTORATION}+
             Restoration points) can&apos;t be confirmed.
           </p>
         ) : (
           <p>
-            Not shown — this build can&apos;t take Swiftmend (needs{" "}
+            Not shown: this build can&apos;t take Swiftmend (needs{" "}
             {SWIFTMEND_MIN_RESTORATION}+ Restoration points; this fight&apos;s
             build has {archetypeStatus.restoration}).
           </p>
@@ -268,7 +268,7 @@ export function SwiftmendAuditCard({
             targetNames.get(cast.targetId) ?? `Target #${cast.targetId}`,
             cast.consumedSpell,
             `${(cast.remainingMs / 1000).toFixed(1)}s`,
-            cast.targetHpPct === null ? "—" : `${cast.targetHpPct}%`,
+            cast.targetHpPct === null ? "n/a" : `${cast.targetHpPct}%`,
             <ClassTag tone={cast.classification}>
               {CLASSIFICATION_LABEL[cast.classification]}
             </ClassTag>,
@@ -285,7 +285,7 @@ export function SwiftmendAuditCard({
       >
         <span>
           {swiftmendCastCount} Swiftmend{swiftmendCastCount === 1 ? "" : "s"}{" "}
-          cast of {availableWindows} possible 15s windows —{" "}
+          cast of {availableWindows} possible 15s windows ·{" "}
           {utilizationPct.toFixed(0)}% utilization
         </span>
         <JudgementChip judgement={utilizationJudgement} />

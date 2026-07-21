@@ -210,7 +210,7 @@ describe("App", () => {
     );
 
     expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     ).toBeInTheDocument();
   });
 
@@ -302,7 +302,7 @@ describe("App", () => {
     // resolvedAbilities is the last piece the gate was waiting on — no
     // "View report dashboard" click needed.
     expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     ).toBeInTheDocument();
   });
 
@@ -315,7 +315,7 @@ describe("App", () => {
     await loadReport(user);
 
     expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     ).toBeInTheDocument();
 
     // Sole-candidate auto-select (DruidPicker returns null) shouldn't leave a
@@ -341,7 +341,7 @@ describe("App", () => {
     await loadReport(user);
 
     const row = await screen.findByRole("button", {
-      name: /Pull 1 — Coilfang Frenzy/,
+      name: /Pull 1 · Coilfang Frenzy/,
     });
     await user.click(row);
 
@@ -352,7 +352,7 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "← All fights" }));
 
     expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /GCD economy/ }),
@@ -627,7 +627,7 @@ describe("App — shareable URL state", () => {
     );
 
     await user.click(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     );
     expect(window.location.hash).toBe(
       `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}/f/1`,
@@ -649,7 +649,7 @@ describe("App — shareable URL state", () => {
     render(<App />);
     await loadReport(user);
     await user.click(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     );
     await screen.findByRole("button", { name: /GCD economy/ });
 
@@ -686,7 +686,7 @@ describe("App — shareable URL state", () => {
     });
 
     expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /GCD economy/ }),
@@ -752,7 +752,7 @@ describe("App — shareable URL state", () => {
     render(<App />);
 
     expect(
-      await screen.findByRole("button", { name: /Pull 1 — Coilfang Frenzy/ }),
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
     ).toBeInTheDocument();
     expect(window.location.hash).toBe(
       `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,

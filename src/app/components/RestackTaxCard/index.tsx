@@ -34,7 +34,7 @@ type FetchResult =
   | { accessToken: string; error: string };
 
 const THRESHOLD =
-  "Good/Fair/Bad scales with fight length: roughly one good-tier cast per 2 minutes elapsed, one fair-tier cast per minute elapsed. Each target's first ramp to 3 stacks is free — only casts that rebuild a stack after it was already established count, at an estimated 220 mana each (Lifebloom's flat TBC base cost, not adjusted for talents or gear).";
+  "Good/Fair/Bad scales with fight length: roughly one good-tier cast per 2 minutes elapsed, one fair-tier cast per minute elapsed. Each target's first ramp to 3 stacks is free; only casts that rebuild a stack after it was already established count, at an estimated 220 mana each (Lifebloom's flat TBC base cost, not adjusted for talents or gear).";
 
 export function RestackTaxCard({
   accessToken,
@@ -157,7 +157,7 @@ export function RestackTaxCard({
                 target="_blank"
                 rel="noreferrer"
               >
-                {formatDuration(cast.timestampMs - fight.startTime)} —{" "}
+                {formatDuration(cast.timestampMs - fight.startTime)} ·{" "}
                 {targetNames.get(cast.targetId) ?? `Target #${cast.targetId}`}
               </a>
             </li>

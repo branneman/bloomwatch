@@ -153,7 +153,7 @@ export function InnervateAuditCard({
         judgement={judgement}
         note={
           judgement === null
-            ? "Informational — not mana-constrained, or under 3 minutes"
+            ? "Informational: not mana-constrained, or under 3 minutes"
             : undefined
         }
         threshold={THRESHOLD}
@@ -207,7 +207,7 @@ export function InnervateAuditCard({
               >
                 {formatDuration(cast.timestampMs - fight.startTime)}
               </a>
-              , {describeTarget(cast, targetNames)} (informational — only the
+              , {describeTarget(cast, targetNames)} (informational: only the
               first cast is judged).
             </li>
           ))}

@@ -32,7 +32,7 @@ export function DruidPicker({
       {candidates.map((candidate) => {
         const active = candidate.id === selectedDruidId;
         const label = candidate.isRestoSpec
-          ? `${candidate.name} — Restoration (${candidate.healingCastCount} heals)`
+          ? `${candidate.name} · Restoration (${candidate.healingCastCount} heals)`
           : `${candidate.name} (${candidate.healingCastCount} heal casts)`;
         return (
           <label

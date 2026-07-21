@@ -40,7 +40,7 @@ type FetchResult =
   | { accessToken: string; error: string };
 
 const THRESHOLD =
-  "Good when 2+ targets held Lifebloom's 3rd stack for at least 50% of the fight — a reward-only signal recognizing multi-target maintenance as the skill it is. Never fair or bad: anything below that bar may simply reflect your raid healing assignment, not weaker play.";
+  "Good when 2+ targets held Lifebloom's 3rd stack for at least 50% of the fight; a reward-only signal recognizing multi-target maintenance as the skill it is. Never fair or bad: anything below that bar may simply reflect your raid healing assignment, not weaker play.";
 
 const LEVEL_COLORS = [
   "var(--border)",
@@ -152,7 +152,7 @@ export function ConcurrentTargetsCard({
       <MetricCard
         icon={lifebloomIcon}
         title="Concurrent LB3 targets"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="concurrent-lb3-targets"
       >
@@ -166,7 +166,7 @@ export function ConcurrentTargetsCard({
       <MetricCard
         icon={lifebloomIcon}
         title="Concurrent LB3 targets"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="concurrent-lb3-targets"
       >
@@ -183,7 +183,7 @@ export function ConcurrentTargetsCard({
       title="Concurrent LB3 targets"
       value={`Avg ${avgConcurrent.toFixed(1)} · Peak ${peakConcurrent}`}
       judgement={judgement}
-      note={judgement === null ? "Informational — no judgement" : undefined}
+      note={judgement === null ? "Informational: no judgement" : undefined}
       threshold={THRESHOLD}
       rationaleSlug="concurrent-lb3-targets"
     >

@@ -60,7 +60,7 @@ describe("ReportDashboard", () => {
       />,
     );
 
-    const row = screen.getByRole("button", { name: /Pull 1 — Lady Vashj/ });
+    const row = screen.getByRole("button", { name: /Pull 1 · Lady Vashj/ });
     expect(row).toBeInTheDocument();
     expect(screen.queryByText(/Trash pack/)).not.toBeInTheDocument();
     expect(screen.getAllByText("Calculating…").length).toBeGreaterThan(0);
@@ -82,7 +82,7 @@ describe("ReportDashboard", () => {
     );
 
     await user.click(
-      screen.getByRole("button", { name: /Pull 1 — Lady Vashj/ }),
+      screen.getByRole("button", { name: /Pull 1 · Lady Vashj/ }),
     );
     expect(onOpenFight).toHaveBeenCalledWith(1);
 
@@ -100,7 +100,7 @@ describe("ReportDashboard", () => {
       await screen.findByRole("button", { name: /GCD economy/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Pull 1 — Lady Vashj/ }),
+      screen.queryByRole("button", { name: /Pull 1 · Lady Vashj/ }),
     ).not.toBeInTheDocument();
   });
 
@@ -164,7 +164,7 @@ describe("ReportDashboard", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole("button", { name: /Pull 1 — Lady Vashj/ }),
+        screen.getByRole("button", { name: /Pull 1 · Lady Vashj/ }),
       ).toHaveTextContent(/Good|Fair|Bad/),
     );
   });

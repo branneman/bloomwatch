@@ -85,7 +85,7 @@ export function GCDUtilizationCard({
   const isCurrent = result !== null && result.accessToken === accessToken;
 
   const threshold =
-    "Good ≥ 85%, fair 70–85%, bad < 70%. ~40 casts/min is the theoretical ceiling at 0% haste (60s ÷ 1.5s GCD) — 100% is not a realistic target, just the ceiling the percentage is measured against.";
+    "Good ≥ 85%, fair 70–85%, bad < 70%. ~40 casts/min is the theoretical ceiling at 0% haste (60s ÷ 1.5s GCD); 100% is not a realistic target, just the ceiling the percentage is measured against.";
 
   if (!isCurrent) {
     return (

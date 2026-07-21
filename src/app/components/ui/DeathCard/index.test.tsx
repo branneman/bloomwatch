@@ -25,7 +25,7 @@ describe("DeathCard", () => {
     expect(screen.getByText("Yes")).toBeInTheDocument();
   });
 
-  it("shows 'Not judged' and 'n/a — not maintained' for an unmaintained target", () => {
+  it("shows 'Not judged' and 'n/a (not maintained)' for an unmaintained target", () => {
     render(
       <DeathCard
         target="Raid member (Warrior)"
@@ -40,7 +40,7 @@ describe("DeathCard", () => {
     );
 
     expect(screen.getByText("Not judged")).toBeInTheDocument();
-    expect(screen.getByText("n/a — not maintained")).toBeInTheDocument();
+    expect(screen.getByText("n/a (not maintained)")).toBeInTheDocument();
     expect(screen.getByText("On cooldown")).toBeInTheDocument();
   });
 });

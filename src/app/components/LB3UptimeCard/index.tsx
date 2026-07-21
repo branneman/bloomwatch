@@ -137,7 +137,7 @@ export function LB3UptimeCard({
   const isCurrent = result !== null && result.accessToken === accessToken;
 
   const threshold =
-    "Measured from first reaching 3 stacks. Good ≥ 90%, fair 75–90%, bad < 75%, per target. Only targets with ≥ 30% overall LB uptime are shown — one-off casts don't count as maintained.";
+    "Measured from first reaching 3 stacks. Good ≥ 90%, fair 75–90%, bad < 75%, per target. Only targets with ≥ 30% overall LB uptime are shown; one-off casts don't count as maintained.";
 
   if (!isCurrent) {
     return (
@@ -178,8 +178,8 @@ export function LB3UptimeCard({
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 4px" }}>
             Strongest as a read on a dedicated tank-healer assignment. If you're
-            mainly raid-healing this fight — splitting attention across many
-            targets by design — a lower number here doesn't mean worse play,
+            mainly raid-healing this fight (splitting attention across many
+            targets by design), a lower number here doesn't mean worse play,
             just a wider job.
           </p>
           {result.result.targets.map((target) => (

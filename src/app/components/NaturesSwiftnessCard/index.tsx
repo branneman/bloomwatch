@@ -41,7 +41,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_ravenform.jpg";
 
 const THRESHOLD =
-  "Reports casts vs. theoretical availability (3 min cooldown). Utilization: good ≥75%, fair 50-75%, bad <50% — except fights with only 1 available window (under 3 minutes), where holding it in reserve is reasonable: 0 casts reads fair, 1 cast reads good. Unused-while-available during a raid death is cross-referenced separately in the death forensics audit.";
+  "Reports casts vs. theoretical availability (3 min cooldown). Utilization: good ≥75%, fair 50-75%, bad <50%, except fights with only 1 available window (under 3 minutes), where holding it in reserve is reasonable: 0 casts reads fair, 1 cast reads good. Unused-while-available during a raid death is cross-referenced separately in the death forensics audit.";
 
 function formatFollowUp(
   followUp: NaturesSwiftnessFollowUp | null,
@@ -130,7 +130,7 @@ export function NaturesSwiftnessCard({
       <MetricCard
         icon={ICON}
         title="Nature's Swiftness audit"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="natures-swiftness-utilization"
       >
@@ -144,7 +144,7 @@ export function NaturesSwiftnessCard({
       <MetricCard
         icon={ICON}
         title="Nature's Swiftness audit"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="natures-swiftness-utilization"
       >
@@ -158,7 +158,7 @@ export function NaturesSwiftnessCard({
       <MetricCard
         icon={ICON}
         title="Nature's Swiftness audit"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="natures-swiftness-utilization"
       >
@@ -172,12 +172,12 @@ export function NaturesSwiftnessCard({
       <MetricCard
         icon={ICON}
         title="Nature's Swiftness audit"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="natures-swiftness-utilization"
       >
         <p>
-          Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+          Not shown: this fight&apos;s talent data couldn&apos;t be read, so
           eligibility for Nature&apos;s Swiftness (needs{" "}
           {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points) can&apos;t be
           confirmed.
@@ -194,21 +194,21 @@ export function NaturesSwiftnessCard({
       <MetricCard
         icon={ICON}
         title="Nature's Swiftness audit"
-        note="Informational — no judgement"
+        note="Informational: no judgement"
         threshold={THRESHOLD}
         rationaleSlug="natures-swiftness-utilization"
       >
         {archetypeStatus.bucket === "unknown-no-talent-data" ? (
           <p>
-            Not shown — this fight&apos;s talent data couldn&apos;t be read, so
+            Not shown: this fight&apos;s talent data couldn&apos;t be read, so
             eligibility for Nature&apos;s Swiftness (needs{" "}
             {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points) can&apos;t
             be confirmed.
           </p>
         ) : (
           <p>
-            Not shown — this build can&apos;t take Nature&apos;s Swiftness
-            (needs {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points; this
+            Not shown: this build can&apos;t take Nature&apos;s Swiftness (needs{" "}
+            {NATURES_SWIFTNESS_MIN_RESTORATION}+ Restoration points; this
             fight&apos;s build has {archetypeStatus.restoration}).
           </p>
         )}
@@ -252,7 +252,7 @@ export function NaturesSwiftnessCard({
               >
                 {formatDuration(cast.timestampMs - fight.startTime)}
               </a>{" "}
-              — {formatFollowUp(cast.followUp, targetNames)}
+              · {formatFollowUp(cast.followUp, targetNames)}
             </li>
           ))}
         </ul>

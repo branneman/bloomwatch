@@ -57,8 +57,8 @@ export function Onboarding({ onContinue }: OnboardingProps) {
 
       <h2>Which builds this fits</h2>
       <p className={styles.section}>
-        Bloomwatch&apos;s judgements are tuned for a Restoration-focused healer
-        — deep resto gets the most precise read, and Dreamstate hybrids are
+        Bloomwatch&apos;s judgements are tuned for a Restoration-focused healer;
+        deep resto gets the most precise read, and Dreamstate hybrids are
         reasonably covered too. A Regrowth-only resto build, a Restokin
         (Balance/healer hybrid), or a Balance druid playing an off-spec healer
         role doesn&apos;t have enough process data behind it yet, so its

@@ -48,12 +48,10 @@ describe("ConcurrentTargetsCard", () => {
     await waitFor(() =>
       expect(screen.getByText("Avg 0.6 · Peak 1")).toBeInTheDocument(),
     );
-    expect(
-      screen.getByText("Informational — no judgement"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Informational: no judgement")).toBeInTheDocument();
     expect(screen.queryByText("Good")).not.toBeInTheDocument();
-    expect(screen.getByText("0 targets — 40%")).toBeInTheDocument();
-    expect(screen.getByText("1 target — 60%")).toBeInTheDocument();
+    expect(screen.getByText("0 targets · 40%")).toBeInTheDocument();
+    expect(screen.getByText("1 target · 60%")).toBeInTheDocument();
   });
 
   it("shows a Good chip (not the informational note) when 2+ targets held LB3 for at least 50% of the fight", async () => {
@@ -81,7 +79,7 @@ describe("ConcurrentTargetsCard", () => {
 
     await waitFor(() => expect(screen.getByText("Good")).toBeInTheDocument());
     expect(
-      screen.queryByText("Informational — no judgement"),
+      screen.queryByText("Informational: no judgement"),
     ).not.toBeInTheDocument();
   });
 

@@ -28,7 +28,7 @@ export function ErrorOverlay({ error, onStartOver }: ErrorOverlayProps) {
     <div className={styles.panel} role="alert">
       <h1>Sorry, something went wrong.</h1>
       <p>
-        Bloomwatch hit an unexpected error. This is often temporary — starting
+        Bloomwatch hit an unexpected error. This is often temporary; starting
         over usually fixes it.
       </p>
       <Disclosure summary="View details">

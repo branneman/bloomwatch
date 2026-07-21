@@ -99,7 +99,7 @@ describe("NaturesSwiftnessCard", () => {
     // 1 cast of 3 windows = 33% -> bad, per the standard (non-1-window) bands.
     await waitFor(() => expect(screen.getByText("Bad")).toBeInTheDocument());
     expect(
-      screen.queryByText("Informational — no judgement"),
+      screen.queryByText("Informational: no judgement"),
     ).not.toBeInTheDocument();
   });
 
@@ -268,9 +268,7 @@ describe("NaturesSwiftnessCard", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText(
-          /Not shown — this build can't take Nature's Swiftness/,
-        ),
+        screen.getByText(/Not shown: this build can't take Nature's Swiftness/),
       ).toBeInTheDocument(),
     );
     expect(

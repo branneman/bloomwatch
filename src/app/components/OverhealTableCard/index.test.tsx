@@ -110,7 +110,7 @@ describe("OverhealTableCard", () => {
       expect(screen.getByText("Rejuvenation")).toBeInTheDocument(),
     );
     expect(screen.getByText("HoT tick (informational)")).toBeInTheDocument();
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("n/a")).toBeInTheDocument();
   });
 
   it("shows a message and good judgement when there are no heals to report", async () => {

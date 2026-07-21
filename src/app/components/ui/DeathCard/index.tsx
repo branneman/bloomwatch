@@ -27,7 +27,7 @@ export function DeathCard({
   const rows: [string, string][] = [
     [
       "LB3 rolling on target",
-      maintained ? (lb3 ? "Yes" : "No") : "n/a — not maintained",
+      maintained ? (lb3 ? "Yes" : "No") : "n/a (not maintained)",
     ],
     ["Swiftmend available", swiftmendReady ? "Ready" : "On cooldown"],
     ["Nature's Swiftness available", nsReady ? "Ready" : "On cooldown"],

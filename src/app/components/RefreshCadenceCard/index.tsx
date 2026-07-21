@@ -44,7 +44,7 @@ const BUCKET_COLOR: Record<RefreshCadenceBucketLabel, string> = {
 };
 
 const THRESHOLD =
-  "Only refreshes on targets already at 3 stacks count. Buckets and median Good/Fair/Bad share the same bands: bad < 5s, fair 5–6s, good 6–7s, bad > 7s — a late refresh risks an accidental bloom, counted separately by the accidental-bloom counter below.";
+  "Only refreshes on targets already at 3 stacks count. Buckets and median Good/Fair/Bad share the same bands: bad < 5s, fair 5–6s, good 6–7s, bad > 7s; a late refresh risks an accidental bloom, counted separately by the accidental-bloom counter below.";
 
 export function RefreshCadenceCard({
   accessToken,
@@ -151,7 +151,7 @@ export function RefreshCadenceCard({
       rationaleSlug="refresh-cadence"
     >
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 4px" }}>
-        Interval between your Lifebloom refreshes on 3-stacked targets — too
+        Interval between your Lifebloom refreshes on 3-stacked targets; too
         early wastes mana and GCDs, too late risks an accidental bloom.
       </p>
       <Histogram

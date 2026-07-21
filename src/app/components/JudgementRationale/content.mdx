@@ -119,7 +119,7 @@ Warcraft Logs in the first place.
 <h2 id="why-process-not-output">Why process, not output</h2>
 
 Healing is zero-sum. Every hitpoint one healer heals is a hitpoint another
-healer didn't get to heal — so on any given pull, healers are structurally
+healer didn't get to heal, so on any given pull, healers are structurally
 competing for the same pool of damage taken. A healing meter ranks that
 competition, not skill: who gets assigned the tank versus raid-wide AoE, how
 many other healers are in the group, how efficiently everyone else played, all
@@ -130,7 +130,7 @@ because of who they were assigned to heal.
 Bloomwatch measures process instead: your GCD utilization, your Lifebloom
 refresh cadence, your mana-potion cooldown usage, whether you had a cooldown
 in reserve when someone nearly died. None of that can be taken from you by a
-co-healer's assignment or a raid comp — it's a fair read on how you actually
+co-healer's assignment or a raid comp; it's a fair read on how you actually
 played, pull after pull, independent of who else was in the raid.
 
 That's also why nothing on this page or anywhere in Bloomwatch is built from
@@ -140,7 +140,7 @@ answered from your own actions alone, it doesn't belong here.
 <h2 id="how-judgements-combine">How judgements combine</h2>
 
 Every individual metric gets its own Good/Fair/Bad verdict against a fixed
-threshold — the rest of this page lists every one of those thresholds. But a
+threshold; the rest of this page lists every one of those thresholds. But a
 single fight's scorecard needs to fold several metrics into one verdict per
 group (GCD economy, Lifebloom discipline, and so on), and a whole raid night
 needs to fold several fights into one verdict per group again. Both steps use
@@ -148,7 +148,7 @@ the same idea:
 
 <strong>A mix of good and bad reads as fair, not a flat bad.</strong> If three
 metrics in a group come back good, good, and bad, the group doesn't read as a
-flat "bad" just because one thing went wrong — it reads "fair", since at least
+flat "bad" just because one thing went wrong; it reads "fair", since at least
 one of those metrics genuinely went well. This is deliberately symmetric: a
 group that's mostly bad with one good metric is capped at "fair" too, not
 pulled all the way up to "good". A group with no bad metrics at all (say, two
@@ -156,14 +156,14 @@ good and one fair) still resolves by simple worst-of, unaffected by this rule.
 
 The same rule applies one level up, across a whole report: if a metric group
 reads good on some fights and bad on others, the report-wide verdict for that
-group reads "fair", weighted by how long each fight actually ran — a
+group reads "fair", weighted by how long each fight actually ran; a
 two-minute wipe doesn't count as much as a six-minute kill. Without this, a
 single bad pull in an otherwise strong raid night could make an entire metric
 group look like a flat failure.
 
 A metric that depends on a talent you don't have (Swiftmend or Nature's
 Swiftness need specific Restoration talent points, for example) is hidden from
-your scorecard entirely for that build, rather than judged "bad" — Bloomwatch
+your scorecard entirely for that build, rather than judged "bad"; Bloomwatch
 only judges what your build could actually have done.
 
 <h2 id="gcd-economy">GCD economy</h2>
@@ -176,7 +176,7 @@ nothing on cooldown.
 Time spent on the global cooldown (or a cast-time spell's actual cast time) as
 a share of the fight's total duration. Good at {GCD_GOOD_MIN_PCT}% or above,
 fair from {GCD_FAIR_MIN_PCT}–{GCD_GOOD_MIN_PCT}%, bad below that. 100% isn't a
-realistic target — it's the theoretical ceiling the percentage is measured
+realistic target; it's the theoretical ceiling the percentage is measured
 against, not something anyone actually reaches.
 
 <h3 id="idle-gap-dead-time">Idle-gap dead time</h3>
@@ -187,8 +187,8 @@ idle. Good under {IDLE_GOOD_MAX_PCT}% of the fight spent idle, fair from{" "}
 
 <h2 id="lifebloom-discipline">Lifebloom discipline</h2>
 
-How well Lifebloom was maintained on the target(s) it was actually kept up on
-— a target only counts as "maintained" once it's held at least{" "}
+How well Lifebloom was maintained on the target(s) it was actually kept up on:
+a target only counts as "maintained" once it's held at least{" "}
 {MAINTAINED_MIN_UPTIME_PCT}% any-stack Lifebloom uptime; anything below that
 is treated as an incidental one-off cast, not excluded from the fight
 entirely.
@@ -198,7 +198,7 @@ entirely.
 Measured from the moment a target first reaches 3 stacks. Good at{" "}
 {LB3_GOOD_MIN_PCT}% or above, fair from {LB3_FAIR_MIN_PCT}–{LB3_GOOD_MIN_PCT}
 %, bad below {LB3_FAIR_MIN_PCT}%, per target. This metric is strongest as a
-read on a dedicated tank-healer assignment — a druid splitting attention
+read on a dedicated tank-healer assignment; a druid splitting attention
 across many raid-wide targets by design will structurally show lower
 per-target numbers here without having played any worse.
 
@@ -213,7 +213,7 @@ How long after reaching 3 stacks each refresh actually landed. Good from{" "}
 <h3 id="accidental-blooms">Accidental blooms</h3>
 
 A bloom counts as accidental when Lifebloom is re-applied to the same target
-within {ACCIDENTAL_WINDOW_MS / 1000}s of it blooming — evidence the bloom
+within {ACCIDENTAL_WINDOW_MS / 1000}s of it blooming; evidence the bloom
 itself wasn't the intended play. Good at{" "}
 {BLOOM_GOOD_MAX_COUNT === 1 ? "0" : `under ${BLOOM_GOOD_MAX_COUNT}`}, fair
 from {BLOOM_GOOD_MAX_COUNT}–{BLOOM_FAIR_MAX_COUNT}, bad at{" "}
@@ -222,7 +222,7 @@ from {BLOOM_GOOD_MAX_COUNT}–{BLOOM_FAIR_MAX_COUNT}, bad at{" "}
 <h3 id="restack-tax">Re-stack tax</h3>
 
 A "tax" cast is one spent re-establishing Lifebloom on a target that had
-already reached 3 stacks and then dropped it entirely — each one costs an
+already reached 3 stacks and then dropped it entirely; each one costs an
 estimated {LIFEBLOOM_MANA_COST} mana that a clean refresh cycle wouldn't have
 needed. The Good/Fair/Bad bar scales with fight length rather than a fixed
 count, since a longer fight has more opportunities for a stack to drop.
@@ -231,7 +231,7 @@ count, since a longer fight has more opportunities for a stack to drop.
 
 Reward-only: holding 2 or more targets at 3 stacks for at least{" "}
 {CONCURRENT_MIN_TIME_PCT}% of the fight reads good. There's no fair or bad
-here — how many targets a druid should be juggling at once depends on raid
+here; how many targets a druid should be juggling at once depends on raid
 healing assignments this tool can't see, so falling short of that bar simply
 isn't judged rather than being counted against you.
 
@@ -243,7 +243,7 @@ A refresh "clips" the old application when it still had more than{" "}
 {CLIP_THRESHOLD_MS / 1000}s (more than one tick) left. Good under{" "}
 {CLIP_GOOD_MAX_PCT}% of casts clipped, fair from {CLIP_GOOD_MAX_PCT}–
 {CLIP_FAIR_MAX_PCT}%, bad above {CLIP_FAIR_MAX_PCT}%. Regrowth's own clip rate
-is shown for context only, with no verdict attached — in Tree of Form,
+is shown for context only, with no verdict attached; in Tree of Form,
 Regrowth is the only non-cooldown direct heal available, so clipping its own
 HoT tail to answer burst damage is the correct play, not a process error.
 
@@ -254,18 +254,18 @@ Every Swiftmend cast is classified efficient (consumed a HoT with{" "}
 below), or wasteful (neither). Wasteful share: good under{" "}
 {SWIFTMEND_WASTEFUL_GOOD_MAX_PCT}%, fair from{" "}
 {SWIFTMEND_WASTEFUL_GOOD_MAX_PCT}–{SWIFTMEND_WASTEFUL_FAIR_MAX_PCT}%, bad
-above {SWIFTMEND_WASTEFUL_FAIR_MAX_PCT}%. Utilization — casts versus its{" "}
-{SWIFTMEND_COOLDOWN_MS / 1000}s cooldown's real availability — good at{" "}
+above {SWIFTMEND_WASTEFUL_FAIR_MAX_PCT}%. Utilization (casts versus its{" "}
+{SWIFTMEND_COOLDOWN_MS / 1000}s cooldown's real availability): good at{" "}
 {SWIFTMEND_UTILIZATION_GOOD_MIN_PCT}% or above, fair from{" "}
 {SWIFTMEND_UTILIZATION_FAIR_MIN_PCT}–{SWIFTMEND_UTILIZATION_GOOD_MIN_PCT}%,
-bad below {SWIFTMEND_UTILIZATION_FAIR_MIN_PCT}% (provisional — this particular
+bad below {SWIFTMEND_UTILIZATION_FAIR_MIN_PCT}% (provisional: this particular
 band hasn't been checked against a large sample of real logs yet, unlike most
 other thresholds on this page).
 
 <h3 id="downranking-discipline">Downranking discipline</h3>
 
 A max-rank Regrowth or Healing Touch cast is flagged when its direct-heal
-portion overheals past {DOWNRANK_FLAG_OVERHEAL_PCT}% — a sign a lower rank
+portion overheals past {DOWNRANK_FLAG_OVERHEAL_PCT}%; a sign a lower rank
 might have healed for less waste. Good with zero flags, fair with one or more;
 bad isn't reachable here, since there are only two flaggable spell groups in
 the first place.
@@ -275,7 +275,7 @@ the first place.
 Casts versus its {NATURES_SWIFTNESS_COOLDOWN_MS / 60000}-minute cooldown's
 real availability. Good at {NS_UTILIZATION_GOOD_MIN_PCT}% or above, fair from{" "}
 {NS_UTILIZATION_FAIR_MIN_PCT}–{NS_UTILIZATION_GOOD_MIN_PCT}%, bad below{" "}
-{NS_UTILIZATION_FAIR_MIN_PCT}% — except on a fight under{" "}
+{NS_UTILIZATION_FAIR_MIN_PCT}%, except on a fight under{" "}
 {NATURES_SWIFTNESS_COOLDOWN_MS / 60000} minutes, where there's only one real
 window: holding it in reserve for an emergency that simply doesn't arrive
 reads fair there, not bad.
@@ -286,19 +286,19 @@ reads fair there, not bad.
 
 Mana remaining at the end of a kill, checked only on fights lasting at least
 {MIN_JUDGED_FIGHT_DURATION_MS / 1000} seconds. Good between {MANA_BAND_GOOD_MIN_PCT}–{MANA_BAND_GOOD_MAX_PCT}%,
-fair either just below that ({MANA_BAND_GOOD_MIN_PCT}% or under — near-OOM is
+fair either just below that ({MANA_BAND_GOOD_MIN_PCT}% or under; near-OOM is
 understandable, not penalized the same as hoarding) or from{" "}
 {MANA_BAND_GOOD_MAX_PCT}–{MANA_BAND_BAD_MIN_PCT}%, bad above{" "}
-{MANA_BAND_BAD_MIN_PCT}% — ending a kill with that much mana left unspent is
+{MANA_BAND_BAD_MIN_PCT}%; ending a kill with that much mana left unspent is
 hoarding, not efficiency.
 
 <h3 id="consumable-throughput">Consumable throughput</h3>
 
 Only judged on fights where mana dropped below {MANA_DROP_THRESHOLD_PCT}% at
-some point — a fight that never got mana-tight is exempt entirely. Mana
+some point; a fight that never got mana-tight is exempt entirely. Mana
 Potion's expected floor is one per {POTION_FLOOR_INTERVAL_MS / 60000} minutes
 of fight length; Rune's (Dark Rune or Demonic Rune, sharing one cooldown) is
-one per {RUNE_FLOOR_INTERVAL_MS / 60000} minutes — Runes cost health and need
+one per {RUNE_FLOOR_INTERVAL_MS / 60000} minutes; Runes cost health and need
 crafted or scarce reagents, so real elite play uses them far less often than
 Mana Potions. Good at or above the floor, fair one below it, bad two or more
 below.
@@ -325,7 +325,7 @@ build: a deep-Restoration druid is judged good under{" "}
 (full or partial) runs structurally higher and is judged good under{" "}
 {REGROWTH_OVERHEAL_DREAMSTATE_GOOD_MAX_PCT}%, fair to{" "}
 {REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT}%, bad above it. Rejuvenation and
-Regrowth's HoT-tick overheal is shown for context only, with no verdict — high
+Regrowth's HoT-tick overheal is shown for context only, with no verdict; high
 overheal is inherent to a HoT ticking on an already-topped-off target.
 
 <h2 id="death-forensics">Death forensics</h2>
@@ -335,10 +335,10 @@ discipline's own "maintained target" bar above) is checked for unspent
 resources at the moment it happened: was Swiftmend off cooldown, was Nature's
 Swiftness off cooldown, and had the druid gone idle (no cast) for at least{" "}
 {DEATH_IDLE_WINDOW_MS / 1000}s beforehand. Zero unspent resources reads good,
-one reads fair, 2 or more unspent reads bad — a death where every safety net
+one reads fair, 2 or more unspent reads bad; a death where every safety net
 was still available and unused is the clearest sign something could have gone
 differently. Deaths of targets the druid wasn't maintaining aren't judged at
-all — they're outside what this tool can fairly attribute to the druid's own
+all; they're outside what this tool can fairly attribute to the druid's own
 play.
 
 <h2 id="crisis-response">Crisis response</h2>
@@ -348,7 +348,7 @@ raid member whose health dropped to {CRISIS_THRESHOLD_PCT}% or below and
 survived. Responding with a heal in time reads good outright, regardless of
 what else was in reserve. Not responding falls back to the same 0/1/2+
 unspent-resources scale death forensics uses. Crises outside a druid's clear
-one-or-two-target assignment are shown for context only, not judged — the same
+one-or-two-target assignment are shown for context only, not judged; the same
 scope limit death forensics doesn't need, since it only ever looks at targets
 the druid was already maintaining.
 
@@ -358,20 +358,20 @@ Checked once per fight, from the raid buffs already active at pull: flask or
 elixir coverage (a real flask, or both a battle elixir and a guardian elixir
 together, reads good; exactly one of the two reads fair; neither reads bad), a
 food buff (present or missing), and Superior Wizard Oil on the main-hand
-weapon (present or missing). The last two are binary — no fair band, just
+weapon (present or missing). The last two are binary; no fair band, just
 present or missing.
 
 <h2 id="where-the-data-comes-from">Where the data comes from</h2>
 
 Every number on this page and every scorecard in the app is computed from data
-pulled directly from Warcraft Logs' own public API (GraphQL, API v2) — from
+pulled directly from Warcraft Logs' own public API (GraphQL, API v2); from
 your browser, not from any Bloomwatch server, because there isn't one. Nothing
 is stored anywhere: closing the tab and pasting the same report link again
 re-fetches and re-computes everything from scratch.
 
 The pipeline, in order: the report's metadata and fight list, then which raid
 member is the druid being judged, then that druid's own casts, buffs, and
-resource events for whichever fight (or fights) are selected — all of it
+resource events for whichever fight (or fights) are selected; all of it
 recombined in your browser into the metrics above.
 
 <GraphQLExample />

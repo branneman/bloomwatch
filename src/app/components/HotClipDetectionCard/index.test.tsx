@@ -66,7 +66,7 @@ describe("HotClipDetectionCard", () => {
     expect(screen.getByText("50.0% clipped")).toBeInTheDocument();
     expect(screen.getByText("50.0%")).toBeInTheDocument();
     expect(
-      screen.getByText("0:05 — Rejuvenation on Offtank"),
+      screen.getByText("0:05 · Rejuvenation on Offtank"),
     ).toBeInTheDocument();
   });
 

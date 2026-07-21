@@ -74,7 +74,7 @@ describe("ManaCurveCard", () => {
     await waitFor(() =>
       expect(screen.getByText("Ending mana: 20%")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Informational — not a kill")).toBeInTheDocument();
+    expect(screen.getByText("Informational: not a kill")).toBeInTheDocument();
     expect(screen.queryByText("Good")).not.toBeInTheDocument();
   });
 
@@ -104,9 +104,7 @@ describe("ManaCurveCard", () => {
         ),
       ).toBeInTheDocument(),
     );
-    expect(
-      screen.getByText("Informational — no mana data"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Informational: no mana data")).toBeInTheDocument();
   });
 
   it("shows a loading message before the fetch resolves", () => {

@@ -34,10 +34,10 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_nature_resistnature.jpg";
 
 const THRESHOLD =
-  "Flag: a max-rank Regrowth or Healing Touch cast whose direct-heal component averaged > 50% overheal at that rank — a sign the max rank should have been downranked. Good 0 flags, fair 1-2 flags (never bad — at most one flaggable group per spell). Rejuvenation is shown for visibility only and is never flagged: it's a pure HoT, and HoT-tick overheal is too entangled with raid overlap and situational calls (e.g. deliberately downranking for threat management) to safely judge from logs alone.";
+  "Flag: a max-rank Regrowth or Healing Touch cast whose direct-heal component averaged > 50% overheal at that rank, a sign the max rank should have been downranked. Good 0 flags, fair 1-2 flags (never bad; at most one flaggable group per spell). Rejuvenation is shown for visibility only and is never flagged: it's a pure HoT, and HoT-tick overheal is too entangled with raid overlap and situational calls (e.g. deliberately downranking for threat management) to safely judge from logs alone.";
 
 function formatRank(rank: number | null, isMaxRank: boolean): string {
-  if (rank === null) return "Rank —";
+  if (rank === null) return "Rank n/a";
   return isMaxRank ? `Rank ${rank} (max)` : `Rank ${rank}`;
 }
 

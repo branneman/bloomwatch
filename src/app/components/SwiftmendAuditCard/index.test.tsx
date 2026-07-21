@@ -127,7 +127,7 @@ describe("SwiftmendAuditCard", () => {
     await waitFor(() =>
       expect(
         screen.getByText(
-          "1 Swiftmend cast of 2 possible 15s windows — 50% utilization",
+          "1 Swiftmend cast of 2 possible 15s windows · 50% utilization",
         ),
       ).toBeInTheDocument(),
     );
@@ -170,7 +170,7 @@ describe("SwiftmendAuditCard", () => {
     await waitFor(() =>
       expect(screen.getByText("1 wasteful of 1 (100%)")).toBeInTheDocument(),
     );
-    expect(screen.getByText("—")).toBeInTheDocument();
+    expect(screen.getByText("n/a")).toBeInTheDocument();
     expect(screen.getByText("Wasteful")).toBeInTheDocument();
   });
 
@@ -367,7 +367,7 @@ describe("SwiftmendAuditCard", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText(/Not shown — this build can't take Swiftmend/),
+        screen.getByText(/Not shown: this build can't take Swiftmend/),
       ).toBeInTheDocument(),
     );
     expect(

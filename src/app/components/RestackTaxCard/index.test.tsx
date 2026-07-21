@@ -63,7 +63,7 @@ describe("RestackTaxCard", () => {
       expect(screen.getByText("1 casts · ~220 mana")).toBeInTheDocument(),
     );
     expect(screen.getByText("Good")).toBeInTheDocument();
-    expect(screen.getByText("1:41 — Offtank")).toBeInTheDocument();
+    expect(screen.getByText("1:41 · Offtank")).toBeInTheDocument();
   });
 
   it("shows a message when there is no re-stack tax", async () => {

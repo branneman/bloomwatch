@@ -13,8 +13,8 @@ describe("StackedBar", () => {
         ]}
       />,
     );
-    expect(screen.getByText("0 targets — 3%")).toBeInTheDocument();
-    expect(screen.getByText("1 target — 41%")).toBeInTheDocument();
-    expect(screen.getByText("2 targets — 56%")).toBeInTheDocument();
+    expect(screen.getByText("0 targets · 3%")).toBeInTheDocument();
+    expect(screen.getByText("1 target · 41%")).toBeInTheDocument();
+    expect(screen.getByText("2 targets · 56%")).toBeInTheDocument();
   });
 });

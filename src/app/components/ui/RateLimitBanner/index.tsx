@@ -35,7 +35,7 @@ export function RateLimitBanner({ usagePct, onConnect }: RateLimitBannerProps) {
         <p className={styles.headline}>Shared connection is running low</p>
         <p>
           Everyone shares one connection to Warcraft Logs, and it&apos;s nearly
-          used up for this hour — you could soon be blocked out. Your own free
+          used up for this hour; you could soon be blocked out. Your own free
           WCL API key is used only by you and never runs into this.
         </p>
         <Disclosure summary="Use your own Client ID">

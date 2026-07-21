@@ -27,7 +27,7 @@ export function GraphQLExample() {
     <Disclosure summary="See a real example query">
       <p>
         This is the actual shape of the request Bloomwatch sends to fetch one
-        fight&apos;s Lifebloom buff events — the same query LB3 uptime, refresh
+        fight&apos;s Lifebloom buff events; the same query LB3 uptime, refresh
         cadence, and accidental blooms are all built from:
       </p>
       <pre className={styles.query}>

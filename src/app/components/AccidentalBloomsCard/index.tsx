@@ -34,7 +34,7 @@ type FetchResult =
   | { accessToken: string; error: string };
 
 const THRESHOLD =
-  "Good 0, fair 1–2, bad ≥ 3 per fight. An accidental bloom is a re-application of Lifebloom on the same target within 3s of it blooming — the stack was rebuilt, not deliberately reset.";
+  "Good 0, fair 1–2, bad ≥ 3 per fight. An accidental bloom is a re-application of Lifebloom on the same target within 3s of it blooming; the stack was rebuilt, not deliberately reset.";
 
 export function AccidentalBloomsCard({
   accessToken,
@@ -156,7 +156,7 @@ export function AccidentalBloomsCard({
                 target="_blank"
                 rel="noreferrer"
               >
-                {formatDuration(bloom.timestampMs - fight.startTime)} —{" "}
+                {formatDuration(bloom.timestampMs - fight.startTime)} ·{" "}
                 {targetNames.get(bloom.targetId) ?? `Target #${bloom.targetId}`}
               </a>
             </li>

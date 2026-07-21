@@ -29,7 +29,7 @@ export function StackedBar({ segments }: StackedBarProps) {
               className={styles.swatch}
               style={{ background: segment.color }}
             />
-            {segment.label} — {segment.pct}%
+            {segment.label} · {segment.pct}%
           </div>
         ))}
       </div>

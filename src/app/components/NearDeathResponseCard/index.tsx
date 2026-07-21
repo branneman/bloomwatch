@@ -46,7 +46,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_holy_layonhands.jpg";
 
 const THRESHOLD =
-  "A crisis is a raider's HP dropping to <=15% (provisional) and surviving. The response window runs from that reading until HP recovers, the target dies (excluded — tracked separately under Death forensics), or the fight ends. Good if you landed a new reactive healing cast in that window; otherwise good/fair/bad from the same unspent-resource tally used in Death forensics (Swiftmend ready / Nature's Swiftness ready / a GCD available). Crises on a target you're not maintaining are shown as context only when you have a clear 1-2 target tank assignment elsewhere.";
+  "A crisis is a raider's HP dropping to <=15% (provisional) and surviving. The response window runs from that reading until HP recovers, the target dies (excluded; tracked separately under Death forensics), or the fight ends. Good if you landed a new reactive healing cast in that window; otherwise good/fair/bad from the same unspent-resource tally used in Death forensics (Swiftmend ready / Nature's Swiftness ready / a GCD available). Crises on a target you're not maintaining are shown as context only when you have a clear 1-2 target tank assignment elsewhere.";
 
 export function NearDeathResponseCard({
   accessToken,
@@ -226,7 +226,7 @@ export function NearDeathResponseCard({
       <div style={{ marginTop: "var(--space-4)" }}>
         <Alert tone="warning">
           A survived crisis is not automatically good or bad process by itself;
-          this audits your readiness and reaction only — not assignments or
+          this audits your readiness and reaction only; not assignments or
           positioning, and not whether anyone else&apos;s response was enough.
         </Alert>
       </div>

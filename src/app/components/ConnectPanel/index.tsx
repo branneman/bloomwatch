@@ -27,7 +27,7 @@ const TBC_EXPANSION_ID = 1001;
 const SUBSCRIPTION_ERROR_PATTERN = /subscri|premium|upgrade|archived/i;
 
 const UNSUPPORTED_EXPANSION_MESSAGE =
-  "This report isn't Burning Crusade content — Bloomwatch only judges TBC logs.";
+  "This report isn't Burning Crusade content; Bloomwatch only judges TBC logs.";
 const SUBSCRIPTION_REQUIRED_MESSAGE =
   "This report requires an active Warcraft Logs subscription to view.";
 

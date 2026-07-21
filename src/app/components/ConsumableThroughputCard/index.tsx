@@ -125,7 +125,7 @@ export function ConsumableThroughputCard({
       <MetricCard
         icon={ICON}
         title="Consumable throughput"
-        note="Informational — mana never dropped below 70%"
+        note="Informational: mana never dropped below 70%"
         threshold={THRESHOLD}
         rationaleSlug="consumable-throughput"
       >

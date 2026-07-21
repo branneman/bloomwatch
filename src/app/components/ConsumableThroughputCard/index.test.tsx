@@ -88,7 +88,7 @@ describe("ConsumableThroughputCard", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText("Informational — mana never dropped below 70%"),
+        screen.getByText("Informational: mana never dropped below 70%"),
       ).toBeInTheDocument(),
     );
     expect(screen.queryByText("Mana Potion")).not.toBeInTheDocument();

@@ -46,7 +46,7 @@ describe("AccidentalBloomsCard", () => {
     ).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("1")).toBeInTheDocument());
     expect(screen.getByText("Fair")).toBeInTheDocument();
-    expect(screen.getByText("2:53 — Offtank")).toBeInTheDocument();
+    expect(screen.getByText("2:53 · Offtank")).toBeInTheDocument();
   });
 
   it("shows a message when there are no accidental blooms", async () => {
