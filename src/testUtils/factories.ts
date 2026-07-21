@@ -6,6 +6,19 @@ import type {
 } from "../wcl/client";
 import type { WclEvent } from "../wcl/events";
 import type { RateLimitUsage } from "../wcl/rateLimitUsage";
+import {
+  GLYPH_OF_RENEWAL_ID,
+  GREATER_INSCRIPTION_OF_FAITH_ID,
+  ENCHANT_CLOAK_SUBTLETY_ID,
+  CHEST_MAJOR_SPIRIT_ID,
+  ENCHANT_BRACER_SUPERIOR_HEALING_ID,
+  ENCHANT_GLOVES_MAJOR_HEALING_ID,
+  GOLDEN_SPELLTHREAD_ID,
+  ENCHANT_BOOTS_BOARS_SPEED_ID,
+  ENCHANT_WEAPON_MAJOR_HEALING_ID,
+  TEARDROP_LIVING_RUBY_ID,
+  BRACING_EARTHSTORM_DIAMOND_ID,
+} from "../metrics/prepHygiene";
 
 export function aFight(overrides: Partial<Fight> = {}): Fight {
   return {
@@ -224,22 +237,34 @@ export function aCombatantInfoEvent(
       },
     ],
     gear: [
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      {},
-      { temporaryEnchant: 2678 },
+      {
+        permanentEnchant: GLYPH_OF_RENEWAL_ID,
+        gems: [{ id: BRACING_EARTHSTORM_DIAMOND_ID }],
+      }, // 0: Head
+      {}, // 1: Neck
+      { permanentEnchant: GREATER_INSCRIPTION_OF_FAITH_ID }, // 2: Shoulder
+      {}, // 3: Shirt
+      {
+        permanentEnchant: CHEST_MAJOR_SPIRIT_ID,
+        gems: [{ id: TEARDROP_LIVING_RUBY_ID }],
+      }, // 4: Chest
+      {}, // 5: Waist
+      { permanentEnchant: GOLDEN_SPELLTHREAD_ID }, // 6: Legs
+      { permanentEnchant: ENCHANT_BOOTS_BOARS_SPEED_ID }, // 7: Feet
+      { permanentEnchant: ENCHANT_BRACER_SUPERIOR_HEALING_ID }, // 8: Wrist
+      { permanentEnchant: ENCHANT_GLOVES_MAJOR_HEALING_ID }, // 9: Hands
+      {}, // 10: Finger1
+      {}, // 11: Finger2
+      {}, // 12: Trinket1
+      {}, // 13: Trinket2
+      { permanentEnchant: ENCHANT_CLOAK_SUBTLETY_ID }, // 14: Back
+      {
+        temporaryEnchant: 2678,
+        permanentEnchant: ENCHANT_WEAPON_MAJOR_HEALING_ID,
+      }, // 15: MainHand
+      {}, // 16: OffHand
+      {}, // 17: Ranged
+      {}, // 18: Tabard
     ],
     ...overrides,
   };
