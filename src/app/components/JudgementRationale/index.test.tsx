@@ -54,4 +54,16 @@ describe("JudgementRationale", () => {
 
     expect(screen.getByText(/80% or above/)).toBeInTheDocument();
   });
+
+  it("renders live Swiftmend wasteful-share thresholds", () => {
+    render(<JudgementRationale />);
+
+    expect(screen.getByText(/under 40%/)).toBeInTheDocument();
+  });
+
+  it("renders live ending-mana band thresholds", () => {
+    render(<JudgementRationale />);
+
+    expect(screen.getByText(/hoarding/)).toBeInTheDocument();
+  });
 });

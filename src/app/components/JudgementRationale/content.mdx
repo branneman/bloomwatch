@@ -25,6 +25,48 @@ import {
 } from "../../../metrics/accidentalBlooms";
 import { LIFEBLOOM_MANA_COST } from "../../../metrics/restackTax";
 import { CONCURRENT_MIN_TIME_PCT } from "../../../metrics/concurrentLb3Targets";
+import {
+  CLIP_THRESHOLD_MS,
+  CLIP_GOOD_MAX_PCT,
+  CLIP_FAIR_MAX_PCT,
+} from "../../../metrics/hotClipDetection";
+import {
+  SWIFTMEND_COOLDOWN_MS,
+  SWIFTMEND_WASTEFUL_GOOD_MAX_PCT,
+  SWIFTMEND_WASTEFUL_FAIR_MAX_PCT,
+  SWIFTMEND_UTILIZATION_GOOD_MIN_PCT,
+  SWIFTMEND_UTILIZATION_FAIR_MIN_PCT,
+} from "../../../metrics/swiftmendAudit";
+import { DOWNRANK_FLAG_OVERHEAL_PCT } from "../../../metrics/downrankingDiscipline";
+import {
+  NATURES_SWIFTNESS_COOLDOWN_MS,
+  NS_UTILIZATION_GOOD_MIN_PCT,
+  NS_UTILIZATION_FAIR_MIN_PCT,
+} from "../../../metrics/naturesSwiftnessAudit";
+import {
+  MANA_BAND_GOOD_MIN_PCT,
+  MANA_BAND_GOOD_MAX_PCT,
+  MANA_BAND_BAD_MIN_PCT,
+} from "../../../metrics/manaCurve";
+import {
+  POTION_FLOOR_INTERVAL_MS,
+  RUNE_FLOOR_INTERVAL_MS,
+  MANA_DROP_THRESHOLD_PCT,
+} from "../../../metrics/consumableThroughput";
+import {
+  MANA_CONSTRAINED_MIN_DURATION_MS,
+  LATE_CAST_FRACTION,
+} from "../../../metrics/innervateAudit";
+import {
+  BLOOM_OVERHEAL_GOOD_MAX_PCT,
+  BLOOM_OVERHEAL_FAIR_MAX_PCT,
+  DIRECT_OVERHEAL_GOOD_MAX_PCT,
+  DIRECT_OVERHEAL_FAIR_MAX_PCT,
+  REGROWTH_OVERHEAL_DEEP_RESTO_GOOD_MAX_PCT,
+  REGROWTH_OVERHEAL_DEEP_RESTO_FAIR_MAX_PCT,
+  REGROWTH_OVERHEAL_DREAMSTATE_GOOD_MAX_PCT,
+  REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT,
+} from "../../../metrics/overhealTable";
 
 <h1>How Bloomwatch judges you</h1>
 
@@ -215,4 +257,105 @@ import { CONCURRENT_MIN_TIME_PCT } from "../../../metrics/concurrentLb3Targets";
   here — how many targets a druid should be juggling at once depends on raid
   healing assignments this tool can't see, so falling short of that bar simply
   isn't judged rather than being counted against you.
+</p>
+
+<h2 id="spell-discipline">Spell discipline</h2>
+
+<h3 id="rejuv-clip-share">Rejuvenation clip share</h3>
+<p>
+  A refresh "clips" the old application when it still had more than{" "}
+  {CLIP_THRESHOLD_MS / 1000}s (more than one tick) left. Good under{" "}
+  {CLIP_GOOD_MAX_PCT}% of casts clipped, fair from {CLIP_GOOD_MAX_PCT}–
+  {CLIP_FAIR_MAX_PCT}%, bad above {CLIP_FAIR_MAX_PCT}%. Regrowth's own clip rate
+  is shown for context only, with no verdict attached — in Tree of Form,
+  Regrowth is the only non-cooldown direct heal available, so clipping its own
+  HoT tail to answer burst damage is the correct play, not a process error.
+</p>
+
+<h3 id="swiftmend-quality-audit">Swiftmend quality audit</h3>
+<p>
+  Every Swiftmend cast is classified efficient (consumed a HoT with{" "}
+  {CLIP_THRESHOLD_MS / 1000}s or less remaining), emergency (target at 50% HP or
+  below), or wasteful (neither). Wasteful share: good under{" "}
+  {SWIFTMEND_WASTEFUL_GOOD_MAX_PCT}%, fair from{" "}
+  {SWIFTMEND_WASTEFUL_GOOD_MAX_PCT}–{SWIFTMEND_WASTEFUL_FAIR_MAX_PCT}%, bad
+  above {SWIFTMEND_WASTEFUL_FAIR_MAX_PCT}%. Utilization — casts versus its{" "}
+  {SWIFTMEND_COOLDOWN_MS / 1000}s cooldown's real availability — good at{" "}
+  {SWIFTMEND_UTILIZATION_GOOD_MIN_PCT}% or above, fair from{" "}
+  {SWIFTMEND_UTILIZATION_FAIR_MIN_PCT}–{SWIFTMEND_UTILIZATION_GOOD_MIN_PCT}%,
+  bad below {SWIFTMEND_UTILIZATION_FAIR_MIN_PCT}% (provisional — this particular
+  band hasn't been checked against a large sample of real logs yet, unlike most
+  other thresholds on this page).
+</p>
+
+<h3 id="downranking-discipline">Downranking discipline</h3>
+<p>
+  A max-rank Regrowth or Healing Touch cast is flagged when its direct-heal
+  portion overheals past {DOWNRANK_FLAG_OVERHEAL_PCT}% — a sign a lower rank
+  might have healed for less waste. Good with zero flags, fair with one or more;
+  bad isn't reachable here, since there are only two flaggable spell groups in
+  the first place.
+</p>
+
+<h3 id="natures-swiftness-utilization">Nature's Swiftness utilization</h3>
+<p>
+  Casts versus its {NATURES_SWIFTNESS_COOLDOWN_MS / 60000}-minute cooldown's
+  real availability. Good at {NS_UTILIZATION_GOOD_MIN_PCT}% or above, fair from{" "}
+  {NS_UTILIZATION_FAIR_MIN_PCT}–{NS_UTILIZATION_GOOD_MIN_PCT}%, bad below{" "}
+  {NS_UTILIZATION_FAIR_MIN_PCT}% — except on a fight under{" "}
+  {NATURES_SWIFTNESS_COOLDOWN_MS / 60000} minutes, where there's only one real
+  window: holding it in reserve for an emergency that simply doesn't arrive
+  reads fair there, not bad.
+</p>
+
+<h2 id="mana-economy">Mana economy</h2>
+
+<h3 id="ending-mana">Ending mana</h3>
+<p>
+  Mana remaining at the end of a kill, checked only on fights lasting at least
+  90 seconds. Good between {MANA_BAND_GOOD_MIN_PCT}–{MANA_BAND_GOOD_MAX_PCT}%,
+  fair either just below that ({MANA_BAND_GOOD_MIN_PCT}% or under — near-OOM is
+  understandable, not penalized the same as hoarding) or from{" "}
+  {MANA_BAND_GOOD_MAX_PCT}–{MANA_BAND_BAD_MIN_PCT}%, bad above{" "}
+  {MANA_BAND_BAD_MIN_PCT}% — ending a kill with that much mana left unspent is
+  hoarding, not efficiency.
+</p>
+
+<h3 id="consumable-throughput">Consumable throughput</h3>
+<p>
+  Only judged on fights where mana dropped below {MANA_DROP_THRESHOLD_PCT}% at
+  some point — a fight that never got mana-tight is exempt entirely. Mana
+  Potion's expected floor is one per {POTION_FLOOR_INTERVAL_MS / 60000} minutes
+  of fight length; Rune's (Dark Rune or Demonic Rune, sharing one cooldown) is
+  one per {RUNE_FLOOR_INTERVAL_MS / 60000} minutes — Runes cost health and need
+  crafted or scarce reagents, so real elite play uses them far less often than
+  Mana Potions. Good at or above the floor, fair one below it, bad two or more
+  below.
+</p>
+
+<h3 id="innervate-audit">Innervate audit</h3>
+<p>
+  Casting Innervate on a mana-using ally reads good; wasting it on a non-mana
+  class (Warrior, Rogue, or a Feral druid) reads bad. A self-cast reads good if
+  it lands before {LATE_CAST_FRACTION * 100}% of the fight has elapsed, fair
+  after. Never casting it at all in a mana-constrained fight running{" "}
+  {MANA_CONSTRAINED_MIN_DURATION_MS / 60000}+ minutes reads bad.
+</p>
+
+<h3 id="overheal-table">Overheal table</h3>
+<p>
+  Lifebloom's bloom: good under {BLOOM_OVERHEAL_GOOD_MAX_PCT}%, fair from{" "}
+  {BLOOM_OVERHEAL_GOOD_MAX_PCT}–{BLOOM_OVERHEAL_FAIR_MAX_PCT}%, bad above{" "}
+  {BLOOM_OVERHEAL_FAIR_MAX_PCT}%. Healing Touch and Swiftmend's direct heals:
+  good under {DIRECT_OVERHEAL_GOOD_MAX_PCT}%, fair from{" "}
+  {DIRECT_OVERHEAL_GOOD_MAX_PCT}–{DIRECT_OVERHEAL_FAIR_MAX_PCT}%, bad above{" "}
+  {DIRECT_OVERHEAL_FAIR_MAX_PCT}%. Regrowth's direct-heal portion splits by
+  build: a deep-Restoration druid is judged good under{" "}
+  {REGROWTH_OVERHEAL_DEEP_RESTO_GOOD_MAX_PCT}%, fair to{" "}
+  {REGROWTH_OVERHEAL_DEEP_RESTO_FAIR_MAX_PCT}%, bad above it; a Dreamstate build
+  (full or partial) runs structurally higher and is judged good under{" "}
+  {REGROWTH_OVERHEAL_DREAMSTATE_GOOD_MAX_PCT}%, fair to{" "}
+  {REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT}%, bad above it. Rejuvenation and
+  Regrowth's HoT-tick overheal is shown for context only, with no verdict — high
+  overheal is inherent to a HoT ticking on an already-topped-off target.
 </p>
