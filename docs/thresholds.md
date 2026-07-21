@@ -4,6 +4,13 @@ Every Good/Fair/Bad judgement threshold used anywhere in the app, in one place, 
 
 Each threshold's rationale lives as a code comment next to its constant (principle 3) — this table is an index into those comments, not a replacement for them. If a value here and its code comment ever disagree, the code is authoritative; fix this table.
 
+The in-app **Judgement Rationale** page (`#/judgements`) is the user-facing
+companion to this file — it explains the same thresholds in plain language,
+importing the real exported constants directly so it can't drift out of
+sync the way a second hand-copied number could. This file remains the
+permanent dev-facing index into each threshold's code-comment rationale;
+that page is for end users.
+
 ## GCD economy (epic B)
 
 | Metric              | Threshold            | Current default      | Source                       | Code                                                |

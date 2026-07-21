@@ -444,6 +444,17 @@ I want any error — an uncaught bug, a failed WCL request, or a GraphQL request
 - The overlay shows: an apology ("Sorry, something went wrong"), a collapsed-by-default "View details" disclosure with the error's message, stack trace (when available), and a timestamp, a "Start over" button that navigates to `#/` and reloads the app, and a prompt to open an issue at `https://github.com/branneman/bloomwatch/issues` (with the same details) if a retry doesn't fix it.
 - No error-reporting/telemetry service is introduced (principles 2/4 — no backend, FOSS) — "View details" is for the user to copy into a manually-filed GitHub issue; nothing is sent anywhere automatically.
 
+### 709 — Judgement Rationale page ✅ Done
+
+I want a plain-language page explaining how Bloomwatch collects its data and turns it into Good/Fair/Bad verdicts, so that a druid new to the tool, an experienced druid who wants the exact numbers, or a raid lead judging a healer's play can all understand the scorecard without guessing.
+
+**Acceptance criteria**
+
+- A new page, reachable at `#/about` for the existing Onboarding/About screen (Onboarding now renders at a real route instead of localStorage-gated overlay state) and `#/judgements` for the new content, linked from the app's footer, from About, and from every metric card's existing "why this threshold?" disclosure.
+- Content covers, in order: the process-over-output philosophy, how individual Good/Fair/Bad judgements combine into a fight's and a report's overall verdict, every metric's exact threshold (imported live from the real exported constants in `src/metrics/*.ts`, never a hand-copied second number), and a conceptual explanation of how the underlying data is pulled from Warcraft Logs' GraphQL API — including one real, collapsed-by-default example query, with a link out to the repository's README for the full technical picture.
+- Authored as MDX (`content.mdx`), compiled to a real React component at build time (`@mdx-js/rollup`) — no client-side markdown parser shipped.
+- `#/judgements/<slug>` deep-links to and scrolls to a specific metric's own section.
+
 ### 801 — Build & test tooling ✅ Done
 
 As a developer, I want a Vite + React + TypeScript project scaffold with a full test pyramid and automated CI/CD to GitHub Pages, so that the app has a maintainable foundation and every later story can be built and verified with confidence.
