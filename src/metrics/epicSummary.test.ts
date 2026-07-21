@@ -436,6 +436,47 @@ describe("summarizeSpellDiscipline", () => {
     });
   });
 
+  it("folds Regrowth's clip judgement into the verdict when present (non-deep-resto archetype)", () => {
+    const hotClips: HotClipDetectionResult = {
+      rejuvenation: {
+        spell: "Rejuvenation",
+        castCount: 100,
+        clipCount: 1,
+        clipPct: 1,
+        judgement: "good",
+      },
+      regrowth: {
+        spell: "Regrowth",
+        castCount: 20,
+        clipCount: 10,
+        clipPct: 50,
+        judgement: "bad",
+      },
+      clipEvents: [],
+    };
+    const swiftmendAudit: SwiftmendAuditResult = {
+      casts: [],
+      swiftmendCastCount: 4,
+      wastefulCount: 0,
+      wastefulPct: 0,
+      judgement: "good",
+      availableWindows: 22,
+      utilizationPct: 90,
+      utilizationJudgement: "good",
+    };
+
+    expect(
+      summarizeSpellDiscipline(
+        hotClips,
+        swiftmendAudit,
+        GOOD_DOWNRANKING,
+        true,
+        NEUTRAL_NS,
+        false,
+      ).judgement,
+    ).toBe("fair");
+  });
+
   it("is good when Rejuvenation clips, Swiftmend wasteful share, and downranking are all good", () => {
     const hotClips: HotClipDetectionResult = {
       rejuvenation: {

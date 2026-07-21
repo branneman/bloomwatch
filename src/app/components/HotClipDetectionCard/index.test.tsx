@@ -9,6 +9,7 @@ import {
   aCastEvent,
   anApplyBuffEvent,
   aRefreshBuffEvent,
+  aCombatantInfoEvent,
 } from "../../../testUtils/factories";
 
 function makeFetchEvents(buffEvents: WclEvent[], castEvents: WclEvent[]) {
@@ -107,8 +108,70 @@ describe("HotClipDetectionCard", () => {
 
     // Regrowth: 1 clip of 2 casts = 50% — would be bad if it were judged.
     await waitFor(() => expect(screen.getByText("50.0%")).toBeInTheDocument());
-    expect(screen.getByText("Good")).toBeInTheDocument();
+    expect(screen.queryAllByText("Good").length).toBeGreaterThan(0);
     expect(screen.queryByText("Bad")).not.toBeInTheDocument();
+  });
+
+  it("judges Regrowth's clip rate too for a non-deep-resto archetype, folding it into the card's overall judgement", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 341000 });
+    const buffEvents = [
+      // Rejuvenation: clean, well under the 5% good threshold.
+      anApplyBuffEvent({ timestamp: 0, targetID: 42, abilityGameID: 26982 }),
+      // Regrowth: refreshed with 26s remaining out of 27s -- a clip, and
+      // this druid classifies as likely-dreamstate-full (35/0/13 talents),
+      // so it's judged this time.
+      anApplyBuffEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+      aRefreshBuffEvent({
+        timestamp: 1000,
+        targetID: 48,
+        abilityGameID: 26980,
+      }),
+    ];
+    const castEvents = [
+      ...Array.from({ length: 50 }, (_, i) =>
+        aCastEvent({ timestamp: i * 1000, targetID: 42, abilityGameID: 26982 }),
+      ),
+      aCastEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+      aCastEvent({ timestamp: 1000, targetID: 48, abilityGameID: 26980 }),
+    ];
+    const fetchEvents = (
+      _accessToken: string,
+      _reportCode: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> => {
+      if (dataType === "Casts") return Promise.resolve(castEvents);
+      if (dataType === "CombatantInfo") {
+        return Promise.resolve([
+          aCombatantInfoEvent({
+            sourceID: 2,
+            talents: [{ id: 35 }, { id: 0 }, { id: 13 }],
+          }),
+        ]);
+      }
+      return Promise.resolve(buffEvents);
+    };
+
+    render(
+      <HotClipDetectionCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        rejuvenationAbilityIds={new Set([26982])}
+        regrowthAbilityIds={new Set([26980])}
+        targetNames={new Map()}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    // Rejuvenation stays good (well under 5%); Regrowth is bad (1/2 = 50%,
+    // over the 15% bad threshold) -- a good+bad mix reads fair overall.
+    await waitFor(() => {
+      expect(screen.getByText("Fair")).toBeInTheDocument();
+      expect(screen.getByText("Bad")).toBeInTheDocument();
+    });
   });
 
   it("shows a message when there are no HoT clips", async () => {

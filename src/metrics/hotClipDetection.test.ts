@@ -40,7 +40,7 @@ describe("computeHotClipDetection", () => {
     });
   });
 
-  it("never produces a judgement for Regrowth, even at a high clip rate", () => {
+  it("never produces a judgement for Regrowth for a deep-resto druid, even at a high clip rate", () => {
     const buffEvents = [
       anApplyBuffEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
       // Regrowth lasts 27000ms; refreshing at 1000ms leaves 26000ms
@@ -67,6 +67,71 @@ describe("computeHotClipDetection", () => {
 
     expect(result.regrowth.clipCount).toBe(1);
     expect(result.regrowth.clipPct).toBe(50);
+    expect(result.regrowth).not.toHaveProperty("judgement");
+  });
+
+  it.each([
+    { bucket: "likely-dreamstate-full" as const },
+    { bucket: "likely-dreamstate-partial" as const },
+    { bucket: "mostly-resto" as const },
+    { bucket: "mostly-balance" as const },
+    { bucket: "restokin-shaped" as const },
+    { bucket: "other-unclassified" as const },
+  ])(
+    "judges Regrowth clip share for a bucket confirmed below Tree of Life's 41-point cutoff ($bucket), by Rejuvenation's same bands",
+    ({ bucket }) => {
+      const buffEvents = [
+        anApplyBuffEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+        // Regrowth lasts 27000ms; refreshing at 1000ms leaves 26000ms
+        // (>3000ms) remaining -- a clip.
+        aRefreshBuffEvent({
+          timestamp: 1000,
+          targetID: 48,
+          abilityGameID: 26980,
+        }),
+      ];
+      const castEvents = [
+        aCastEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+        aCastEvent({ timestamp: 1000, targetID: 48, abilityGameID: 26980 }),
+      ];
+
+      const result = computeHotClipDetection(
+        buffEvents,
+        castEvents,
+        DRUID_ID,
+        REJUV_IDS,
+        REGROWTH_IDS,
+        bucket,
+      );
+
+      // 1 clip / 2 casts = 50% -- bad under Rejuvenation's good<5/fair5-15/bad>15 bands.
+      expect(result.regrowth.judgement).toBe("bad");
+    },
+  );
+
+  it("never produces a judgement for Regrowth when the talent read failed (unknown-no-talent-data) -- can't rule out Tree of Life eligibility", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+      aRefreshBuffEvent({
+        timestamp: 1000,
+        targetID: 48,
+        abilityGameID: 26980,
+      }),
+    ];
+    const castEvents = [
+      aCastEvent({ timestamp: 0, targetID: 48, abilityGameID: 26980 }),
+      aCastEvent({ timestamp: 1000, targetID: 48, abilityGameID: 26980 }),
+    ];
+
+    const result = computeHotClipDetection(
+      buffEvents,
+      castEvents,
+      DRUID_ID,
+      REJUV_IDS,
+      REGROWTH_IDS,
+      "unknown-no-talent-data",
+    );
+
     expect(result.regrowth).not.toHaveProperty("judgement");
   });
 

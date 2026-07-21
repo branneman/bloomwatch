@@ -98,10 +98,12 @@ export function summarizeSpellDiscipline(
   naturesSwiftnessAudit: NaturesSwiftnessAuditResult,
   hasNaturesSwiftness: boolean,
 ): EpicSummary {
-  // Regrowth clipping has no judgement of its own (informational only —
-  // see docs/backlog.md story 301), so it can't move this verdict; the
-  // widget's two stat lines show the two metrics that do carry a
-  // judgement. Downranking's judgement also joins the mixedJudgement calc
+  // Regrowth clipping has no judgement of its own for a deep-resto druid
+  // (informational only — see docs/backlog.md story 301), but does for
+  // every other archetype (story 914) — folded in via `?? null` since it's
+  // an optional field on HotClipDetectionResult. The widget's two stat
+  // lines still show only the two metrics that always carry a judgement.
+  // Downranking's judgement also joins the mixedJudgement calc
   // (per docs/backlog.md story 303 — see docs/thresholds.md's
   // compounding-factors section for the full rationale, formerly its own
   // design doc, retired once this shipped) but doesn't get its own stat
@@ -117,6 +119,7 @@ export function summarizeSpellDiscipline(
   return {
     judgement: mixedJudgement([
       hotClips.rejuvenation.judgement,
+      hotClips.regrowth.judgement ?? null,
       ...(hasSwiftmend
         ? [swiftmendAudit.judgement, swiftmendAudit.utilizationJudgement]
         : []),

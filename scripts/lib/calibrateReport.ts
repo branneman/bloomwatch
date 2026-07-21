@@ -308,6 +308,7 @@ export async function computeFightResult(
       druidId,
       ctx.rejuvenationAbilityIds,
       ctx.regrowthAbilityIds,
+      archetypeBucket,
     );
     const swiftmendAudit = computeSwiftmendAudit(
       buffEvents,

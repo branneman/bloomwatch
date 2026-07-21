@@ -1,6 +1,7 @@
 import type { WclEvent } from "../wcl/events";
 import type { Judgement } from "./judgement";
 import { judgeThresholdBelow } from "./judgement";
+import type { TalentBucket } from "../report/archetypeDetection";
 
 // Rejuvenation duration, TBC Classic, constant across all ranks (only mana
 // cost/heal-per-tick scale by rank) — live-validated against report
@@ -34,15 +35,24 @@ export interface HotClipSpellResult {
 
 export interface HotClipDetectionResult {
   rejuvenation: HotClipSpellResult & { judgement: Judgement };
-  // Informational only, no judgement — see docs/backlog.md story 301: a
-  // resto druid in Tree of Life has exactly one non-cooldown direct heal
-  // (Healing Touch forces them out of form), so once Swiftmend is on
-  // cooldown, spamming Regrowth for its direct-heal component — clipping
-  // its own HoT tail as a side effect — is the only viable response to
-  // burst damage, not a process error. Judging it the same as a clipped
-  // Rejuvenation (whose entire purpose is the HoT) would punish a druid
-  // for correctly prioritizing direct healing.
-  regrowth: HotClipSpellResult;
+  // Judgement omitted for a deep-resto (Tree of Life-eligible) druid, or
+  // when the talent read failed and eligibility can't be confirmed either
+  // way — see docs/backlog.md story 301: a resto druid in Tree of Life has
+  // exactly one non-cooldown direct heal (Healing Touch forces them out of
+  // form), so once Swiftmend is on cooldown, spamming Regrowth for its
+  // direct-heal component — clipping its own HoT tail as a side effect — is
+  // the only viable response to burst damage, not a process error. That
+  // exemption's premise doesn't hold for any archetype confirmed to never
+  // reach Tree of Life (Restoration < 41, every non-deep-resto bucket by
+  // construction — see classifyBucket in archetypeDetection.ts) — those
+  // druids have Healing Touch available with no form-swap tax, so per
+  // docs/backlog.md story 914, every such bucket gets a real judgement,
+  // reusing Rejuvenation's own bands (real corpus data showed a clean,
+  // non-degenerate fit — see docs/thresholds.md). "unknown-no-talent-data"
+  // is deliberately left unjudged alongside deep-resto, matching story
+  // 903d's reasoning: a failed talent read can't honestly rule out the
+  // exemption applying.
+  regrowth: HotClipSpellResult & { judgement?: Judgement };
   clipEvents: HotClipEvent[];
 }
 
@@ -123,6 +133,7 @@ export function computeHotClipDetection(
   druidId: number,
   rejuvenationAbilityIds: Set<number>,
   regrowthAbilityIds: Set<number>,
+  archetypeBucket: TalentBucket = "deep-resto",
 ): HotClipDetectionResult {
   const rejuv = computeSpellResult(
     buffEvents,
@@ -150,7 +161,14 @@ export function computeHotClipDetection(
       ...rejuv.result,
       judgement: judgeClipPct(rejuv.result.clipPct),
     },
-    regrowth: regrowth.result,
+    regrowth:
+      archetypeBucket === "deep-resto" ||
+      archetypeBucket === "unknown-no-talent-data"
+        ? regrowth.result
+        : {
+            ...regrowth.result,
+            judgement: judgeClipPct(regrowth.result.clipPct),
+          },
     clipEvents,
   };
 }

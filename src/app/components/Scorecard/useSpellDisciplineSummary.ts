@@ -14,6 +14,7 @@ import {
   NATURES_SWIFTNESS_MIN_RESTORATION,
 } from "../../../report/archetypeDetection";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
+import { useArchetypeBucket } from "./useArchetypeBucket";
 
 type TaggedState = { accessToken: string; summary: EpicSummaryStatus };
 
@@ -36,6 +37,16 @@ export function useSpellDisciplineSummary(
   ) => Promise<WclEvent[]>,
 ): EpicSummaryStatus {
   const [state, setState] = useState<TaggedState | null>(null);
+
+  const archetypeStatus = useArchetypeBucket(
+    accessToken,
+    reportCode,
+    fight,
+    druidId,
+    fetchEvents,
+  );
+  const archetypeBucket =
+    archetypeStatus.status === "ready" ? archetypeStatus.bucket : undefined;
 
   useEffect(() => {
     const fightArg = {
@@ -61,6 +72,7 @@ export function useSpellDisciplineSummary(
           druidId,
           rejuvenationAbilityIds,
           regrowthAbilityIds,
+          archetypeBucket,
         );
         const swiftmendAudit = computeSwiftmendAudit(
           buffEvents,
@@ -124,6 +136,7 @@ export function useSpellDisciplineSummary(
     swiftmendAbilityIds,
     naturesSwiftnessAbilityIds,
     resolvedAbilities,
+    archetypeBucket,
     fetchEvents,
   ]);
 
