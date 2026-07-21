@@ -3,7 +3,7 @@ import {
   fetchCastsTable,
   fetchMasterDataAbilities,
 } from "../../src/wcl/client";
-import type { Fight } from "../../src/wcl/client";
+import type { Fight, Host } from "../../src/wcl/client";
 import { createEventFetcher } from "../../src/wcl/eventCache";
 import { detectDruids } from "../../src/report/druidDetection";
 import type { DruidCandidate } from "../../src/report/druidDetection";
@@ -83,8 +83,14 @@ export interface ReportContext {
 export async function buildReportContext(
   accessToken: string,
   reportCode: string,
+  host: Host = "fresh",
 ): Promise<ReportContext> {
-  const { title, fights } = await fetchReportFights(accessToken, reportCode);
+  const { title, fights } = await fetchReportFights(
+    accessToken,
+    reportCode,
+    undefined,
+    host,
+  );
   const nonTrashFights = buildFightRows(fights)
     .filter((row) => !row.isTrash)
     .map((row) => ({ fight: row.fight, pullNumber: row.pullNumber }));
@@ -93,6 +99,8 @@ export async function buildReportContext(
     accessToken,
     reportCode,
     nonTrashFights.map((row) => row.fight.id),
+    undefined,
+    host,
   );
   const candidates = detectDruids(castTableEntries);
   const actorClasses = new Map(
@@ -105,10 +113,16 @@ export async function buildReportContext(
   const reportAbilities = await fetchMasterDataAbilities(
     accessToken,
     reportCode,
+    undefined,
+    host,
   );
   const resolvedAbilities = resolveAbilities(reportAbilities);
 
-  const { fetchEvents, fetchLookbackEvents } = createEventFetcher();
+  const { fetchEvents, fetchLookbackEvents } = createEventFetcher(
+    undefined,
+    undefined,
+    host,
+  );
 
   return {
     accessToken,
@@ -444,8 +458,9 @@ export async function computeFightResult(
 export async function calibrateReport(
   accessToken: string,
   reportCode: string,
+  host: Host = "fresh",
 ): Promise<CalibrationOutput> {
-  const ctx = await buildReportContext(accessToken, reportCode);
+  const ctx = await buildReportContext(accessToken, reportCode, host);
 
   const druids: DruidResult[] = [];
   for (const candidate of ctx.candidates) {
@@ -467,6 +482,7 @@ export async function calibrateReport(
     reportCode: ctx.reportCode,
     reportTitle: ctx.reportTitle,
     generatedAt: new Date().toISOString(),
+    source: host,
     druids,
   };
 }

@@ -1,3 +1,4 @@
+import type { Host } from "../../src/wcl/client";
 import type { Judgement } from "../../src/metrics/judgement";
 import type { GcdUtilizationResult } from "../../src/metrics/gcdUtilization";
 import type { IdleGapsResult } from "../../src/metrics/idleGaps";
@@ -157,5 +158,6 @@ export interface CalibrationOutput {
   reportCode: string;
   reportTitle: string;
   generatedAt: string;
+  source: Host;
   druids: DruidResult[];
 }
