@@ -129,11 +129,13 @@ that page is for end users.
 
 ## Prep hygiene (epic G)
 
-| Metric                | Threshold         | Current default                                                           | Source    | Code                                                |
-| --------------------- | ----------------- | ------------------------------------------------------------------------- | --------- | --------------------------------------------------- |
-| Flask/elixir coverage | good / fair / bad | flask (or both battle+guardian elixir) / exactly one of the two / neither | story 601 | `src/metrics/prepHygiene.ts` (`judgeFlaskOrElixir`) |
-| Food buff             | good / bad        | present / missing (binary, no fair)                                       | story 601 | `src/metrics/prepHygiene.ts`                        |
-| Weapon oil            | good / bad        | present / missing (binary, no fair)                                       | story 601 | `src/metrics/prepHygiene.ts`                        |
+| Metric                | Threshold         | Current default                                                                                             | Source                  | Code                                                  |
+| --------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------- |
+| Flask/elixir coverage | good / fair / bad | flask (or both battle+guardian elixir) / exactly one of the two / neither                                   | story 601               | `src/metrics/prepHygiene.ts` (`judgeFlaskOrElixir`)   |
+| Food buff             | good / bad        | present / missing (binary, no fair)                                                                         | story 601               | `src/metrics/prepHygiene.ts`                          |
+| Weapon oil            | good / bad        | present / missing (binary, no fair)                                                                         | story 601               | `src/metrics/prepHygiene.ts`                          |
+| Enchant coverage      | good / fair / bad | 0 missing / 1-3 missing / 4+ missing (of 9 slots; bis and acceptable tiers both count as covered)           | story 602 (provisional) | `src/metrics/prepHygiene.ts` (`judgeEnchantCoverage`) |
+| Gem coverage          | good / fair / bad | 0 wrong / 1-2 wrong / 3+ wrong (bis and acceptable tiers both count as covered; can't detect empty sockets) | story 602 (provisional) | `src/metrics/prepHygiene.ts` (`judgeGemCoverage`)     |
 
 ## Crisis response (epic J)
 

@@ -363,7 +363,7 @@ I want a checklist of my raid-prep buffs at pull (battle elixir/flask, guardian 
   rows.
 - Item/flask/elixir/oil recognition lists are data-driven (easy to adjust per phase/tier).
 
-### 602 — Enchant & gem check 🔲 Todo
+### 602 — Enchant & gem check ✅ Done
 
 I want each of my enchantable gear slots checked for a recognized healer-appropriate permanent enchant, and each socketed gem checked for a recognized healer-appropriate stat, at pull, so that gaps in gearing prep are caught the same way missing flask/food/weapon-oil already are by story 601.
 
