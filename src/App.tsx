@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWclAuth } from "./wcl/useWclAuth";
 import {
   fetchReportFights,
@@ -34,6 +34,7 @@ import {
 } from "./app/components/ui/RateLimitBanner";
 import { AppHeader } from "./app/components/ui/AppHeader";
 import { Footer } from "./app/components/ui/Footer";
+import { JudgementRationale } from "./app/components/JudgementRationale";
 import { withRateLimitDetection, withErrorReporting } from "./wcl/client";
 import {
   useRateLimitUsage,
@@ -43,6 +44,7 @@ import { useHashRoute } from "./app/routing/useHashRoute";
 import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import type { DruidCandidate } from "./report/druidDetection";
 import type { ActorClass } from "./metrics/innervateAudit";
+import type { Route } from "./app/routing/hashRoute";
 import logo from "./assets/logo/lifebloom.jpg";
 import styles from "./App.module.css";
 
@@ -76,9 +78,21 @@ function App() {
     ResolvedAbility
   > | null>(null);
   const [eventFetcher] = useState(() => createEventFetcher());
-  const [onboardingDismissed, setOnboardingDismissed] = useState(
-    () => localStorage.getItem(ONBOARDING_SEEN_KEY) === "true",
-  );
+  const pendingRouteRef = useRef<Route | null>(null);
+
+  // First-time visit anywhere (not already headed to #/about itself):
+  // remember where the visitor was actually headed, then redirect to
+  // About. handleContinueFromAbout() below sends them on to that
+  // remembered destination once they dismiss it — mirroring the old
+  // "onboarding is an overlay, the route underneath is untouched" behavior,
+  // just expressed as an explicit route now that About has a real URL.
+  useEffect(() => {
+    if (localStorage.getItem(ONBOARDING_SEEN_KEY) === "true") return;
+    if (route.screen === "about") return;
+    pendingRouteRef.current = route;
+    navigate({ screen: "about" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately mount-only: only the very first resolved route should ever trigger this redirect, not every subsequent route change.
+  }, []);
 
   const reportCode =
     route.screen === "input" ||
@@ -162,13 +176,10 @@ function App() {
     navigate({ screen: "input" });
   }
 
-  function dismissOnboarding() {
+  function handleContinueFromAbout() {
     localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
-    setOnboardingDismissed(true);
-  }
-
-  function reopenOnboarding() {
-    setOnboardingDismissed(false);
+    navigate(pendingRouteRef.current ?? { screen: "input" });
+    pendingRouteRef.current = null;
   }
 
   const handleEntriesLoaded = useCallback((entries: CastTableEntry[]) => {
@@ -375,15 +386,25 @@ function App() {
     );
   }
 
+  if (route.screen === "about") {
+    return (
+      <Shell>
+        <Onboarding onContinue={handleContinueFromAbout} />
+      </Shell>
+    );
+  }
+
+  if (route.screen === "judgements") {
+    return (
+      <Shell>
+        <JudgementRationale slug={route.slug} />
+      </Shell>
+    );
+  }
+
   return (
     <>
-      {!onboardingDismissed && (
-        <Shell>
-          <Onboarding onContinue={dismissOnboarding} />
-        </Shell>
-      )}
-
-      {onboardingDismissed && !accessToken && (
+      {!accessToken && (
         <Shell>
           <div className={styles.connectHeader}>
             <img src={logo} width={40} height={40} alt="" />
@@ -406,7 +427,7 @@ function App() {
             <button
               type="button"
               className={styles.aboutLink}
-              onClick={reopenOnboarding}
+              onClick={() => navigate({ screen: "about" })}
             >
               About
             </button>
@@ -418,11 +439,9 @@ function App() {
           large centered logo+heading (a "hero" treatment) — this persistent
           slim header only starts once the user is past that gate, so it
           never duplicates the identity chrome. */}
-      {onboardingDismissed && accessToken && (
-        <AppHeader onClick={handleStartOver} />
-      )}
+      {accessToken && <AppHeader onClick={handleStartOver} />}
 
-      {onboardingDismissed && accessToken && rateLimited && (
+      {accessToken && rateLimited && (
         <Shell>
           <Alert tone="warning">
             The shared connection is temporarily over capacity — too many people
@@ -436,8 +455,7 @@ function App() {
       {/* Hidden while 008's blocking fallback (rateLimited) is already
           showing — that screen has its own OwnClientIdField and a more
           urgent message, so showing both at once would be redundant. */}
-      {onboardingDismissed &&
-        accessToken &&
+      {accessToken &&
         !rateLimited &&
         usingDefaultClient &&
         usagePct !== null &&
@@ -447,7 +465,7 @@ function App() {
           </Shell>
         )}
 
-      {onboardingDismissed && accessToken && (
+      {accessToken && (
         <div
           className={rateLimited ? styles.dimmed : undefined}
           inert={rateLimited}
@@ -578,9 +596,9 @@ function App() {
         </div>
       )}
 
-      {onboardingDismissed && accessToken && (
+      {accessToken && (
         <Footer
-          onReopenOnboarding={reopenOnboarding}
+          onReopenOnboarding={() => navigate({ screen: "about" })}
           rateLimitUsage={rateLimitUsage}
         />
       )}

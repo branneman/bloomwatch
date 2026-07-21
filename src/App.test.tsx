@@ -493,6 +493,110 @@ describe("App — Onboarding", () => {
   });
 });
 
+describe("App — About and Judgements routes", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState(null, "", "#");
+    vi.clearAllMocks();
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+  });
+
+  it("shows the About screen and updates the hash when visited directly", () => {
+    window.history.pushState(null, "", "#/about");
+
+    render(<App />);
+
+    expect(
+      screen.getByRole("heading", { name: "What this is" }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe("#/about");
+  });
+
+  it("shows the Judgement Rationale screen when visited directly", () => {
+    window.history.pushState(null, "", "#/judgements");
+
+    render(<App />);
+
+    expect(
+      screen.getByRole("heading", { name: "How Bloomwatch judges you" }),
+    ).toBeInTheDocument();
+  });
+
+  it("links from About to the Judgement Rationale page", async () => {
+    window.history.pushState(null, "", "#/about");
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(
+      screen.getByRole("link", { name: /Read the full judgement rationale/ }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "How Bloomwatch judges you" }),
+    ).toBeInTheDocument();
+    expect(window.location.hash).toBe("#/judgements");
+  });
+
+  it("opens the Judgement Rationale page from the footer, once authenticated", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("link", { name: "How judgements work" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "How Bloomwatch judges you" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("App — first-visit redirect to About", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState(null, "", "#");
+    vi.clearAllMocks();
+  });
+
+  it("redirects a first-time visit at the root to #/about", () => {
+    render(<App />);
+
+    expect(window.location.hash).toBe("#/about");
+    expect(
+      screen.getByRole("heading", { name: "What this is" }),
+    ).toBeInTheDocument();
+  });
+
+  it("returns to the originally-requested screen after Continue", async () => {
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    const user = userEvent.setup();
+
+    render(<App />);
+    expect(window.location.hash).toBe("#/about");
+
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(screen.getByLabelText("Report URL or code")).toBeInTheDocument();
+    // serializeRoute({screen: "input"}) is "#" (hashRoute.ts) — pushing a
+    // bare "#" fragment normalizes to an empty string per the URL spec (both
+    // jsdom and real browsers), the same behavior already asserted below at
+    // "shows the recovery overlay when the OAuth redirect's state doesn't
+    // match" (`expect(window.location.hash).toBe("")`).
+    expect(window.location.hash).toBe("");
+  });
+
+  it("does not redirect a direct first-time visit to #/about itself", () => {
+    window.history.pushState(null, "", "#/about");
+
+    render(<App />);
+
+    expect(window.location.hash).toBe("#/about");
+  });
+});
+
 describe("App — shareable URL state", () => {
   beforeEach(() => {
     localStorage.clear();

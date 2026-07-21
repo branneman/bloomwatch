@@ -58,3 +58,6 @@
   font-size: var(--text-small-size);
   color: var(--text);
 }
+.inlineLink {
+  color: var(--accent);
+}

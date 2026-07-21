@@ -10,13 +10,18 @@ export function Footer({ onReopenOnboarding, rateLimitUsage }: FooterProps) {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-        <button
-          type="button"
-          className={styles.aboutLink}
-          onClick={onReopenOnboarding}
-        >
-          About
-        </button>
+        <div className={styles.links}>
+          <button
+            type="button"
+            className={styles.aboutLink}
+            onClick={onReopenOnboarding}
+          >
+            About
+          </button>
+          <a href="#/judgements" className={styles.aboutLink}>
+            How judgements work
+          </a>
+        </div>
         <div className={styles.meta}>
           {rateLimitUsage && (
             <span className={styles.rateLimit}>

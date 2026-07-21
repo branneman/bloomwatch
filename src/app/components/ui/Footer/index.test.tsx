@@ -54,4 +54,12 @@ describe("Footer", () => {
       screen.getByText("WCL rate limit budget: 76/9000."),
     ).toBeInTheDocument();
   });
+
+  it("links to the Judgement Rationale page", () => {
+    render(<Footer onReopenOnboarding={vi.fn()} rateLimitUsage={null} />);
+
+    expect(
+      screen.getByRole("link", { name: "How judgements work" }),
+    ).toHaveAttribute("href", "#/judgements");
+  });
 });

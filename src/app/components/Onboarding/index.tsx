@@ -99,6 +99,14 @@ export function Onboarding({ onContinue }: OnboardingProps) {
           TBC Resto Druid Rotation Game ↗
         </a>
       </div>
+      <p className={styles.section}>
+        Want the exact thresholds, and how the data is pulled from Warcraft Logs
+        in the first place?{" "}
+        <a href="#/judgements" className={styles.inlineLink}>
+          Read the full judgement rationale →
+        </a>
+      </p>
+
       <p className={styles.caption}>
         Shown once on your first visit. Reachable anytime after that from an
         &quot;About&quot; link in the footer.

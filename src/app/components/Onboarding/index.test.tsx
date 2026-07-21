@@ -59,4 +59,12 @@ describe("Onboarding", () => {
 
     expect(onContinue).toHaveBeenCalled();
   });
+
+  it("links to the Judgement Rationale page", () => {
+    render(<Onboarding onContinue={vi.fn()} />);
+
+    expect(
+      screen.getByRole("link", { name: "Read the full judgement rationale →" }),
+    ).toHaveAttribute("href", "#/judgements");
+  });
 });
