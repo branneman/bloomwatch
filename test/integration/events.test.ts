@@ -116,7 +116,9 @@ describe("fetchEventsPage", () => {
 
   it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
     server.use(
-      http.post(CLASSIC_USER_API_URL, () => HttpResponse.json(singlePageFixture)),
+      http.post(CLASSIC_USER_API_URL, () =>
+        HttpResponse.json(singlePageFixture),
+      ),
     );
 
     const result = await fetchEventsPage(

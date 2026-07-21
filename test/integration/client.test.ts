@@ -233,7 +233,9 @@ describe("fetchCastsTable", () => {
 
   it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
     server.use(
-      http.post(CLASSIC_USER_API_URL, () => HttpResponse.json(castsTableFixture)),
+      http.post(CLASSIC_USER_API_URL, () =>
+        HttpResponse.json(castsTableFixture),
+      ),
     );
     const result = await fetchCastsTable(
       "test-token",
