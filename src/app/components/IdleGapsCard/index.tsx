@@ -93,7 +93,12 @@ export function IdleGapsCard({
 
   if (!isCurrent) {
     return (
-      <MetricCard icon={idleGapsIcon} title="Idle gaps" threshold={threshold}>
+      <MetricCard
+        icon={idleGapsIcon}
+        title="Idle gaps"
+        threshold={threshold}
+        rationaleSlug="idle-gap-dead-time"
+      >
         <p>Calculating…</p>
       </MetricCard>
     );
@@ -101,7 +106,12 @@ export function IdleGapsCard({
 
   if ("error" in result) {
     return (
-      <MetricCard icon={idleGapsIcon} title="Idle gaps" threshold={threshold}>
+      <MetricCard
+        icon={idleGapsIcon}
+        title="Idle gaps"
+        threshold={threshold}
+        rationaleSlug="idle-gap-dead-time"
+      >
         <p role="alert">{result.error}</p>
       </MetricCard>
     );
@@ -118,6 +128,7 @@ export function IdleGapsCard({
       pct={Math.min(100, deadTimePct)}
       judgement={judgement}
       threshold={threshold}
+      rationaleSlug="idle-gap-dead-time"
     >
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
         Every gap &gt; 1.7s between your casts, measured from end-of-GCD to next

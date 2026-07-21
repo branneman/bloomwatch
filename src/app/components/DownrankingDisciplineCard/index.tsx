@@ -105,6 +105,7 @@ export function DownrankingDisciplineCard({
         icon={ICON}
         title="Downranking discipline"
         threshold={THRESHOLD}
+        rationaleSlug="downranking-discipline"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -117,6 +118,7 @@ export function DownrankingDisciplineCard({
         icon={ICON}
         title="Downranking discipline"
         threshold={THRESHOLD}
+        rationaleSlug="downranking-discipline"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -132,6 +134,7 @@ export function DownrankingDisciplineCard({
       value={`${flaggedCount} flagged max-rank cast${flaggedCount === 1 ? "" : "s"}`}
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="downranking-discipline"
     >
       {breakdown.length === 0 ? (
         <p>No Rejuvenation, Regrowth, or Healing Touch casts this fight.</p>

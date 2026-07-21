@@ -103,6 +103,7 @@ export function RestackTaxCard({
         icon={lifebloomIcon}
         title="Re-stack tax"
         threshold={THRESHOLD}
+        rationaleSlug="restack-tax"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -115,6 +116,7 @@ export function RestackTaxCard({
         icon={lifebloomIcon}
         title="Re-stack tax"
         threshold={THRESHOLD}
+        rationaleSlug="restack-tax"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -130,6 +132,7 @@ export function RestackTaxCard({
       value={`${castCount} casts · ~${estimatedMana} mana`}
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="restack-tax"
     >
       {casts.length === 0 ? (
         <p>No re-stack tax this fight.</p>

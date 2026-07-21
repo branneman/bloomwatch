@@ -102,6 +102,7 @@ export function AccidentalBloomsCard({
         icon={lifebloomIcon}
         title="Accidental blooms"
         threshold={THRESHOLD}
+        rationaleSlug="accidental-blooms"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -114,6 +115,7 @@ export function AccidentalBloomsCard({
         icon={lifebloomIcon}
         title="Accidental blooms"
         threshold={THRESHOLD}
+        rationaleSlug="accidental-blooms"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -129,6 +131,7 @@ export function AccidentalBloomsCard({
       value={`${count}`}
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="accidental-blooms"
     >
       {accidentalBlooms.length === 0 ? (
         <p>No accidental blooms this fight.</p>

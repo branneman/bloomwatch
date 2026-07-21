@@ -67,4 +67,36 @@ describe("MetricCard", () => {
       screen.getByText("Time on the global cooldown."),
     ).toBeInTheDocument();
   });
+
+  it("shows a link to the full rationale when rationaleSlug is given", async () => {
+    const user = userEvent.setup();
+    render(
+      <MetricCard
+        title="GCD utilization"
+        threshold="Good >= 85%."
+        rationaleSlug="gcd-utilization"
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Why this threshold?" }),
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Read the full rationale →" }),
+    ).toHaveAttribute("href", "#/judgements/gcd-utilization");
+  });
+
+  it("shows no rationale link when rationaleSlug is omitted", async () => {
+    const user = userEvent.setup();
+    render(<MetricCard title="GCD utilization" threshold="Good >= 85%." />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Why this threshold?" }),
+    );
+
+    expect(
+      screen.queryByRole("link", { name: "Read the full rationale →" }),
+    ).not.toBeInTheDocument();
+  });
 });

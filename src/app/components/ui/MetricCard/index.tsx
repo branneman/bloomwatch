@@ -15,6 +15,7 @@ export interface MetricCardProps {
   judgement?: Judgement | null;
   note?: string;
   threshold: string;
+  rationaleSlug?: string;
   children?: ReactNode;
 }
 
@@ -26,6 +27,7 @@ export function MetricCard({
   judgement,
   note,
   threshold,
+  rationaleSlug,
   children,
 }: MetricCardProps) {
   return (
@@ -47,7 +49,20 @@ export function MetricCard({
       )}
       {children}
       <div className={styles.disclosure}>
-        <Disclosure summary="Why this threshold?">{threshold}</Disclosure>
+        <Disclosure summary="Why this threshold?">
+          {threshold}
+          {rationaleSlug && (
+            <>
+              {" "}
+              <a
+                href={`#/judgements/${rationaleSlug}`}
+                className={styles.rationaleLink}
+              >
+                Read the full rationale →
+              </a>
+            </>
+          )}
+        </Disclosure>
       </div>
     </Card>
   );

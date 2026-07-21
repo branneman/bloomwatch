@@ -141,7 +141,12 @@ export function NearDeathResponseCard({
 
   if (!isCurrent) {
     return (
-      <MetricCard icon={ICON} title="Near-death response" threshold={THRESHOLD}>
+      <MetricCard
+        icon={ICON}
+        title="Near-death response"
+        threshold={THRESHOLD}
+        rationaleSlug="crisis-response"
+      >
         <p>Calculating…</p>
       </MetricCard>
     );
@@ -149,7 +154,12 @@ export function NearDeathResponseCard({
 
   if ("error" in result) {
     return (
-      <MetricCard icon={ICON} title="Near-death response" threshold={THRESHOLD}>
+      <MetricCard
+        icon={ICON}
+        title="Near-death response"
+        threshold={THRESHOLD}
+        rationaleSlug="crisis-response"
+      >
         <p role="alert">{result.error}</p>
       </MetricCard>
     );
@@ -168,6 +178,7 @@ export function NearDeathResponseCard({
       }
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="crisis-response"
     >
       {crises.length === 0 ? (
         <p>No crises this fight.</p>

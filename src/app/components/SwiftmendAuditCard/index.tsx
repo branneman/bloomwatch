@@ -136,6 +136,7 @@ export function SwiftmendAuditCard({
         icon={ICON}
         title="Swiftmend quality audit"
         threshold={THRESHOLD}
+        rationaleSlug="swiftmend-quality-audit"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -148,6 +149,7 @@ export function SwiftmendAuditCard({
         icon={ICON}
         title="Swiftmend quality audit"
         threshold={THRESHOLD}
+        rationaleSlug="swiftmend-quality-audit"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -160,6 +162,7 @@ export function SwiftmendAuditCard({
         icon={ICON}
         title="Swiftmend quality audit"
         threshold={THRESHOLD}
+        rationaleSlug="swiftmend-quality-audit"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -172,6 +175,7 @@ export function SwiftmendAuditCard({
         icon={ICON}
         title="Swiftmend quality audit"
         threshold={THRESHOLD}
+        rationaleSlug="swiftmend-quality-audit"
       >
         <p>
           Not shown — this fight&apos;s talent data couldn&apos;t be read, so
@@ -191,6 +195,7 @@ export function SwiftmendAuditCard({
         icon={ICON}
         title="Swiftmend quality audit"
         threshold={THRESHOLD}
+        rationaleSlug="swiftmend-quality-audit"
       >
         {archetypeStatus.bucket === "unknown-no-talent-data" ? (
           <p>
@@ -232,6 +237,7 @@ export function SwiftmendAuditCard({
       value={`${wastefulCount} wasteful of ${casts.length} (${wastefulPct.toFixed(0)}%)`}
       judgement={headerJudgement}
       threshold={THRESHOLD}
+      rationaleSlug="swiftmend-quality-audit"
     >
       {casts.length === 0 ? (
         <p>No Swiftmends cast this fight.</p>

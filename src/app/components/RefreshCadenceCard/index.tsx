@@ -106,6 +106,7 @@ export function RefreshCadenceCard({
         icon={lifebloomIcon}
         title="Refresh cadence"
         threshold={THRESHOLD}
+        rationaleSlug="refresh-cadence"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -118,6 +119,7 @@ export function RefreshCadenceCard({
         icon={lifebloomIcon}
         title="Refresh cadence"
         threshold={THRESHOLD}
+        rationaleSlug="refresh-cadence"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -132,6 +134,7 @@ export function RefreshCadenceCard({
         icon={lifebloomIcon}
         title="Refresh cadence"
         threshold={THRESHOLD}
+        rationaleSlug="refresh-cadence"
       >
         <p>No 3-stack refreshes recorded this fight.</p>
       </MetricCard>
@@ -145,6 +148,7 @@ export function RefreshCadenceCard({
       value={`Median ${(cadence.medianMs / 1000).toFixed(1)}s`}
       judgement={cadence.judgement}
       threshold={THRESHOLD}
+      rationaleSlug="refresh-cadence"
     >
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 4px" }}>
         Interval between your Lifebloom refreshes on 3-stacked targets — too

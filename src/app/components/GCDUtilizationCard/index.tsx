@@ -93,6 +93,7 @@ export function GCDUtilizationCard({
         icon={gcdUtilizationIcon}
         title="GCD utilization"
         threshold={threshold}
+        rationaleSlug="gcd-utilization"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -105,6 +106,7 @@ export function GCDUtilizationCard({
         icon={gcdUtilizationIcon}
         title="GCD utilization"
         threshold={threshold}
+        rationaleSlug="gcd-utilization"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -121,6 +123,7 @@ export function GCDUtilizationCard({
       pct={Math.min(100, utilizationPct)}
       judgement={judgement}
       threshold={threshold}
+      rationaleSlug="gcd-utilization"
     >
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
         Time spent on the global cooldown (1.5s per instant, actual cast time

@@ -27,3 +27,6 @@
 .disclosure {
   margin-top: var(--space-3);
 }
+.rationaleLink {
+  color: var(--accent);
+}

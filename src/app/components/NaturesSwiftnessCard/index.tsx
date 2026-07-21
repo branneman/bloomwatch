@@ -132,6 +132,7 @@ export function NaturesSwiftnessCard({
         title="Nature's Swiftness audit"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="natures-swiftness-utilization"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -145,6 +146,7 @@ export function NaturesSwiftnessCard({
         title="Nature's Swiftness audit"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="natures-swiftness-utilization"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -158,6 +160,7 @@ export function NaturesSwiftnessCard({
         title="Nature's Swiftness audit"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="natures-swiftness-utilization"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -171,6 +174,7 @@ export function NaturesSwiftnessCard({
         title="Nature's Swiftness audit"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="natures-swiftness-utilization"
       >
         <p>
           Not shown — this fight&apos;s talent data couldn&apos;t be read, so
@@ -192,6 +196,7 @@ export function NaturesSwiftnessCard({
         title="Nature's Swiftness audit"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="natures-swiftness-utilization"
       >
         {archetypeStatus.bucket === "unknown-no-talent-data" ? (
           <p>
@@ -220,6 +225,7 @@ export function NaturesSwiftnessCard({
       value={`Used ${castCount}× of ${availableWindows} available windows`}
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="natures-swiftness-utilization"
     >
       {castCount === 0 ? (
         <p>Nature&apos;s Swiftness was not cast this fight.</p>

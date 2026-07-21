@@ -118,7 +118,12 @@ export function InnervateAuditCard({
 
   if (!isCurrent) {
     return (
-      <MetricCard icon={ICON} title="Innervate audit" threshold={THRESHOLD}>
+      <MetricCard
+        icon={ICON}
+        title="Innervate audit"
+        threshold={THRESHOLD}
+        rationaleSlug="innervate-audit"
+      >
         <p>Calculating…</p>
       </MetricCard>
     );
@@ -126,7 +131,12 @@ export function InnervateAuditCard({
 
   if ("error" in result) {
     return (
-      <MetricCard icon={ICON} title="Innervate audit" threshold={THRESHOLD}>
+      <MetricCard
+        icon={ICON}
+        title="Innervate audit"
+        threshold={THRESHOLD}
+        rationaleSlug="innervate-audit"
+      >
         <p role="alert">{result.error}</p>
       </MetricCard>
     );
@@ -147,6 +157,7 @@ export function InnervateAuditCard({
             : undefined
         }
         threshold={THRESHOLD}
+        rationaleSlug="innervate-audit"
       >
         <p>Innervate was not cast this fight.</p>
       </MetricCard>
@@ -160,6 +171,7 @@ export function InnervateAuditCard({
       value={`Cast at ${formatDuration(firstCast.timestampMs - fight.startTime)}, ${describeTarget(firstCast, targetNames)}`}
       judgement={firstCast.judgement}
       threshold={THRESHOLD}
+      rationaleSlug="innervate-audit"
     >
       <p>
         {firstCast.isSelfCast

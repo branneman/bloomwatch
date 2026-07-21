@@ -116,6 +116,7 @@ export function OverhealTableCard({
         icon={ICON}
         title="HoT-aware overheal table"
         threshold={THRESHOLD}
+        rationaleSlug="overheal-table"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -128,6 +129,7 @@ export function OverhealTableCard({
         icon={ICON}
         title="HoT-aware overheal table"
         threshold={THRESHOLD}
+        rationaleSlug="overheal-table"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -142,6 +144,7 @@ export function OverhealTableCard({
       title="HoT-aware overheal table"
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="overheal-table"
     >
       {rows.length === 0 ? (
         <p>No heals to report this fight.</p>

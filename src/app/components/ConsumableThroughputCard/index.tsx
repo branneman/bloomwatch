@@ -98,6 +98,7 @@ export function ConsumableThroughputCard({
         icon={ICON}
         title="Consumable throughput"
         threshold={THRESHOLD}
+        rationaleSlug="consumable-throughput"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -110,6 +111,7 @@ export function ConsumableThroughputCard({
         icon={ICON}
         title="Consumable throughput"
         threshold={THRESHOLD}
+        rationaleSlug="consumable-throughput"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -125,6 +127,7 @@ export function ConsumableThroughputCard({
         title="Consumable throughput"
         note="Informational — mana never dropped below 70%"
         threshold={THRESHOLD}
+        rationaleSlug="consumable-throughput"
       >
         <p>
           Mana never dropped below 70% this fight, so no consumable floor
@@ -140,6 +143,7 @@ export function ConsumableThroughputCard({
       title="Consumable throughput"
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="consumable-throughput"
     >
       <DataTable
         columns={["Consumable", "Used", "Expected floor", "Judgement"]}

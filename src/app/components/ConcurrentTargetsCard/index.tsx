@@ -154,6 +154,7 @@ export function ConcurrentTargetsCard({
         title="Concurrent LB3 targets"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="concurrent-lb3-targets"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -167,6 +168,7 @@ export function ConcurrentTargetsCard({
         title="Concurrent LB3 targets"
         note="Informational — no judgement"
         threshold={THRESHOLD}
+        rationaleSlug="concurrent-lb3-targets"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -183,6 +185,7 @@ export function ConcurrentTargetsCard({
       judgement={judgement}
       note={judgement === null ? "Informational — no judgement" : undefined}
       threshold={THRESHOLD}
+      rationaleSlug="concurrent-lb3-targets"
     >
       <p style={{ fontSize: "var(--text-small-size)", margin: "0 0 12px" }}>
         How many targets simultaneously had your LB3, as a share of the fight.

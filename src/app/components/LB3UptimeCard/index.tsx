@@ -145,6 +145,7 @@ export function LB3UptimeCard({
         icon={lifebloomIcon}
         title="LB3 uptime per target"
         threshold={threshold}
+        rationaleSlug="lb3-uptime-per-target"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -157,6 +158,7 @@ export function LB3UptimeCard({
         icon={lifebloomIcon}
         title="LB3 uptime per target"
         threshold={threshold}
+        rationaleSlug="lb3-uptime-per-target"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -168,6 +170,7 @@ export function LB3UptimeCard({
       icon={lifebloomIcon}
       title="LB3 uptime per target"
       threshold={threshold}
+      rationaleSlug="lb3-uptime-per-target"
     >
       {result.result.targets.length === 0 ? (
         <p>No maintained targets.</p>

@@ -119,7 +119,12 @@ export function HotClipDetectionCard({
 
   if (!isCurrent) {
     return (
-      <MetricCard icon={ICON} title="HoT clip detection" threshold={THRESHOLD}>
+      <MetricCard
+        icon={ICON}
+        title="HoT clip detection"
+        threshold={THRESHOLD}
+        rationaleSlug="rejuv-clip-share"
+      >
         <p>Calculating…</p>
       </MetricCard>
     );
@@ -127,7 +132,12 @@ export function HotClipDetectionCard({
 
   if ("error" in result) {
     return (
-      <MetricCard icon={ICON} title="HoT clip detection" threshold={THRESHOLD}>
+      <MetricCard
+        icon={ICON}
+        title="HoT clip detection"
+        threshold={THRESHOLD}
+        rationaleSlug="rejuv-clip-share"
+      >
         <p role="alert">{result.error}</p>
       </MetricCard>
     );
@@ -153,6 +163,7 @@ export function HotClipDetectionCard({
       pct={overallPct}
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="rejuv-clip-share"
     >
       <DataTable
         columns={["Spell", "Casts", "Clips", "Clip %", "Judgement"]}

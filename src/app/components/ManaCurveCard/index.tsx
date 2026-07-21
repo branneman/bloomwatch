@@ -101,6 +101,7 @@ export function ManaCurveCard({
         icon={ICON}
         title="Mana curve & ending mana"
         threshold={THRESHOLD}
+        rationaleSlug="ending-mana"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -113,6 +114,7 @@ export function ManaCurveCard({
         icon={ICON}
         title="Mana curve & ending mana"
         threshold={THRESHOLD}
+        rationaleSlug="ending-mana"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -128,6 +130,7 @@ export function ManaCurveCard({
         title="Mana curve & ending mana"
         note="Informational — no mana data"
         threshold={THRESHOLD}
+        rationaleSlug="ending-mana"
       >
         <p>No mana samples were found for this druid this fight.</p>
       </MetricCard>
@@ -142,6 +145,7 @@ export function ManaCurveCard({
       judgement={judgement}
       note={judgement === null ? informationalNote(fight) : undefined}
       threshold={THRESHOLD}
+      rationaleSlug="ending-mana"
     >
       <ManaCurve
         points={points}

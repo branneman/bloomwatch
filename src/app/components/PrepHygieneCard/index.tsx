@@ -105,6 +105,7 @@ export function PrepHygieneCard({
         icon={ICON}
         title="Pull-time consumables check"
         threshold={THRESHOLD}
+        rationaleSlug="prep-hygiene"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -117,6 +118,7 @@ export function PrepHygieneCard({
         icon={ICON}
         title="Pull-time consumables check"
         threshold={THRESHOLD}
+        rationaleSlug="prep-hygiene"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -132,6 +134,7 @@ export function PrepHygieneCard({
       title="Pull-time consumables check"
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="prep-hygiene"
     >
       <div className={styles.flaskRow}>
         <JudgementChip judgement={flaskOrElixir.judgement} />

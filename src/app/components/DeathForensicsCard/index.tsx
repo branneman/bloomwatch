@@ -128,6 +128,7 @@ export function DeathForensicsCard({
         icon={ICON}
         title="Per-death resource audit"
         threshold={THRESHOLD}
+        rationaleSlug="death-forensics"
       >
         <p>Calculating…</p>
       </MetricCard>
@@ -140,6 +141,7 @@ export function DeathForensicsCard({
         icon={ICON}
         title="Per-death resource audit"
         threshold={THRESHOLD}
+        rationaleSlug="death-forensics"
       >
         <p role="alert">{result.error}</p>
       </MetricCard>
@@ -159,6 +161,7 @@ export function DeathForensicsCard({
       }
       judgement={judgement}
       threshold={THRESHOLD}
+      rationaleSlug="death-forensics"
     >
       {deaths.length === 0 ? (
         <p>No friendly deaths this fight.</p>
