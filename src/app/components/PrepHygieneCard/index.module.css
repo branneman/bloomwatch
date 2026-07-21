@@ -6,3 +6,11 @@
   font-size: var(--text-small-size);
   color: var(--text-h);
 }
+
+/* Same muted-secondary treatment as MetricCard's own .note (informational,
+   doesn't affect judgement — see docs/specs/602-enchant-gem-check-design.md
+   judgement call 6). */
+.upgradeNote {
+  color: var(--text);
+  font-style: italic;
+}

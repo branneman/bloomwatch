@@ -33,7 +33,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/inv_misc_coin_02.jpg";
 
 const THRESHOLD =
-  "Read from combatant-info auras/gear at fight start. Flask/elixir coverage: good with a recognized flask, or with both a battle and a guardian elixir; fair with only one of the two; bad with neither — scoped to what actually helps a healer (Elixir of Healing Power, Elixir of Draenic Wisdom, Flask of Mighty Restoration and its Shattrath variant, Flask of Distilled Wisdom). Food buff: any Well Fed counts, assumed to be Golden Fish Sticks (TBC's only healing-relevant food) since the log can't distinguish which food was eaten. Weapon oil: only Superior Wizard Oil is recognized. The overall judgement is the worst of these three. See docs/backlog.md story 601.";
+  "Read from combatant-info auras/gear at fight start. Flask/elixir coverage: good with a recognized flask, or with both a battle and a guardian elixir; fair with only one of the two; bad with neither — scoped to what actually helps a healer (Elixir of Healing Power, Elixir of Draenic Wisdom, Flask of Mighty Restoration and its Shattrath variant, Flask of Distilled Wisdom). Food buff: any Well Fed counts, assumed to be Golden Fish Sticks (TBC's only healing-relevant food) since the log can't distinguish which food was eaten. Weapon oil: only Superior Wizard Oil is recognized. Enchant coverage: judged across 9 slots (Head, Shoulder, Back, Chest, Wrist, Hands, Legs, Feet, MainHand's permanent enchant); a slot with a recognized best-in-slot or a legitimate lesser (\"acceptable\") enchant both count as covered — only a truly missing or unrecognized enchant counts against the score. Good 0 missing, fair 1-3, bad 4+. Head and Legs are judged the same as any other slot even though their enchants are reputation/profession-gated. Gem coverage: judged on whatever gems are actually socketed (an unfilled socket can't be distinguished from a slot with no socket at all, so this can only flag a present-but-wrong gem, never an empty one), plus a Head-slot meta-gem check. Good 0 wrong/unrecognized, fair 1-2, bad 3+. Both bands are provisional, pending a future calibration pass. See docs/backlog.md story 602. The overall judgement combines all five checks (flask/elixir, food, oil, enchant coverage, gem coverage): a good-and-bad mix reads fair, otherwise it's the worst of the five. See docs/backlog.md story 601.";
 
 function flaskOrElixirLabel(
   flaskOrElixir: PrepHygieneResult["flaskOrElixir"],
@@ -125,8 +125,14 @@ export function PrepHygieneCard({
     );
   }
 
-  const { flaskOrElixir, foodBuffPresent, weaponOilPresent, judgement } =
-    result.result;
+  const {
+    flaskOrElixir,
+    foodBuffPresent,
+    weaponOilPresent,
+    enchantCoverage,
+    gemCoverage,
+    judgement,
+  } = result.result;
 
   return (
     <MetricCard
@@ -145,6 +151,34 @@ export function PrepHygieneCard({
         label="Weapon oil (Superior Wizard Oil)"
         present={weaponOilPresent}
       />
+      <div className={styles.flaskRow}>
+        <JudgementChip judgement={enchantCoverage.judgement} />
+        <span>
+          {enchantCoverage.missingSlots.length === 0
+            ? "All 9 enchantable slots enchanted"
+            : `Missing/unrecognized enchant: ${enchantCoverage.missingSlots.join(", ")}`}
+          {enchantCoverage.acceptableSlots.length > 0 && (
+            <em className={styles.upgradeNote}>
+              {" "}
+              (upgrade available: {enchantCoverage.acceptableSlots.join(", ")})
+            </em>
+          )}
+        </span>
+      </div>
+      <div className={styles.flaskRow}>
+        <JudgementChip judgement={gemCoverage.judgement} />
+        <span>
+          {gemCoverage.missingOrWrongCount === 0
+            ? "All gems recognized, meta gem correct"
+            : `${gemCoverage.missingOrWrongCount} gem(s) wrong or unrecognized${gemCoverage.metaGemRecognized ? "" : " (including meta)"}`}
+          {gemCoverage.acceptableCount > 0 && (
+            <em className={styles.upgradeNote}>
+              {" "}
+              ({gemCoverage.acceptableCount} on an upgradeable tier)
+            </em>
+          )}
+        </span>
+      </div>
     </MetricCard>
   );
 }
