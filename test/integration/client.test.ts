@@ -22,6 +22,7 @@ import {
   withErrorReporting,
   TOKEN_URL,
   USER_API_URL,
+  CLASSIC_USER_API_URL,
 } from "../../src/wcl/client";
 import tokenResponseFixture from "./fixtures/token-response.json";
 import reportFightsFixture from "./fixtures/report-fights.json";
@@ -146,6 +147,21 @@ describe("fetchReportFights", () => {
     });
   });
 
+  it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
+    server.use(
+      http.post(CLASSIC_USER_API_URL, () =>
+        HttpResponse.json(reportFightsClassicFixture),
+      ),
+    );
+    const result = await fetchReportFights(
+      "test-token",
+      "mtRh3kJ9YMLazyvQ",
+      undefined,
+      "classic",
+    );
+    expect(result.title).toBe("BT / Hyjal");
+  });
+
   // The GraphQL-errors retry is shared plumbing (postGraphQL), not specific
   // to fetchMasterDataAbilities — confirm it also covers this call site.
   it("retries once and succeeds when WCL returns a GraphQL errors response", async () => {
@@ -213,6 +229,20 @@ describe("fetchCastsTable", () => {
 
     expect(requestBody?.query).toContain("dataType: Casts");
     expect(requestBody?.query).toContain("fightIDs: [6, 9]");
+  });
+
+  it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
+    server.use(
+      http.post(CLASSIC_USER_API_URL, () => HttpResponse.json(castsTableFixture)),
+    );
+    const result = await fetchCastsTable(
+      "test-token",
+      "mtRh3kJ9YMLazyvQ",
+      [6],
+      undefined,
+      "classic",
+    );
+    expect(result).toHaveLength(5);
   });
 
   // Live-reported gap in postGraphQL's single retry: WCL returned "You must
@@ -314,6 +344,21 @@ describe("fetchMasterDataAbilities", () => {
     expect(requestBody?.query).toContain("masterData");
     expect(requestBody?.query).toContain("4GYHZRdtL3bvhpc8");
     expect(requestBody?.query).not.toContain("icon");
+  });
+
+  it('routes to classic.warcraftlogs.com when host: "classic" is passed', async () => {
+    server.use(
+      http.post(CLASSIC_USER_API_URL, () =>
+        HttpResponse.json(masterDataAbilitiesFixture),
+      ),
+    );
+    const result = await fetchMasterDataAbilities(
+      "test-token",
+      "mtRh3kJ9YMLazyvQ",
+      undefined,
+      "classic",
+    );
+    expect(result).toHaveLength(930);
   });
 
   // Regression coverage for the "can't access property map, ...abilities is

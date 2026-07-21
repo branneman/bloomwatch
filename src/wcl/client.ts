@@ -4,6 +4,13 @@ export type Host = "fresh" | "classic";
 
 export const TOKEN_URL = "https://www.warcraftlogs.com/oauth/token";
 export const USER_API_URL = "https://www.warcraftlogs.com/api/v2/user";
+export const CLASSIC_USER_API_URL =
+  "https://classic.warcraftlogs.com/api/v2/user";
+
+const USER_API_URLS: Record<Host, string> = {
+  fresh: USER_API_URL,
+  classic: CLASSIC_USER_API_URL,
+};
 
 export class WclApiError extends Error {
   status: number;
@@ -75,9 +82,10 @@ async function postGraphQLOnce(
   accessToken: string,
   query: string,
   signal?: AbortSignal,
+  host: Host = "fresh",
 ) {
   const resp = await fetchWithTimeout(
-    USER_API_URL,
+    USER_API_URLS[host],
     {
       method: "POST",
       headers: {
@@ -108,10 +116,11 @@ export async function postGraphQL(
   accessToken: string,
   query: string,
   signal?: AbortSignal,
+  host: Host = "fresh",
 ) {
   for (let attempt = 1; ; attempt++) {
     try {
-      return await postGraphQLOnce(accessToken, query, signal);
+      return await postGraphQLOnce(accessToken, query, signal, host);
     } catch (err) {
       if (
         !(err instanceof WclGraphQLError) ||
@@ -206,6 +215,7 @@ export async function fetchReportFights(
   accessToken: string,
   reportCode: string,
   signal?: AbortSignal,
+  host: Host = "fresh",
 ): Promise<ReportFights> {
   const data = await postGraphQL(
     accessToken,
@@ -221,6 +231,7 @@ export async function fetchReportFights(
   }
 }`,
     signal,
+    host,
   );
   const report = data.reportData.report;
   return {
@@ -273,6 +284,7 @@ export async function fetchCastsTable(
   reportCode: string,
   fightIds: number[],
   signal?: AbortSignal,
+  host: Host = "fresh",
 ): Promise<CastTableEntry[]> {
   const data = await postGraphQL(
     accessToken,
@@ -285,6 +297,7 @@ export async function fetchCastsTable(
   }
 }`,
     signal,
+    host,
   );
   const entries = data.reportData.report.table.data.entries;
   return entries.map(
@@ -329,6 +342,7 @@ export async function fetchMasterDataAbilities(
   accessToken: string,
   reportCode: string,
   signal?: AbortSignal,
+  host: Host = "fresh",
 ): Promise<ReportAbility[]> {
   const query = `query {
   rateLimitData { limitPerHour pointsSpentThisHour }
@@ -340,7 +354,7 @@ export async function fetchMasterDataAbilities(
 }`;
 
   const fetchAbilities = async () => {
-    const data = await postGraphQLOnce(accessToken, query, signal);
+    const data = await postGraphQLOnce(accessToken, query, signal, host);
     return data.reportData.report.masterData.abilities as Array<{
       gameID: number;
       name: string;
