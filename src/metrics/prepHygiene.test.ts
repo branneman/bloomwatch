@@ -28,11 +28,10 @@ import {
 } from "./prepHygiene";
 import { aCombatantInfoEvent } from "../testUtils/factories";
 
-// Test-local lookup maps built from Task 1's real researched constants
-// (docs/specs/602-enchant-gem-check-design.md's "ID compilation" section) —
-// one bis id per slot, plus acceptable ids only where a real one was
-// confirmed (Head, Hands, and Feet have no acceptable-tier alternative in
-// the real data; see the per-slot comments in prepHygiene.ts).
+// Test-local lookup maps built from prepHygiene.ts's own real researched
+// constants (see its per-constant sourcing comments) — one bis id per slot,
+// plus acceptable ids only where a real one was confirmed (Head, Hands, and
+// Feet have no acceptable-tier alternative in the real data).
 const BIS_ID_BY_SLOT: Record<EnchantableSlot, number> = {
   Head: GLYPH_OF_RENEWAL_ID,
   Shoulder: GREATER_INSCRIPTION_OF_FAITH_ID,
@@ -484,8 +483,9 @@ describe("computeGemCoverage", () => {
   });
 
   it("treats a Head slot with no gems at all as meta-not-recognized (documented limitation)", () => {
-    // Can't distinguish "no meta socket on this item" from "empty/wrong meta socket" —
-    // see docs/specs/602-enchant-gem-check-design.md judgement call 5.
+    // Can't distinguish "no meta socket on this item" from "empty/wrong meta
+    // socket" — a documented limitation of WCL's CombatantInfo data, see
+    // docs/backlog.md story 602's "Explicit, confirmed limitation" note.
     const gear = Array.from(
       { length: 19 },
       () => ({}) as { gems?: { id: number }[] },

@@ -8,8 +8,8 @@
 }
 
 /* Same muted-secondary treatment as MetricCard's own .note (informational,
-   doesn't affect judgement — see docs/specs/602-enchant-gem-check-design.md
-   judgement call 6). */
+   doesn't affect judgement — flags an "acceptable"-tier enchant/gem that
+   could be upgraded to bis; see docs/backlog.md story 602). */
 .upgradeNote {
   color: var(--text);
   font-style: italic;

@@ -31,9 +31,8 @@ import { aCombatantInfoEvent, aFight } from "../../../testUtils/factories";
 
 // Test-local id tables, duplicated from src/metrics/prepHygiene.test.ts's
 // own BIS_ID_BY_SLOT/ACCEPTABLE_ID_BY_SLOT (real researched constants — see
-// docs/specs/602-enchant-gem-check-design.md's "ID compilation" section).
-// Head/Hands/Feet have no real acceptable-tier id (see prepHygiene.ts's
-// per-slot comments).
+// prepHygiene.ts's own per-constant sourcing comments). Head/Hands/Feet have
+// no real acceptable-tier id (see prepHygiene.ts's per-slot comments).
 const BIS_ID_BY_SLOT: Record<EnchantableSlot, number> = {
   Head: GLYPH_OF_RENEWAL_ID,
   Shoulder: GREATER_INSCRIPTION_OF_FAITH_ID,

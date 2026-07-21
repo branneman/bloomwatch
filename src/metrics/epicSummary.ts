@@ -200,7 +200,14 @@ export function summarizeNearDeathResponse(
 }
 
 export function summarizePrepHygiene(prep: PrepHygieneResult): EpicSummary {
-  const { flaskOrElixir, foodBuffPresent, weaponOilPresent, judgement } = prep;
+  const {
+    flaskOrElixir,
+    foodBuffPresent,
+    weaponOilPresent,
+    enchantCoverage,
+    gemCoverage,
+    judgement,
+  } = prep;
 
   const flaskOrElixirStat = flaskOrElixir.hasFlask
     ? "Prep: flask active"
@@ -212,17 +219,28 @@ export function summarizePrepHygiene(prep: PrepHygieneResult): EpicSummary {
           ? "Prep: only guardian elixir active"
           : "Prep: no flask or elixir";
 
-  const foodOilStat =
-    foodBuffPresent && weaponOilPresent
-      ? "Food & oil: both present"
-      : !foodBuffPresent && !weaponOilPresent
-        ? "Food & oil: both missing"
-        : foodBuffPresent
-          ? "Food & oil: oil missing"
-          : "Food & oil: food missing";
+  // Enchant/gem coverage (story 602) folds into this same line rather than
+  // getting its own 3rd stat line — story 701 caps a dashboard widget at
+  // 1-2 key stats (same precedent as Downranking Discipline/overheal/
+  // Innervate joining summarizeSpellDiscipline/summarizeManaEconomy's
+  // judgement silently, see the comment there).
+  const gearIssueCount =
+    enchantCoverage.missingSlots.length + gemCoverage.missingOrWrongCount;
+  const issues: string[] = [];
+  if (!foodBuffPresent) issues.push("food missing");
+  if (!weaponOilPresent) issues.push("oil missing");
+  if (gearIssueCount > 0) {
+    issues.push(
+      gearIssueCount === 1 ? "1 gear issue" : `${gearIssueCount} gear issues`,
+    );
+  }
+  const readinessStat =
+    issues.length === 0
+      ? "Food, oil & gear: all set"
+      : `Food, oil & gear: ${issues.join(", ")}`;
 
   return {
     judgement,
-    stats: [flaskOrElixirStat, foodOilStat],
+    stats: [flaskOrElixirStat, readinessStat],
   };
 }

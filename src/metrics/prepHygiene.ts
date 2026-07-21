@@ -28,16 +28,15 @@ export const SUPERIOR_WIZARD_OIL_ENCHANT_ID = 2678;
 export const MAIN_HAND_GEAR_INDEX = 15;
 
 // ---------------------------------------------------------------------------
-// Story 602 — enchant/gem coverage. Real ids below are sourced per
-// docs/specs/602-enchant-gem-check-design.md's "ID compilation" method: two
-// independent TBC Classic resto-druid prep guides, each candidate resolved
-// to a numeric id via Wowhead's TBC-Classic vendor/enchant page, then
-// cross-checked against a live `CombatantInfo` capture (report
-// 4GYHZRdtL3bvhpc8, fight 6 — see docs/testing.md). A permanent-enchant id
-// is a SpellItemEnchantment.dbc id, a *different* numbering space than
-// Spell.dbc (Wowhead's ordinary spell= pages) — resolved via each enchant's
-// vendor/formula "learn" spell page, whose Effect section discloses the
-// real nested enchantment id.
+// Story 602 (docs/backlog.md) — enchant/gem coverage. Real ids below are
+// sourced via the following method: two independent TBC Classic resto-druid
+// prep guides, each candidate resolved to a numeric id via Wowhead's
+// TBC-Classic vendor/enchant page, then cross-checked against a live
+// `CombatantInfo` capture (report 4GYHZRdtL3bvhpc8, fight 6 — see
+// docs/testing.md). A permanent-enchant id is a SpellItemEnchantment.dbc id,
+// a *different* numbering space than Spell.dbc (Wowhead's ordinary spell=
+// pages) — resolved via each enchant's vendor/formula "learn" spell page,
+// whose Effect section discloses the real nested enchantment id.
 // ---------------------------------------------------------------------------
 
 export type EnchantableSlot =
@@ -213,8 +212,8 @@ export const INSIGHTFUL_EARTHSTORM_DIAMOND_ID = 25901; // bis
 
 // Tier tables built from the named constants above. Only ids confirmed via
 // at least one guide and either a Wowhead item/enchant page or a live
-// CombatantInfo capture appear here — see docs/specs/602-enchant-gem-check-design.md
-// "ID compilation" for the sourcing method.
+// CombatantInfo capture appear here — see the sourcing method documented in
+// the per-constant comments above.
 const SLOT_ENCHANT_IDS: Record<
   EnchantableSlot,
   Partial<Record<number, GearTier>>
@@ -309,10 +308,11 @@ function judgeFlaskOrElixir(
 }
 
 // Deliberately wide — the tiered bis/acceptable model already absorbs every
-// legitimate lesser choice, so only real gaps count here. See
-// docs/backlog.md story 602 and docs/specs/602-enchant-gem-check-design.md
-// judgement call 3. Provisional pending a future calibration pass (no
-// exemplar data exists yet for this metric).
+// legitimate lesser choice, so only real gaps count here. Bands: 0 missing
+// is good, 1-3 missing (of the 9 judged slots) is fair, 4+ is bad. See
+// docs/backlog.md story 602 and docs/thresholds.md's Prep hygiene table.
+// Provisional pending a future calibration pass (no exemplar data exists
+// yet for this metric).
 function judgeEnchantCoverage(missingCount: number): Judgement {
   if (missingCount === 0) return "good";
   if (missingCount <= 3) return "fair";
@@ -321,7 +321,10 @@ function judgeEnchantCoverage(missingCount: number): Judgement {
 
 // Same rationale as judgeEnchantCoverage, narrower in absolute terms only
 // because a geared druid has fewer typical gem sockets than judged enchant
-// slots. See docs/specs/602-enchant-gem-check-design.md judgement call 4.
+// slots. Bands: 0 wrong is good, 1-2 wrong is fair, 3+ is bad. See
+// docs/backlog.md story 602 and docs/thresholds.md's Prep hygiene table.
+// Provisional pending a future calibration pass (no exemplar data exists
+// yet for this metric).
 function judgeGemCoverage(missingOrWrongCount: number): Judgement {
   if (missingOrWrongCount === 0) return "good";
   if (missingOrWrongCount <= 2) return "fair";

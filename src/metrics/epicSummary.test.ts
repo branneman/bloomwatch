@@ -978,11 +978,12 @@ describe("summarizeNearDeathResponse", () => {
   });
 });
 
-// summarizePrepHygiene (story 602) reads only prep.judgement, never these
-// two rows' own content directly (see docs/specs/602-enchant-gem-check-design.md
-// judgement call 7 — no new stat line) — this fixture keeps them a
-// realistic "fully covered" shape so the type is satisfied without
-// affecting any assertion in this describe block.
+// summarizePrepHygiene (story 602) folds enchantCoverage/gemCoverage into
+// its second stat line (see the "Food, oil & gear" tests below) rather than
+// giving them their own 3rd stat line — story 701 caps a dashboard widget
+// at 1-2 key stats (see the comment in summarizeManaEconomy above). This
+// "fully covered" fixture is the default for describe-block tests that
+// aren't specifically exercising gear-issue formatting.
 const A_GOOD_ENCHANT_COVERAGE: PrepHygieneResult["enchantCoverage"] = {
   missingSlots: [],
   acceptableSlots: [],
@@ -1014,7 +1015,7 @@ describe("summarizePrepHygiene", () => {
 
     expect(summarizePrepHygiene(prep)).toEqual({
       judgement: "bad",
-      stats: ["Prep: flask active", "Food & oil: oil missing"],
+      stats: ["Prep: flask active", "Food, oil & gear: oil missing"],
     });
   });
 
@@ -1035,7 +1036,7 @@ describe("summarizePrepHygiene", () => {
 
     expect(summarizePrepHygiene(prep).stats).toEqual([
       "Prep: battle + guardian elixir active",
-      "Food & oil: both present",
+      "Food, oil & gear: all set",
     ]);
   });
 
@@ -1088,7 +1089,59 @@ describe("summarizePrepHygiene", () => {
 
     expect(summarizePrepHygiene(prep).stats).toEqual([
       "Prep: no flask or elixir",
-      "Food & oil: both missing",
+      "Food, oil & gear: food missing, oil missing",
+    ]);
+  });
+
+  it("folds a gear coverage gap into the second stat line", () => {
+    const prep: PrepHygieneResult = {
+      flaskOrElixir: {
+        hasFlask: true,
+        hasBattleElixir: false,
+        hasGuardianElixir: false,
+        judgement: "good",
+      },
+      foodBuffPresent: true,
+      weaponOilPresent: true,
+      enchantCoverage: {
+        missingSlots: ["Head", "Legs"],
+        acceptableSlots: [],
+        judgement: "fair",
+      },
+      gemCoverage: A_GOOD_GEM_COVERAGE,
+      judgement: "fair",
+    };
+
+    expect(summarizePrepHygiene(prep).stats).toEqual([
+      "Prep: flask active",
+      "Food, oil & gear: 2 gear issues",
+    ]);
+  });
+
+  it("combines a missing food/oil buff with gear issues in one line", () => {
+    const prep: PrepHygieneResult = {
+      flaskOrElixir: {
+        hasFlask: true,
+        hasBattleElixir: false,
+        hasGuardianElixir: false,
+        judgement: "good",
+      },
+      foodBuffPresent: false,
+      weaponOilPresent: true,
+      enchantCoverage: A_GOOD_ENCHANT_COVERAGE,
+      gemCoverage: {
+        missingOrWrongCount: 1,
+        acceptableCount: 0,
+        metaGemRecognized: true,
+        metaGemTier: "bis",
+        judgement: "fair",
+      },
+      judgement: "fair",
+    };
+
+    expect(summarizePrepHygiene(prep).stats).toEqual([
+      "Prep: flask active",
+      "Food, oil & gear: food missing, 1 gear issue",
     ]);
   });
 });

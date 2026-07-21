@@ -34,7 +34,7 @@ describe("usePrepHygieneSummary", () => {
       judgement: "good",
       stats: [
         "Prep: battle + guardian elixir active",
-        "Food & oil: both present",
+        "Food, oil & gear: all set",
       ],
     });
   });
