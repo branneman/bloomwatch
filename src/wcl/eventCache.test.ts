@@ -40,6 +40,7 @@ describe("createEventFetcher", () => {
       1879119,
       2036920,
       false,
+      "fresh",
     );
     expect(fakeFetchPage).toHaveBeenNthCalledWith(
       2,
@@ -50,6 +51,7 @@ describe("createEventFetcher", () => {
       1900000,
       2036920,
       false,
+      "fresh",
     );
   });
 
@@ -167,6 +169,7 @@ describe("createEventFetcher", () => {
       1879119,
       2036920,
       false,
+      "fresh",
     );
 
     // Verify we got all events from both pages
@@ -194,6 +197,7 @@ describe("createEventFetcher", () => {
       1879119,
       2036920,
       false,
+      "fresh",
     );
     expect(fakeFetchPage).toHaveBeenNthCalledWith(
       2,
@@ -204,6 +208,32 @@ describe("createEventFetcher", () => {
       1879119,
       2036920,
       true,
+      "fresh",
+    );
+  });
+
+  it("passes the given host through to fetchPage", async () => {
+    const fakeFetchPage = vi.fn().mockResolvedValue({
+      events: [anEvent()],
+      nextPageTimestamp: null,
+    });
+
+    const { fetchEvents } = createEventFetcher(
+      fakeFetchPage,
+      undefined,
+      "classic",
+    );
+    await fetchEvents("token", "report1", fight, "Healing");
+
+    expect(fakeFetchPage).toHaveBeenCalledWith(
+      "token",
+      "report1",
+      6,
+      "Healing",
+      1879119,
+      2036920,
+      false,
+      "classic",
     );
   });
 });
@@ -242,6 +272,7 @@ describe("createEventFetcher - fetchLookbackEvents", () => {
       0,
       1000,
       false,
+      "fresh",
     );
     expect(fakeFetchLookbackPage).toHaveBeenNthCalledWith(
       2,
@@ -251,6 +282,7 @@ describe("createEventFetcher - fetchLookbackEvents", () => {
       500,
       1000,
       false,
+      "fresh",
     );
   });
 

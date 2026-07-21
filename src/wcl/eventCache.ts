@@ -1,5 +1,6 @@
 import { fetchEventsPage, fetchLookbackEventsPage } from "./events";
 import type { WclEvent, WclEventDataType } from "./events";
+import type { Host } from "./client";
 
 export interface EventFetcherFight {
   id: number;
@@ -10,6 +11,7 @@ export interface EventFetcherFight {
 export function createEventFetcher(
   fetchPage: typeof fetchEventsPage = fetchEventsPage,
   fetchLookbackPage: typeof fetchLookbackEventsPage = fetchLookbackEventsPage,
+  host: Host = "fresh",
 ) {
   const cache = new Map<string, Promise<WclEvent[]>>();
 
@@ -31,6 +33,7 @@ export function createEventFetcher(
         startTime,
         fight.endTime,
         includeResources,
+        host,
       );
       events.push(...page.events);
       if (page.nextPageTimestamp === null) break;
@@ -90,6 +93,7 @@ export function createEventFetcher(
         cursor,
         endTime,
         includeResources,
+        host,
       );
       events.push(...page.events);
       if (page.nextPageTimestamp === null) break;
