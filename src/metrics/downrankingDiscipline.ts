@@ -73,6 +73,10 @@ function judgeFlaggedCount(flaggedCount: number): Judgement {
   return flaggedCount === 0 ? "good" : "fair";
 }
 
+// Story 303: a max-rank cast whose direct-heal overheal exceeds this is
+// flagged as a likely downranking miss.
+export const DOWNRANK_FLAG_OVERHEAL_PCT = 50;
+
 function findDirectHeal(
   healingEvents: WclEvent[],
   targetId: number,
@@ -247,7 +251,9 @@ export function computeDownrankingDiscipline(
       const isMaxRank =
         group.rank !== null && group.rank === getMaxRank(group.spell);
       const flagged =
-        isMaxRank && rawOverhealPct > 50 && isFlaggable(group.spell);
+        isMaxRank &&
+        rawOverhealPct > DOWNRANK_FLAG_OVERHEAL_PCT &&
+        isFlaggable(group.spell);
 
       return {
         spell: group.spell,

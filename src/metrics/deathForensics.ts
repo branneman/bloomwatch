@@ -12,7 +12,7 @@ import { NATURES_SWIFTNESS_COOLDOWN_MS } from "./naturesSwiftnessAudit";
 
 // Backlog story 501: a GCD is considered "available" if the druid had at
 // least this long, idle, in the moments before a death.
-const DEATH_IDLE_WINDOW_MS = 5000;
+export const DEATH_IDLE_WINDOW_MS = 5000;
 
 export interface DeathAudit {
   timestampMs: number;

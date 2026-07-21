@@ -9,7 +9,7 @@ import { reconstructLifebloomTimelines } from "./lifebloomStacks";
 // bonuses) — docs/backlog.md story 204 calls for an *estimate*, and
 // per-log-accurate cost isn't reliably recoverable from WCL resource
 // events.
-const LIFEBLOOM_MANA_COST = 220;
+export const LIFEBLOOM_MANA_COST = 220;
 
 export interface RestackTaxCast {
   timestampMs: number;

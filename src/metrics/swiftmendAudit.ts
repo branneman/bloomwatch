@@ -54,8 +54,14 @@ interface HotRemoval {
 // a target with a live HoT and >50% HP still up, which this metric's
 // "wasteful" bucket can't distinguish from careless HoT-refresh spam (see
 // docs/thresholds.md's spell discipline calibration-review paragraph).
+export const SWIFTMEND_WASTEFUL_GOOD_MAX_PCT = 40;
+export const SWIFTMEND_WASTEFUL_FAIR_MAX_PCT = 80;
+
 function judgeWastefulShare(wastefulPct: number): Judgement {
-  return judgeThresholdBelow(wastefulPct, { goodMax: 40, fairMax: 80 });
+  return judgeThresholdBelow(wastefulPct, {
+    goodMax: SWIFTMEND_WASTEFUL_GOOD_MAX_PCT,
+    fairMax: SWIFTMEND_WASTEFUL_FAIR_MAX_PCT,
+  });
 }
 
 // good >= 50% / fair 25-50% / bad < 25% of theoretical 15s-cooldown windows
@@ -73,8 +79,14 @@ function judgeWastefulShare(wastefulPct: number): Judgement {
 // the wasteful-share judgement above, this utilization band has no corpus
 // validation of its own yet), documented as provisional in
 // docs/thresholds.md.
+export const SWIFTMEND_UTILIZATION_GOOD_MIN_PCT = 50;
+export const SWIFTMEND_UTILIZATION_FAIR_MIN_PCT = 25;
+
 function judgeUtilization(utilizationPct: number): Judgement {
-  return judgeThreshold(utilizationPct, { goodMin: 50, fairMin: 25 });
+  return judgeThreshold(utilizationPct, {
+    goodMin: SWIFTMEND_UTILIZATION_GOOD_MIN_PCT,
+    fairMin: SWIFTMEND_UTILIZATION_FAIR_MIN_PCT,
+  });
 }
 
 function trackHotRemovals(

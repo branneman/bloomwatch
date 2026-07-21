@@ -3,8 +3,8 @@ import { judgeThreshold, type Judgement } from "./judgement";
 import { computeCastIntervals } from "./castIntervals";
 
 // Good/Fair/Bad thresholds per docs/backlog.md story 101: good >= 85%, fair 70-85%, bad < 70%.
-const GOOD_MIN_PCT = 85;
-const FAIR_MIN_PCT = 70;
+export const GOOD_MIN_PCT = 85;
+export const FAIR_MIN_PCT = 70;
 
 export interface GcdUtilizationResult {
   activeTimeMs: number;

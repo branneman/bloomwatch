@@ -2,12 +2,12 @@ import type { WclEvent } from "../wcl/events";
 import { judgeThresholdBelow, type Judgement } from "./judgement";
 
 // Good/Fair/Bad thresholds per docs/backlog.md story 203: good 0, fair 1-2, bad >= 3.
-const GOOD_MAX_COUNT = 1;
-const FAIR_MAX_COUNT = 2;
+export const GOOD_MAX_COUNT = 1;
+export const FAIR_MAX_COUNT = 2;
 
 // Heuristic per docs/backlog.md story 203: a bloom counts as accidental when
 // Lifebloom is re-applied to the same target within this window of blooming.
-const ACCIDENTAL_WINDOW_MS = 3000;
+export const ACCIDENTAL_WINDOW_MS = 3000;
 
 export interface AccidentalBloom {
   timestampMs: number;

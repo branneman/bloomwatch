@@ -13,6 +13,10 @@ import {
 // import from lb3Uptime.ts.
 const MAINTAINED_MIN_UPTIME_PCT = 30;
 
+// Story 205/914: 2+ targets need to hold LB3's 3rd stack for at least this
+// much of the fight for the reward-only judgement to fire.
+export const CONCURRENT_MIN_TIME_PCT = 50;
+
 export interface ConcurrentLb3Level {
   count: number;
   pct: number;
@@ -143,7 +147,8 @@ export function computeConcurrentLb3Targets(
   const timeAt2PlusPct = levels
     .filter((level) => level.count >= 2)
     .reduce((sum, level) => sum + level.pct, 0);
-  const judgement: Judgement | null = timeAt2PlusPct >= 50 ? "good" : null;
+  const judgement: Judgement | null =
+    timeAt2PlusPct >= CONCURRENT_MIN_TIME_PCT ? "good" : null;
 
   return { avgConcurrent, peakConcurrent, levels, judgement };
 }

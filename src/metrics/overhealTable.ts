@@ -26,15 +26,27 @@ export interface OverhealTableResult {
 // 80-90%, bad > 90%. Archetype-invariant: deep-resto and dreamstate exemplars showed
 // nearly identical Bloom overheal distributions, so this threshold isn't split by
 // bucket, unlike Regrowth-direct below.
+export const BLOOM_OVERHEAL_GOOD_MAX_PCT = 80;
+export const BLOOM_OVERHEAL_FAIR_MAX_PCT = 90;
+
 function judgeBloomOverheal(overhealPct: number): Judgement {
-  return judgeThresholdBelow(overhealPct, { goodMax: 80, fairMax: 90 });
+  return judgeThresholdBelow(overhealPct, {
+    goodMax: BLOOM_OVERHEAL_GOOD_MAX_PCT,
+    fairMax: BLOOM_OVERHEAL_FAIR_MAX_PCT,
+  });
 }
 
 // Direct heal overheal for Healing Touch and Swiftmend, per docs/backlog.md story 404:
 // good < 30%, fair 30-50%, bad > 50%. Story 905's exemplar review found both spells
 // already fit this threshold well in every archetype bucket, so it's unchanged.
+export const DIRECT_OVERHEAL_GOOD_MAX_PCT = 30;
+export const DIRECT_OVERHEAL_FAIR_MAX_PCT = 50;
+
 function judgeDirectOverheal(overhealPct: number): Judgement {
-  return judgeThresholdBelow(overhealPct, { goodMax: 30, fairMax: 50 });
+  return judgeThresholdBelow(overhealPct, {
+    goodMax: DIRECT_OVERHEAL_GOOD_MAX_PCT,
+    fairMax: DIRECT_OVERHEAL_FAIR_MAX_PCT,
+  });
 }
 
 // Regrowth-direct overheal per docs/backlog.md story 905 (split from the shared
@@ -45,6 +57,11 @@ function judgeDirectOverheal(overhealPct: number): Judgement {
 // unknown-no-talent-data) falls back to deep-resto's band -- those builds aren't
 // well-supported by this tool yet (story 903d), so this story doesn't manufacture a
 // new precision claim about them.
+export const REGROWTH_OVERHEAL_DEEP_RESTO_GOOD_MAX_PCT = 38;
+export const REGROWTH_OVERHEAL_DEEP_RESTO_FAIR_MAX_PCT = 60;
+export const REGROWTH_OVERHEAL_DREAMSTATE_GOOD_MAX_PCT = 60;
+export const REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT = 85;
+
 function judgeRegrowthDirectOverheal(
   overhealPct: number,
   bucket: TalentBucket,
@@ -53,9 +70,15 @@ function judgeRegrowthDirectOverheal(
     bucket === "likely-dreamstate-full" ||
     bucket === "likely-dreamstate-partial"
   ) {
-    return judgeThresholdBelow(overhealPct, { goodMax: 60, fairMax: 85 });
+    return judgeThresholdBelow(overhealPct, {
+      goodMax: REGROWTH_OVERHEAL_DREAMSTATE_GOOD_MAX_PCT,
+      fairMax: REGROWTH_OVERHEAL_DREAMSTATE_FAIR_MAX_PCT,
+    });
   }
-  return judgeThresholdBelow(overhealPct, { goodMax: 38, fairMax: 60 });
+  return judgeThresholdBelow(overhealPct, {
+    goodMax: REGROWTH_OVERHEAL_DEEP_RESTO_GOOD_MAX_PCT,
+    fairMax: REGROWTH_OVERHEAL_DEEP_RESTO_FAIR_MAX_PCT,
+  });
 }
 
 // Fixed row identity: which category a spell/portion belongs to, its display label, and

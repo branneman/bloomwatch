@@ -10,8 +10,8 @@ export const IDLE_GAP_THRESHOLD_MS = 1700;
 // (167 real deep-resto kill-fights: median dead time 4.0%, but only 56%
 // landed good under the old 5% line; 7% better matches real elite play
 // without loosening what counts as genuinely bad idle time).
-const GOOD_MAX_PCT = 7;
-const FAIR_MAX_PCT = 15;
+export const GOOD_MAX_PCT = 7;
+export const FAIR_MAX_PCT = 15;
 
 export interface IdleGap {
   startMs: number;

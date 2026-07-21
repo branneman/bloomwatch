@@ -9,7 +9,7 @@ import { extractManaSamples } from "./manaSamples";
 // are exempt. Dark Rune and Demonic Rune share one in-game cooldown (using either puts
 // both on cooldown), so they're counted together as one "Rune" row rather than judged
 // separately.
-const POTION_FLOOR_INTERVAL_MS = 120_000;
+export const POTION_FLOOR_INTERVAL_MS = 120_000;
 // Story 911 recalibration: Runes (unlike Mana Potions) require Enchanting-crafted or
 // scarce vendor-sourced reagents real players often don't carry, and cost health to use
 // — the story-901 exemplar corpus showed real elite play using a Rune in only 10% of
@@ -18,8 +18,8 @@ const POTION_FLOOR_INTERVAL_MS = 120_000;
 // players good only 20% of the time. A 300s interval fits the real data much better
 // (80% good / 20% fair / 1% bad on the same corpus) while still flagging genuine neglect
 // in unusually long fights — see docs/thresholds.md's story 911 entry.
-const RUNE_FLOOR_INTERVAL_MS = 300_000;
-const MANA_DROP_THRESHOLD_PCT = 70;
+export const RUNE_FLOOR_INTERVAL_MS = 300_000;
+export const MANA_DROP_THRESHOLD_PCT = 70;
 
 export type ConsumableLabel = "Mana Potion" | "Rune";
 

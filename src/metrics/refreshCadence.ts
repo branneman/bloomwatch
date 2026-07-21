@@ -8,9 +8,9 @@ import { reconstructLifebloomTimelines } from "./lifebloomStacks";
 // interval correlates with near-bloom timing and is judged as severely as
 // refreshing too eagerly. Actual blooms are counted separately by
 // story 203's accidental-bloom counter.
-const GOOD_MIN_MS = 6000;
-const GOOD_MAX_MS = 7000;
-const FAIR_MIN_MS = 5000;
+export const GOOD_MIN_MS = 6000;
+export const GOOD_MAX_MS = 7000;
+export const FAIR_MIN_MS = 5000;
 
 export type RefreshCadenceBucketLabel =
   "badEarly" | "fair" | "good" | "badLate";

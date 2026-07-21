@@ -63,6 +63,9 @@ function findFollowUp(
 // holding Nature's Swiftness in reserve for a real emergency that may just
 // not occur is reasonable on a short fight — so 0 casts there reads fair,
 // not bad.
+export const NS_UTILIZATION_GOOD_MIN_PCT = 75;
+export const NS_UTILIZATION_FAIR_MIN_PCT = 50;
+
 function judgeUtilization(
   castCount: number,
   availableWindows: number,
@@ -71,7 +74,10 @@ function judgeUtilization(
   if (availableWindows === 1) {
     return castCount >= 1 ? "good" : "fair";
   }
-  return judgeThreshold(utilizationPct, { goodMin: 75, fairMin: 50 });
+  return judgeThreshold(utilizationPct, {
+    goodMin: NS_UTILIZATION_GOOD_MIN_PCT,
+    fairMin: NS_UTILIZATION_FAIR_MIN_PCT,
+  });
 }
 
 export function computeNaturesSwiftnessAudit(

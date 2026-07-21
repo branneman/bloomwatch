@@ -13,14 +13,19 @@ export interface ManaCurveResult {
   judgement: Judgement | null;
 }
 
-const MIN_JUDGED_FIGHT_DURATION_MS = 90_000;
+export const MIN_JUDGED_FIGHT_DURATION_MS = 90_000;
 
 // Good 5–40% ending mana, fair 40–70% or 0–5%, bad > 70% (hoarding) — kills
 // only, per docs/backlog.md story 401. Good sits in the middle of the range,
 // so this doesn't fit judgeThreshold/judgeThresholdBelow's monotonic shape.
+export const MANA_BAND_GOOD_MIN_PCT = 5;
+export const MANA_BAND_GOOD_MAX_PCT = 40;
+export const MANA_BAND_BAD_MIN_PCT = 70;
+
 function judgeManaBand(pct: number): Judgement {
-  if (pct > 70) return "bad";
-  if (pct >= 5 && pct <= 40) return "good";
+  if (pct > MANA_BAND_BAD_MIN_PCT) return "bad";
+  if (pct >= MANA_BAND_GOOD_MIN_PCT && pct <= MANA_BAND_GOOD_MAX_PCT)
+    return "good";
   return "fair";
 }
 

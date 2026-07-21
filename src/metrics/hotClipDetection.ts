@@ -58,8 +58,14 @@ export interface HotClipDetectionResult {
 
 // Good < 5%, fair 5-15%, bad > 15% of that spell's casts, per
 // docs/backlog.md story 301.
+export const CLIP_GOOD_MAX_PCT = 5;
+export const CLIP_FAIR_MAX_PCT = 15;
+
 function judgeClipPct(clipPct: number): Judgement {
-  return judgeThresholdBelow(clipPct, { goodMax: 5, fairMax: 15 });
+  return judgeThresholdBelow(clipPct, {
+    goodMax: CLIP_GOOD_MAX_PCT,
+    fairMax: CLIP_FAIR_MAX_PCT,
+  });
 }
 
 function computeSpellResult(

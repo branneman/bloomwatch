@@ -7,9 +7,9 @@ import { extractManaSamples, type ManaSample } from "./manaSamples";
 // point" signal for "mana-constrained", and additionally requires the fight
 // run >= 3 min before an unused Innervate counts as a real miss.
 const MANA_DROP_THRESHOLD_PCT = 70;
-const MANA_CONSTRAINED_MIN_DURATION_MS = 180_000;
+export const MANA_CONSTRAINED_MIN_DURATION_MS = 180_000;
 // Self-cast is judged "too late" once it lands in the fight's final 10%.
-const LATE_CAST_FRACTION = 0.9;
+export const LATE_CAST_FRACTION = 0.9;
 
 export interface ActorClass {
   class: string; // CastTableEntry.type, e.g. "Mage", "Warrior", "Druid"
