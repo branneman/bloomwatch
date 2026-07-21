@@ -47,6 +47,7 @@ import {
   MANA_BAND_GOOD_MIN_PCT,
   MANA_BAND_GOOD_MAX_PCT,
   MANA_BAND_BAD_MIN_PCT,
+  MIN_JUDGED_FIGHT_DURATION_MS,
 } from "../../../metrics/manaCurve";
 import {
   POTION_FLOOR_INTERVAL_MS,
@@ -316,7 +317,7 @@ import { GraphQLExample } from "./GraphQLExample";
 <h3 id="ending-mana">Ending mana</h3>
 <p>
   Mana remaining at the end of a kill, checked only on fights lasting at least
-  90 seconds. Good between {MANA_BAND_GOOD_MIN_PCT}–{MANA_BAND_GOOD_MAX_PCT}%,
+  {MIN_JUDGED_FIGHT_DURATION_MS / 1000} seconds. Good between {MANA_BAND_GOOD_MIN_PCT}–{MANA_BAND_GOOD_MAX_PCT}%,
   fair either just below that ({MANA_BAND_GOOD_MIN_PCT}% or under — near-OOM is
   understandable, not penalized the same as hoarding) or from{" "}
   {MANA_BAND_GOOD_MAX_PCT}–{MANA_BAND_BAD_MIN_PCT}%, bad above{" "}

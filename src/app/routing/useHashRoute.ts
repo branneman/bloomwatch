@@ -30,11 +30,13 @@ export function useHashRoute(): {
     function handleHashChange() {
       setRoute(parseHash(window.location.hash));
     }
-    // Both events matter: browser back/forward fires popstate (never
-    // hashchange); a plain <a href="#/..."> anchor click fires hashchange
-    // (never popstate, since it's not history traversal). navigate()'s own
-    // pushState calls neither, so this only ever handles external changes —
-    // no double-handling risk with the setRoute() call in navigate() below.
+    // Both events matter: browser back/forward fires both popstate and
+    // hashchange for this app's hash-only history entries (harmlessly
+    // double-invoking handleHashChange, since setRoute with the same value is
+    // a no-op); a plain <a href="#/..."> anchor click fires only hashchange,
+    // never popstate. navigate()'s own pushState calls neither, so this only
+    // ever handles external changes — no double-handling risk with the
+    // setRoute() call in navigate() below.
     window.addEventListener("popstate", handleHashChange);
     window.addEventListener("hashchange", handleHashChange);
     return () => {
