@@ -14,6 +14,7 @@ Read both docs before starting substantial feature work — they define scope, t
 2. **No backend.** No server-side code, no database, no accounts. All WCL API calls happen client-side; all computation happens in the browser.
 3. **Judgement is visible and sourced.** Every Good/Fair/Bad threshold must be documented, with a comment pointing to its rationale in `docs/backlog.md` — don't hardcode one without it. Per story 802, thresholds are periodically recalibrated by the maintainers (not the end user) once all metrics exist; there is no user-facing threshold-editing UI planned.
 4. **FOSS.** Keep the repo reproducible from a clean clone with no required secrets at build time.
+5. **Internal language stays internal.** Never expose developer/process vocabulary — "epic", "story"/"stories", "backlog", story or epic numbers, and similar planning-doc terms — in anything a user sees in the running app: labels, headings, tooltips, methodology copy, error messages, aria-labels/titles. That vocabulary belongs only in `docs/`, code comments, identifiers, and commit messages. When referencing another metric/section from user-facing copy, name it by its on-screen label (e.g. "Death forensics") instead.
 
 ## Working conventions
 

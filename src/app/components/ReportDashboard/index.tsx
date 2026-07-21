@@ -308,9 +308,9 @@ export function ReportDashboard({
       <h2>{reportTitle}</h2>
       <p className={styles.summaryLine}>
         {druidLabel} · {rows.length} non-trash boss{" "}
-        {rows.length === 1 ? "fight" : "fights"} averaged automatically into an
-        epic-by-epic verdict below. Click a fight for its full single-fight
-        scorecard.
+        {rows.length === 1 ? "fight" : "fights"} averaged automatically into a
+        category-by-category verdict below. Click a fight for its full
+        single-fight scorecard.
       </p>
 
       <div className={styles.chipStrip}>

@@ -50,7 +50,7 @@ export const BUCKET_DEFINITIONS: Record<TalentBucket, string> = {
   "mostly-resto":
     "Restoration > Balance, but below deep-resto's 41-point cutoff and below Dreamstate's 31-point Balance threshold",
   "mostly-balance": "Balance >= Restoration and Balance >= 20",
-  "restokin-shaped": "signature not yet determined — see story 900",
+  "restokin-shaped": "signature not yet determined",
   "other-unclassified": "doesn't fit any bucket above",
   "unknown-no-talent-data": "talent read failed or unavailable",
 };

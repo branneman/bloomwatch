@@ -45,7 +45,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathscream.jpg";
 
 const THRESHOLD =
-  "For each friendly death: target, time, LB3 status on that target, Swiftmend CD state, Nature's Swiftness CD state, and whether you were idle (a GCD available) in the preceding 5s. Only maintained targets (>=30% Lifebloom uptime, story 201's definition) are judged — good 0 unspent resources, fair 1, bad >=2 of {Swiftmend ready, Nature's Swiftness ready, idle-with-a-GCD-available}. LB3 status is shown for context but doesn't count toward that tally. A death is not automatically the druid's fault — this audits your readiness only, not target selection, assignments, or positioning.";
+  "For each friendly death: target, time, LB3 status on that target, Swiftmend CD state, Nature's Swiftness CD state, and whether you were idle (a GCD available) in the preceding 5s. Only maintained targets (>=30% Lifebloom uptime) are judged — good 0 unspent resources, fair 1, bad >=2 of {Swiftmend ready, Nature's Swiftness ready, idle-with-a-GCD-available}. LB3 status is shown for context but doesn't count toward that tally. A death is not automatically the druid's fault — this audits your readiness only, not target selection, assignments, or positioning.";
 
 export function DeathForensicsCard({
   accessToken,
