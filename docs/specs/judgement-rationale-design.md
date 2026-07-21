@@ -126,7 +126,7 @@ One linear, general-to-specific document with a table of contents up top
    `docs/thresholds.md`): GCD economy, Lifebloom discipline, Spell
    discipline, Mana economy, Death forensics, Crisis response, Prep hygiene.
    Each has a threshold table (good/fair/bad bands, live-interpolated from
-   code) plus 1–2 sentences of *why* that threshold sits where it does,
+   code) plus 1–2 sentences of _why_ that threshold sits where it does,
    drawn from the calibration rationale already written in
    `docs/thresholds.md`'s calibration-review notes.
 4. **Where the data comes from** — conceptual WCL/GraphQL pipeline

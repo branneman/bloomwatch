@@ -148,4 +148,15 @@ describe("useHashRoute", () => {
     });
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0);
   });
+
+  it("re-syncs on a hashchange event, not just popstate (a plain <a href> anchor click fires hashchange, never popstate)", () => {
+    const { result } = renderHook(() => useHashRoute());
+
+    act(() => {
+      window.location.hash = "#/about";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    expect(result.current.route).toEqual({ screen: "about" });
+  });
 });

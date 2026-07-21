@@ -27,11 +27,20 @@ export function useHashRoute(): {
     // popstate (e.g. history.replaceState).
     // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above; this isn't the "adjusting state" anti-pattern the rule targets.
     setRoute(parseHash(window.location.hash));
-    function handlePopState() {
+    function handleHashChange() {
       setRoute(parseHash(window.location.hash));
     }
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    // Both events matter: browser back/forward fires popstate (never
+    // hashchange); a plain <a href="#/..."> anchor click fires hashchange
+    // (never popstate, since it's not history traversal). navigate()'s own
+    // pushState calls neither, so this only ever handles external changes —
+    // no double-handling risk with the setRoute() call in navigate() below.
+    window.addEventListener("popstate", handleHashChange);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      window.removeEventListener("popstate", handleHashChange);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   }, []);
 
   const navigate = useCallback((next: Route) => {

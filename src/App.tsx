@@ -80,8 +80,18 @@ function App() {
     () => localStorage.getItem(ONBOARDING_SEEN_KEY) === "true",
   );
 
-  const reportCode = route.screen === "input" ? null : route.reportCode;
-  const host = route.screen === "input" ? null : route.host;
+  const reportCode =
+    route.screen === "input" ||
+    route.screen === "about" ||
+    route.screen === "judgements"
+      ? null
+      : route.reportCode;
+  const host =
+    route.screen === "input" ||
+    route.screen === "about" ||
+    route.screen === "judgements"
+      ? null
+      : route.host;
 
   const wrappedFetchReportFights = useMemo(
     () =>

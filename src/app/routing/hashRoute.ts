@@ -3,6 +3,8 @@ import type { Host } from "../../report/parseReportInput";
 
 export type Route =
   | { screen: "input" }
+  | { screen: "about" }
+  | { screen: "judgements"; slug?: string }
   | { screen: "druidPicker"; reportCode: string; host: Host }
   | {
       screen: "dashboard";
@@ -54,6 +56,19 @@ export function parseHash(hash: string): Route {
       .filter((segment) => segment.length > 0);
 
     if (segments.length === 0) return INPUT_ROUTE;
+
+    if (segments[0] === "about") {
+      return segments.length === 1 ? { screen: "about" } : INPUT_ROUTE;
+    }
+
+    if (segments[0] === "judgements") {
+      if (segments.length === 1) return { screen: "judgements" };
+      if (segments.length === 2) {
+        return { screen: "judgements", slug: decodeURIComponent(segments[1]) };
+      }
+      return INPUT_ROUTE;
+    }
+
     if (segments[0] !== "r" || segments.length < 2) return INPUT_ROUTE;
     const reportCode = decodeURIComponent(segments[1]);
 
@@ -125,6 +140,12 @@ export function serializeRoute(route: Route): string {
   switch (route.screen) {
     case "input":
       return "#";
+    case "about":
+      return "#/about";
+    case "judgements":
+      return route.slug
+        ? `#/judgements/${encodeURIComponent(route.slug)}`
+        : "#/judgements";
     case "druidPicker":
       return `#/r/${encodeURIComponent(route.reportCode)}${hostSegment(route.host)}`;
     case "dashboard":

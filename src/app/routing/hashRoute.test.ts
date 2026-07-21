@@ -68,6 +68,17 @@ describe("parseHash / serializeRoute", () => {
         epicId: "lifebloom",
       },
     },
+    { name: "about", hash: "#/about", route: { screen: "about" } },
+    {
+      name: "judgements, no slug",
+      hash: "#/judgements",
+      route: { screen: "judgements" },
+    },
+    {
+      name: "judgements with slug",
+      hash: "#/judgements/rejuv-clip-share",
+      route: { screen: "judgements", slug: "rejuv-clip-share" },
+    },
   ];
 
   for (const { name, hash, route } of cases) {
@@ -107,6 +118,13 @@ describe("parseHash / serializeRoute", () => {
   ])("falls back to the input screen for malformed hash %s", (hash) => {
     expect(parseHash(hash)).toEqual({ screen: "input" });
   });
+
+  it.each(["#/about/extra", "#/judgements/slug/extra"])(
+    "falls back to the input screen for malformed hash %s",
+    (hash) => {
+      expect(parseHash(hash)).toEqual({ screen: "input" });
+    },
+  );
 
   it("defaults to host: fresh (not the input screen) for an unrecognized host value", () => {
     expect(parseHash("#/r/4GYHZRdtL3bvhpc8/h/bogus")).toEqual({
