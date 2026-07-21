@@ -1,0 +1,112 @@
+import styles from "./index.module.css";
+
+<h1>How Bloomwatch judges you</h1>
+
+<p>
+  This page is for anyone reading a Bloomwatch scorecard: a druid new to healing
+  on Restoration, an experienced druid who wants the exact numbers, or a raid
+  lead sizing up a healer's play. It starts with the thinking behind the tool,
+  then how a single Good/Fair/Bad verdict is actually built, then the exact
+  thresholds for every metric, then how the underlying data is pulled from
+  Warcraft Logs in the first place.
+</p>
+
+<h2>Contents</h2>
+<ul className={styles.toc}>
+  <li>
+    <a href="#/judgements/why-process-not-output">Why process, not output</a>
+  </li>
+  <li>
+    <a href="#/judgements/how-judgements-combine">How judgements combine</a>
+  </li>
+  <li>
+    <a href="#/judgements/gcd-economy">GCD economy</a>
+  </li>
+  <li>
+    <a href="#/judgements/lifebloom-discipline">Lifebloom discipline</a>
+  </li>
+  <li>
+    <a href="#/judgements/spell-discipline">Spell discipline</a>
+  </li>
+  <li>
+    <a href="#/judgements/mana-economy">Mana economy</a>
+  </li>
+  <li>
+    <a href="#/judgements/death-forensics">Death forensics</a>
+  </li>
+  <li>
+    <a href="#/judgements/crisis-response">Crisis response</a>
+  </li>
+  <li>
+    <a href="#/judgements/prep-hygiene">Prep hygiene</a>
+  </li>
+  <li>
+    <a href="#/judgements/where-the-data-comes-from">
+      Where the data comes from
+    </a>
+  </li>
+</ul>
+
+<h2 id="why-process-not-output">Why process, not output</h2>
+
+<p>
+  Healing is zero-sum. Every hitpoint one healer heals is a hitpoint another
+  healer didn't get to heal — so on any given pull, healers are structurally
+  competing for the same pool of damage taken. A healing meter ranks that
+  competition, not skill: who gets assigned the tank versus raid-wide AoE, how
+  many other healers are in the group, how efficiently everyone else played, all
+  of that moves the ranking without you doing anything differently. Two druids
+  can play a fight identically and land on opposite ends of the meter purely
+  because of who they were assigned to heal.
+</p>
+
+<p>
+  Bloomwatch measures process instead: your GCD utilization, your Lifebloom
+  refresh cadence, your mana-potion cooldown usage, whether you had a cooldown
+  in reserve when someone nearly died. None of that can be taken from you by a
+  co-healer's assignment or a raid comp — it's a fair read on how you actually
+  played, pull after pull, independent of who else was in the raid.
+</p>
+
+<p>
+  That's also why nothing on this page or anywhere in Bloomwatch is built from
+  HPS, effective-healing totals, or a parse percentile. If a metric can't be
+  answered from your own actions alone, it doesn't belong here.
+</p>
+
+<h2 id="how-judgements-combine">How judgements combine</h2>
+
+<p>
+  Every individual metric gets its own Good/Fair/Bad verdict against a fixed
+  threshold — the rest of this page lists every one of those thresholds. But a
+  single fight's scorecard needs to fold several metrics into one verdict per
+  group (GCD economy, Lifebloom discipline, and so on), and a whole raid night
+  needs to fold several fights into one verdict per group again. Both steps use
+  the same idea:
+</p>
+
+<p>
+  <strong>A mix of good and bad reads as fair, not a flat bad.</strong> If three
+  metrics in a group come back good, good, and bad, the group doesn't read as a
+  flat "bad" just because one thing went wrong — it reads "fair", since at least
+  one of those metrics genuinely went well. This is deliberately symmetric: a
+  group that's mostly bad with one good metric is capped at "fair" too, not
+  pulled all the way up to "good". A group with no bad metrics at all (say, two
+  good and one fair) still resolves by simple worst-of, unaffected by this rule.
+</p>
+
+<p>
+  The same rule applies one level up, across a whole report: if a metric group
+  reads good on some fights and bad on others, the report-wide verdict for that
+  group reads "fair", weighted by how long each fight actually ran — a
+  two-minute wipe doesn't count as much as a six-minute kill. Without this, a
+  single bad pull in an otherwise strong raid night could make an entire metric
+  group look like a flat failure.
+</p>
+
+<p>
+  A metric that depends on a talent you don't have (Swiftmend or Nature's
+  Swiftness need specific Restoration talent points, for example) is hidden from
+  your scorecard entirely for that build, rather than judged "bad" — Bloomwatch
+  only judges what your build could actually have done.
+</p>

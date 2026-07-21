@@ -3,3 +3,4 @@ coverage
 .superpowers
 .claude
 docs/design*
+**/*.mdx

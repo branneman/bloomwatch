@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import mdx from "@mdx-js/rollup";
 
 // Fast-forward-only merging (see CLAUDE.md) keeps main's history linear, so a
 // plain commit count from the root doubles as a stable, human-readable build
@@ -22,7 +23,14 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
   },
-  plugins: [react()],
+  plugins: [
+    // MDX must run before @vitejs/plugin-react's own transform — it
+    // compiles .mdx source straight to plain JS (already using the
+    // automatic JSX runtime), so plugin-react's .jsx/.tsx handling never
+    // needs to touch its output.
+    { enforce: "pre", ...mdx() },
+    react(),
+  ],
   server: {
     port: 5173,
     strictPort: true,
