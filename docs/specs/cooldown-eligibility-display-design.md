@@ -115,9 +115,10 @@ dynamically since the two gate independently:
   Swiftness; that row isn't shown."
 - neither missing (the common case): no note rendered at all.
 
-This note is skipped entirely when there are zero deaths/crises to show,
-matching the existing pattern where the warning `Alert` already only
-renders alongside real result content.
+This note renders unconditionally once the fight's data has loaded (no
+fetch/compute error), the same way the two Cards' existing caveat `Alert`
+already renders regardless of whether that fight had any deaths/crises at
+all.
 
 ## Testing
 
