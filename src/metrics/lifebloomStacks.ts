@@ -258,3 +258,23 @@ export function deriveLifebloomTargetState(
 
   return { totalAnyStackMs, stack3Intervals };
 }
+
+// Excludes a fight from Lifebloom Discipline judgement entirely
+// (summarizeLifebloomDiscipline in epicSummary.ts) when false - a fact
+// about actual cast events, independent of buff-timeline reconstruction
+// or carry-in resolution, so a target whose Lifebloom merely carried in
+// from the previous pull (and was never recast this fight) still counts
+// as excluded.
+export function hasLifebloomCast(
+  castEvents: WclEvent[],
+  druidId: number,
+  lifebloomAbilityIds: Set<number>,
+): boolean {
+  return castEvents.some(
+    (event) =>
+      event.type === "cast" &&
+      event.sourceID === druidId &&
+      event.abilityGameID !== undefined &&
+      lifebloomAbilityIds.has(event.abilityGameID),
+  );
+}

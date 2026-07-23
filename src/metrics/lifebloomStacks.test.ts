@@ -4,6 +4,7 @@ import {
   deriveLifebloomTargetState,
   detectCarryInTargets,
   resolveCarryInTimeline,
+  hasLifebloomCast,
   type LifebloomTimelineEvent,
 } from "./lifebloomStacks";
 import type { WclEvent } from "../wcl/events";
@@ -12,6 +13,7 @@ import {
   anApplyBuffStackEvent,
   aRefreshBuffEvent,
   aRemoveBuffEvent,
+  aCastEvent,
 } from "../testUtils/factories";
 
 const LB_IDS = new Set([33763]);
@@ -416,5 +418,42 @@ describe("resolveCarryInTimeline", () => {
     );
 
     expect(resolved).toBeNull();
+  });
+});
+
+describe("hasLifebloomCast", () => {
+  it("returns false when there are no cast events at all", () => {
+    expect(hasLifebloomCast([], 2, LB_IDS)).toBe(false);
+  });
+
+  it("returns false when the only casts are a different ability", () => {
+    const events: WclEvent[] = [
+      aCastEvent({ sourceID: 2, abilityGameID: 18550 }), // Tranquil Air Totem, not Lifebloom
+    ];
+    expect(hasLifebloomCast(events, 2, LB_IDS)).toBe(false);
+  });
+
+  it("returns false when the only Lifebloom casts are by a different player", () => {
+    const events: WclEvent[] = [
+      aCastEvent({ sourceID: 7, abilityGameID: 33763 }),
+    ];
+    expect(hasLifebloomCast(events, 2, LB_IDS)).toBe(false);
+  });
+
+  it("returns true when the druid cast a Lifebloom-family ability", () => {
+    const events: WclEvent[] = [
+      aCastEvent({ sourceID: 2, abilityGameID: 33763 }),
+    ];
+    expect(hasLifebloomCast(events, 2, LB_IDS)).toBe(true);
+  });
+
+  it("ignores non-cast events on the same ability", () => {
+    const events: WclEvent[] = [
+      {
+        ...aCastEvent({ sourceID: 2, abilityGameID: 33763 }),
+        type: "applybuff",
+      },
+    ];
+    expect(hasLifebloomCast(events, 2, LB_IDS)).toBe(false);
   });
 });
