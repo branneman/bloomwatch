@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFightRows, formatDuration } from "./fightRows";
+import { buildFightRows, formatDuration, formatFightLabel } from "./fightRows";
 import { aFight } from "../testUtils/factories";
 
 describe("buildFightRows", () => {
@@ -124,5 +124,17 @@ describe("formatDuration", () => {
 
   it("rounds to the nearest second", () => {
     expect(formatDuration(59700)).toBe("1:00");
+  });
+});
+
+describe("formatFightLabel", () => {
+  it("returns the plain boss name when there's no pull number", () => {
+    const fight = aFight({ name: "Lady Vashj" });
+    expect(formatFightLabel(fight, null)).toBe("Lady Vashj");
+  });
+
+  it("prefixes the pull number when one is given", () => {
+    const fight = aFight({ name: "Lady Vashj" });
+    expect(formatFightLabel(fight, 2)).toBe("Pull 2 · Lady Vashj");
   });
 });

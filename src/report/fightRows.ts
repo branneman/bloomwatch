@@ -56,3 +56,12 @@ export function formatDuration(ms: number): string {
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
+
+export function formatFightLabel(
+  fight: Fight,
+  pullNumber: number | null,
+): string {
+  return pullNumber === null
+    ? fight.name
+    : `Pull ${pullNumber} · ${fight.name}`;
+}
