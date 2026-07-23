@@ -472,6 +472,11 @@ describe("computeNearDeathResponse", () => {
     );
 
     expect(result.crises[0].judged).toBe(true);
+    // Judged here via the pre-existing no-clear-assignment path, not the
+    // new elsewhere-ready fair tier -- `judgedByReadyResource` must stay
+    // false so calibration pooling (scripts/lib/rollup.ts) doesn't
+    // conflate the two.
+    expect(result.crises[0].judgedByReadyResource).toBe(false);
   });
 
   it("does not count a HoT tick that was already rolling before the crisis as a response", () => {

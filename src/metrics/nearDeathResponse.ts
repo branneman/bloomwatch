@@ -11,13 +11,15 @@ import {
   trackHotRemovals,
   findConsumedHot,
 } from "./swiftmendAudit";
-import { NATURES_SWIFTNESS_COOLDOWN_MS } from "./naturesSwiftnessAudit";
+import {
+  NATURES_SWIFTNESS_COOLDOWN_MS,
+  findFollowUp,
+} from "./naturesSwiftnessAudit";
 import {
   isReady,
   wasIdlePreceding,
   judgeDeathReadiness,
 } from "./deathForensics";
-import { findFollowUp } from "./naturesSwiftnessAudit";
 import { computeCastIntervals } from "./castIntervals";
 import {
   resolveSpellAbilityIds,
