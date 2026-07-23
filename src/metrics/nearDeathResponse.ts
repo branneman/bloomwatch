@@ -4,6 +4,7 @@ import { worstJudgement } from "./judgement";
 import {
   reconstructLifebloomTimelines,
   deriveLifebloomTargetState,
+  type LifebloomTimelineEvent,
 } from "./lifebloomStacks";
 import { MAINTAINED_MIN_UPTIME_PCT } from "./lb3Uptime";
 import {
@@ -11,6 +12,10 @@ import {
   trackHotRemovals,
   findConsumedHot,
 } from "./swiftmendAudit";
+import {
+  REJUVENATION_DURATION_MS,
+  REGROWTH_DURATION_MS,
+} from "./hotClipDetection";
 import {
   NATURES_SWIFTNESS_COOLDOWN_MS,
   findFollowUp,
@@ -202,6 +207,59 @@ function findCrisisEpisodes(
   return episodes;
 }
 
+// Story 1003: was a HoT already active on this target when a crisis opened,
+// as opposed to a new cast landing during the crisis window (the existing
+// `responded` check). Any Lifebloom stack count counts -- a single stack
+// placed ahead of an expected spike is real anticipation even on a target
+// far from the existing 201/501 "maintained" 30%-uptime bar, so this is
+// evaluated per-crisis, not per-fight.
+function isLifebloomActiveAt(
+  timeline: LifebloomTimelineEvent[],
+  timestampMs: number,
+): boolean {
+  let isOpen = false;
+  for (const event of timeline) {
+    if (event.timestamp >= timestampMs) break;
+    if (event.kind === "open") isOpen = true;
+    else if (event.kind === "close") isOpen = false;
+  }
+  return isOpen;
+}
+
+// Same idea for Rejuvenation/Regrowth, which don't get a reconstructed
+// open/close timeline like Lifebloom -- expiry is derived from each
+// application's own known duration, the same approach swiftmendAudit.ts's
+// trackHotRemovals already uses for these two spells.
+function isHotActiveAt(
+  buffEvents: WclEvent[],
+  druidId: number,
+  targetId: number,
+  abilityIds: Set<number>,
+  durationMs: number,
+  timestampMs: number,
+): boolean {
+  const relevant = buffEvents
+    .filter(
+      (event) =>
+        event.sourceID === druidId &&
+        event.targetID === targetId &&
+        event.abilityGameID !== undefined &&
+        abilityIds.has(event.abilityGameID) &&
+        event.timestamp < timestampMs,
+    )
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  let expiryMs: number | null = null;
+  for (const event of relevant) {
+    if (event.type === "applybuff" || event.type === "refreshbuff") {
+      expiryMs = event.timestamp + durationMs;
+    } else if (event.type === "removebuff") {
+      expiryMs = null;
+    }
+  }
+  return expiryMs !== null && expiryMs > timestampMs;
+}
+
 export interface CrisisEvent {
   timestampMs: number;
   targetId: number;
@@ -217,6 +275,8 @@ export interface CrisisEvent {
   judgedByReadyResource: boolean;
   clearSave: boolean;
   saveKind: "natures-swiftness-combo" | "swiftmend-hot-consume" | null;
+  prepped: boolean;
+  judgedByPreppedElsewhere: boolean;
 }
 
 export interface NearDeathResponseResult {
@@ -320,6 +380,26 @@ export function computeNearDeathResponse(
         cast.timestamp <= episode.windowEndMs,
     );
 
+    const lifebloomTimeline = lifebloomTimelines.get(episode.targetId) ?? [];
+    const prepped =
+      isLifebloomActiveAt(lifebloomTimeline, episode.timestampMs) ||
+      isHotActiveAt(
+        buffEvents,
+        druidId,
+        episode.targetId,
+        rejuvenationAbilityIds,
+        REJUVENATION_DURATION_MS,
+        episode.timestampMs,
+      ) ||
+      isHotActiveAt(
+        buffEvents,
+        druidId,
+        episode.targetId,
+        regrowthAbilityIds,
+        REGROWTH_DURATION_MS,
+        episode.timestampMs,
+      );
+
     const swiftmendReady =
       hasSwiftmend &&
       isReady(swiftmendCasts, episode.timestampMs, SWIFTMEND_COOLDOWN_MS);
@@ -336,27 +416,30 @@ export function computeNearDeathResponse(
     ).length;
 
     // Story 1002: a crisis on a target outside the druid's maintained
-    // assignment is judged in two cases -- the existing "no clear
-    // assignment at all" case, and (new) whenever a real resource was
-    // ready to help even though the target wasn't "yours". The second
-    // case always reads "fair" -- it surfaces "you could have helped",
-    // it doesn't grade the miss further via the maintained-target
-    // severity tally.
+    // assignment is judged when a real resource was ready to help.
+    // Story 1003: it's also judged when the druid had already prepped a
+    // HoT on that target ahead of the crisis -- prep is direct evidence
+    // of attention on that target, not just latent capacity to help.
     const judgedElsewhereReady = !maintained && (swiftmendReady || nsReady);
-    const judged = maintained || !hasClearAssignment || judgedElsewhereReady;
+    const judgedElsewherePrepped = !maintained && prepped;
+    const judged =
+      maintained ||
+      !hasClearAssignment ||
+      judgedElsewhereReady ||
+      judgedElsewherePrepped;
 
-    // Tracked separately from `judgement === "fair"` because a crisis can
-    // also land on "fair" via the pre-existing no-clear-assignment path
-    // (judgeDeathReadiness(1), e.g. idlePreceding alone with neither
-    // resource ready) -- this flag is true only for the new rule above,
-    // so downstream calibration pooling (story 1002, scripts/lib/rollup.ts)
-    // can count real occurrences of the new tier precisely, not by
-    // re-deriving an approximation from `maintained`/`judgement` alone.
+    // Tracked separately from `judgement === "fair"`/`"good"` because a
+    // crisis can also land there via the pre-existing no-clear-assignment
+    // path -- these flags are true only for their own new rule, so
+    // downstream calibration pooling (scripts/lib/rollup.ts) can count real
+    // occurrences of each new tier precisely.
     const judgedByReadyResource = judgedElsewhereReady && hasClearAssignment;
+    const judgedByPreppedElsewhere =
+      judgedElsewherePrepped && hasClearAssignment;
 
     const judgement = !judged
       ? null
-      : responded
+      : responded || prepped
         ? "good"
         : maintained || !hasClearAssignment
           ? judgeDeathReadiness(unspentCount)
@@ -432,6 +515,8 @@ export function computeNearDeathResponse(
       judgedByReadyResource,
       clearSave,
       saveKind,
+      prepped,
+      judgedByPreppedElsewhere,
     };
   });
 

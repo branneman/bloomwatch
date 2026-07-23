@@ -955,6 +955,8 @@ describe("summarizeNearDeathResponse", () => {
           judgedByReadyResource: false,
           clearSave: false,
           saveKind: null,
+          prepped: false,
+          judgedByPreppedElsewhere: false,
         },
       ],
       flaggedCount: 1,

@@ -617,6 +617,221 @@ describe("computeNearDeathResponse", () => {
     expect(result.crises[1].timestampMs).toBe(20000);
     expect(result.crises.every((c) => c.targetId === 50)).toBe(true);
   });
+
+  it("judges good when the target was already prepped, even with no reactive cast in the crisis window", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 8000, targetID: 50, abilityGameID: 33763 }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 11000, targetID: 50, hitPoints: 40 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      [],
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      new Map(),
+      new Set(),
+      new Set(),
+    );
+
+    expect(result.crises[0].prepped).toBe(true);
+    expect(result.crises[0].responded).toBe(false);
+    expect(result.crises[0].judgement).toBe("good");
+  });
+
+  it("credits a Rejuvenation already ticking before the crisis as prepped", () => {
+    const REJUVENATION_ID = 774;
+    const buffEvents = [
+      anApplyBuffEvent({
+        timestamp: 9000,
+        targetID: 50,
+        abilityGameID: REJUVENATION_ID,
+      }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 11000, targetID: 50, hitPoints: 40 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      [],
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      new Map(),
+      new Set([REJUVENATION_ID]),
+      new Set(),
+    );
+
+    expect(result.crises[0].prepped).toBe(true);
+    expect(result.crises[0].judgement).toBe("good");
+  });
+
+  it("does not credit a HoT applied only after the crisis opens as prepped", () => {
+    const buffEvents = [
+      anApplyBuffEvent({
+        timestamp: 10500,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 11000, targetID: 50, hitPoints: 40 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      [],
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      new Map(),
+      new Set(),
+      new Set(),
+    );
+
+    expect(result.crises[0].prepped).toBe(false);
+  });
+
+  it("tracks prepped and responded independently when both occur for the same crisis", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 8000, targetID: 50, abilityGameID: 33763 }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 10 }),
+    ];
+    const healingEvents = [
+      aHealEvent({ timestamp: 11000, targetID: 50, hitPoints: 40 }),
+    ];
+    const castEvents = [
+      aCastEvent({
+        timestamp: 10500,
+        sourceID: DRUID_ID,
+        targetID: 50,
+        abilityGameID: HEALING_TOUCH_ID,
+      }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      healingEvents,
+      [],
+      castEvents,
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      new Map(),
+      new Set(),
+      new Set(),
+    );
+
+    expect(result.crises[0].prepped).toBe(true);
+    expect(result.crises[0].responded).toBe(true);
+    expect(result.crises[0].judgement).toBe("good");
+  });
+
+  it("credits anticipatory prep on a target outside the clear tank assignment, unlocking judgement without a ready resource", () => {
+    const buffEvents = [
+      // Target 60 stays LB3 all fight -- the druid's one maintained
+      // target, i.e. its clear tank assignment.
+      anApplyBuffEvent({ timestamp: 0, targetID: 60, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 60,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 60,
+        abilityGameID: 33763,
+      }),
+      // Target 999 (not maintained) gets a single anticipatory Lifebloom
+      // stack shortly before its own crisis, then blooms.
+      anApplyBuffEvent({
+        timestamp: 88000,
+        targetID: 999,
+        abilityGameID: 33763,
+      }),
+      aRemoveBuffEvent({
+        timestamp: 92000,
+        targetID: 999,
+        abilityGameID: 33763,
+      }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 90000, targetID: 999, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 91000, targetID: 999, hitPoints: 40 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      [],
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      false,
+      false,
+      0,
+      100000,
+      new Map(),
+      new Set(),
+      new Set(),
+    );
+
+    expect(result.crises[0].maintained).toBe(false);
+    expect(result.crises[0].prepped).toBe(true);
+    expect(result.crises[0].responded).toBe(false);
+    expect(result.crises[0].judged).toBe(true);
+    expect(result.crises[0].judgement).toBe("good");
+    expect(result.crises[0].judgedByPreppedElsewhere).toBe(true);
+  });
 });
 
 describe("computeNearDeathResponse clear-save detection", () => {
