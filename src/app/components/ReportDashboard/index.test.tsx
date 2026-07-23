@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { ReportDashboard } from "./index";
@@ -41,6 +41,7 @@ const baseProps = {
   onCloseFight: vi.fn(),
   activeEpicId: null,
   onSelectEpic: vi.fn(),
+  onOpenFightEpic: vi.fn(),
   onStartOver: vi.fn(),
 };
 
@@ -475,5 +476,132 @@ describe("ReportDashboard", () => {
         ?.textContent;
     expect(deathChipText).toContain("1 good");
     expect(deathChipText).toContain("1 bad");
+  });
+
+  it("keeps a single-bucket breakdown as plain text, not an interactive control", async () => {
+    const fights = [aFight({ id: 1, name: "Lady Vashj", kill: true })];
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) =>
+      Promise.resolve(
+        dataType === "Casts"
+          ? [
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 1000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 2000,
+              }),
+              aCastEvent({
+                sourceID: 101,
+                abilityGameID: 33763,
+                timestamp: 3000,
+              }),
+            ]
+          : [],
+      );
+
+    render(
+      <ReportDashboard
+        {...baseProps}
+        fights={fights}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
+    );
+
+    // A single fight means every chip's breakdown is single-bucket ("1
+    // good"/"1 fair"/"1 bad") — none should render as an interactive
+    // control, per the "only 2+ buckets are interactive" rule.
+    expect(
+      screen.queryAllByRole("button", { name: /^\d+ (good|fair|bad)$/ }),
+    ).toHaveLength(0);
+  });
+
+  it("lists the bosses behind each judgement bucket in a popover, and clicking one navigates to that fight's scorecard with the right epic", async () => {
+    const cleanFight = aFight({ id: 1, name: "Lady Vashj", kill: true });
+    const deadlyFight = aFight({
+      id: 2,
+      name: "Leotheras the Blind",
+      kill: true,
+    });
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      fight: { id: number },
+      dataType: string,
+    ) => {
+      if (dataType === "Casts") {
+        return Promise.resolve([
+          aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 1000 }),
+          aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 2000 }),
+          aCastEvent({ sourceID: 101, abilityGameID: 33763, timestamp: 3000 }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "Buffs") {
+        return Promise.resolve([
+          anApplyBuffEvent({
+            sourceID: 101,
+            targetID: 55,
+            abilityGameID: 33763,
+            timestamp: deadlyFight.startTime,
+          }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "Deaths") {
+        return Promise.resolve([
+          aDeathEvent({
+            targetID: 55,
+            timestamp: deadlyFight.startTime + 10000,
+          }),
+        ]);
+      }
+      if (fight.id === 2 && dataType === "CombatantInfo") {
+        return Promise.resolve([
+          aCombatantInfoEvent({
+            sourceID: 101,
+            talents: [{ id: 0 }, { id: 0 }, { id: 45 }],
+          }),
+        ]);
+      }
+      return Promise.resolve([]);
+    };
+    const onOpenFightEpic = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <ReportDashboard
+        {...baseProps}
+        fights={[cleanFight, deadlyFight]}
+        fetchEvents={fetchEvents}
+        onOpenFightEpic={onOpenFightEpic}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.queryAllByText("Calculating…")).toHaveLength(0),
+    );
+
+    const deathChip =
+      screen.getByText("Death forensics").parentElement!.parentElement!;
+
+    await user.click(within(deathChip).getByRole("button", { name: "1 bad" }));
+    const link = within(deathChip).getByRole("button", {
+      name: /Leotheras the Blind/,
+    });
+    expect(link).toBeInTheDocument();
+
+    await user.click(link);
+    expect(onOpenFightEpic).toHaveBeenCalledWith(2, "death");
   });
 });

@@ -48,6 +48,33 @@
   color: var(--text);
 }
 
+.breakdownSegment {
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-underline-offset: 2px;
+}
+
+.breakdownList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.breakdownLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--text-small-size);
+  cursor: pointer;
+  text-align: left;
+}
+
 .calculating {
   font-size: var(--text-small-size);
   color: var(--text);

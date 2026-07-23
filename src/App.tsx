@@ -589,6 +589,9 @@ function App() {
                   onCloseFight={handleCloseFight}
                   activeEpicId={activeEpicId}
                   onSelectEpic={handleSelectEpic}
+                  // Temporary compile-compat placeholder: real navigation
+                  // wiring lands in a follow-up task.
+                  onOpenFightEpic={() => {}}
                   onStartOver={handleStartOver}
                 />
               </Shell>

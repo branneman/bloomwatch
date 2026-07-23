@@ -7,7 +7,11 @@ import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import type { ActorClass } from "../../../metrics/innervateAudit";
 import type { DruidCandidate } from "../../../report/druidDetection";
 import type { Host } from "../../../report/parseReportInput";
-import { buildFightRows, formatDuration } from "../../../report/fightRows";
+import {
+  buildFightRows,
+  formatDuration,
+  formatFightLabel,
+} from "../../../report/fightRows";
 import {
   combineFightEpicStatus,
   rollupEpicJudgement,
@@ -22,6 +26,7 @@ import { useHealingRoleThisFight } from "../Scorecard/useHealingRoleThisFight";
 import { Scorecard } from "../Scorecard";
 import { Badge } from "../ui/Badge";
 import { JudgementChip } from "../ui/JudgementChip";
+import { Popover } from "../ui/Popover";
 import { Alert } from "../ui/Alert";
 import styles from "./index.module.css";
 
@@ -61,6 +66,7 @@ export interface ReportDashboardProps {
   onCloseFight: () => void;
   activeEpicId: EpicId | null;
   onSelectEpic: (epicId: EpicId | null) => void;
+  onOpenFightEpic: (fightId: number, epicId: EpicId) => void;
   onStartOver: () => void;
 }
 
@@ -78,14 +84,53 @@ function epicKey(s: FightEpicSummaries[keyof FightEpicSummaries]): string {
   return s.status === "ready" ? `ready:${s.judgement}` : s.status;
 }
 
-function formatJudgementBreakdown(
-  breakdown: Record<Judgement, number>,
-): string {
-  const parts: string[] = [];
-  if (breakdown.good > 0) parts.push(`${breakdown.good} good`);
-  if (breakdown.fair > 0) parts.push(`${breakdown.fair} fair`);
-  if (breakdown.bad > 0) parts.push(`${breakdown.bad} bad`);
-  return parts.join(" · ");
+const JUDGEMENTS: Judgement[] = ["good", "fair", "bad"];
+
+function JudgementBreakdown({
+  breakdown,
+  fights,
+  epicId,
+  onOpenFightEpic,
+}: {
+  breakdown: Record<Judgement, number>;
+  fights: Record<Judgement, { fightId: number; label: string }[]>;
+  epicId: EpicId;
+  onOpenFightEpic: (fightId: number, epicId: EpicId) => void;
+}) {
+  const present = JUDGEMENTS.filter((j) => breakdown[j] > 0);
+  const interactive = present.length >= 2;
+
+  return (
+    <span className={styles.chipBreakdown}>
+      {present.map((judgement, index) => (
+        <span key={judgement}>
+          {index > 0 && " · "}
+          {interactive ? (
+            <Popover
+              triggerLabel={`${breakdown[judgement]} ${judgement}`}
+              triggerClassName={styles.breakdownSegment}
+            >
+              <ul className={styles.breakdownList}>
+                {fights[judgement].map((fight) => (
+                  <li key={fight.fightId}>
+                    <button
+                      type="button"
+                      className={styles.breakdownLink}
+                      onClick={() => onOpenFightEpic(fight.fightId, epicId)}
+                    >
+                      {fight.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </Popover>
+          ) : (
+            `${breakdown[judgement]} ${judgement}`
+          )}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 interface FightRowProps {
@@ -169,8 +214,7 @@ function FightRow({
   const overall = combineFightEpicStatus(
     EPIC_META.map(({ id }) => summaries[id]),
   );
-  const label =
-    pullNumber === null ? fight.name : `Pull ${pullNumber} · ${fight.name}`;
+  const label = formatFightLabel(fight, pullNumber);
   const duration = formatDuration(fight.endTime - fight.startTime);
 
   const isOffRole =
@@ -225,6 +269,7 @@ export function ReportDashboard({
   onCloseFight,
   activeEpicId,
   onSelectEpic,
+  onOpenFightEpic,
   onStartOver,
 }: ReportDashboardProps) {
   const [summariesByFight, setSummariesByFight] = useState<
@@ -293,11 +338,16 @@ export function ReportDashboard({
       const summaries = summariesByFight.get(row.fight.id);
       return summaries === undefined
         ? undefined
-        : { fight: row.fight, summaries };
+        : { fight: row.fight, pullNumber: row.pullNumber, summaries };
     })
     .filter(
-      (e): e is { fight: Fight; summaries: FightEpicSummaries } =>
-        e !== undefined,
+      (
+        e,
+      ): e is {
+        fight: Fight;
+        pullNumber: number | null;
+        summaries: FightEpicSummaries;
+      } => e !== undefined,
     );
   const druidLabel = druid.isRestoSpec
     ? `${druid.name} · Restoration`
@@ -320,7 +370,7 @@ export function ReportDashboard({
               status: e.summaries[id],
               weightMs: e.fight.endTime - e.fight.startTime,
               fightId: e.fight.id,
-              label: e.fight.name,
+              label: formatFightLabel(e.fight, e.pullNumber),
             })),
           );
           return (
@@ -328,9 +378,12 @@ export function ReportDashboard({
               <div className={styles.chipInfo}>
                 <span className={styles.chipLabel}>{label}</span>
                 {rollup !== null && (
-                  <span className={styles.chipBreakdown}>
-                    {formatJudgementBreakdown(rollup.breakdown)}
-                  </span>
+                  <JudgementBreakdown
+                    breakdown={rollup.breakdown}
+                    fights={rollup.fights}
+                    epicId={id}
+                    onOpenFightEpic={onOpenFightEpic}
+                  />
                 )}
               </div>
               {rollup === null ? (

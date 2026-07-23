@@ -61,6 +61,32 @@ export function Popover({
     };
   }, [open]);
 
+  // Real (non-delegated) mouseenter/mouseleave, attached directly to the
+  // container rather than via React's onMouseEnter/onMouseLeave props.
+  // React synthesizes those from bubbled mouseover/mouseout + relatedTarget,
+  // which fires a false leave the moment the pointer crosses from the
+  // trigger into the popover's own content (still inside the container) if
+  // relatedTarget can't be resolved for the transition. A native listener
+  // fires only when the container's own boundary is actually left, so
+  // moving from the trigger to a link inside the open content correctly
+  // keeps it open.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    function handleMouseEnter() {
+      setOpen(true);
+    }
+    function handleMouseLeave() {
+      setOpen(false);
+    }
+    container.addEventListener("mouseenter", handleMouseEnter);
+    container.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      container.removeEventListener("mouseenter", handleMouseEnter);
+      container.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, []);
+
   function handleBlur(event: FocusEvent<HTMLDivElement>) {
     if (!containerRef.current?.contains(event.relatedTarget as Node | null)) {
       setOpen(false);
@@ -70,16 +96,10 @@ export function Popover({
   // onClick always sets true, never toggles: a real click (mouse or touch,
   // which synthesizes a full mouse-event sequence) always fires mouseenter
   // immediately before click, so a toggle would open-then-instantly-close
-  // on every tap. Closing is handled entirely by mouseleave/blur/Escape/
-  // outside-click below.
+  // on every tap. Closing is handled entirely by mouseleave (native
+  // listener above)/blur/Escape/outside-click below.
   return (
-    <div
-      ref={containerRef}
-      className={styles.container}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onBlur={handleBlur}
-    >
+    <div ref={containerRef} className={styles.container} onBlur={handleBlur}>
       <button
         type="button"
         className={
