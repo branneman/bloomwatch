@@ -18,6 +18,7 @@ export interface CrisisCardProps {
   judgement: Judgement | null;
   clearSave: boolean;
   saveKind: "natures-swiftness-combo" | "swiftmend-hot-consume" | null;
+  prepped: boolean;
 }
 
 const CLEAR_SAVE_LABELS: Record<
@@ -43,6 +44,7 @@ export function CrisisCard({
   judgement,
   clearSave,
   saveKind,
+  prepped,
 }: CrisisCardProps) {
   const rows: [string, string][] = [
     ["HP at crisis", `${Math.round(hitPointsPct)}%`],
@@ -82,6 +84,12 @@ export function CrisisCard({
       </div>
       {clearSave && saveKind !== null && (
         <div className={styles.clearSave}>{CLEAR_SAVE_LABELS[saveKind]}</div>
+      )}
+      {prepped && (
+        <div className={styles.prepped}>
+          Anticipated: a Lifebloom, Rejuvenation, or Regrowth was already active
+          on this target before the crisis
+        </div>
       )}
       <div className={styles.grid}>
         {rows.map(([label, value]) => (

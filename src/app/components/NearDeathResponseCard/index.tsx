@@ -267,6 +267,7 @@ export function NearDeathResponseCard({
               judgement={crisis.judgement}
               clearSave={crisis.clearSave}
               saveKind={crisis.saveKind}
+              prepped={crisis.prepped}
             />
           ))}
         </div>

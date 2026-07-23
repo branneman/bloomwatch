@@ -20,6 +20,7 @@ describe("CrisisCard", () => {
         judgement="fair"
         clearSave={false}
         saveKind={null}
+        prepped={false}
       />,
     );
 
@@ -46,6 +47,7 @@ describe("CrisisCard", () => {
         judgement={null}
         clearSave={false}
         saveKind={null}
+        prepped={false}
       />,
     );
 
@@ -69,6 +71,7 @@ describe("CrisisCard", () => {
         judgement="good"
         clearSave={false}
         saveKind={null}
+        prepped={false}
       />,
     );
 
@@ -92,6 +95,7 @@ describe("CrisisCard", () => {
         judgement="good"
         clearSave={true}
         saveKind="natures-swiftness-combo"
+        prepped={false}
       />,
     );
 
@@ -116,6 +120,7 @@ describe("CrisisCard", () => {
         judgement="good"
         clearSave={true}
         saveKind="swiftmend-hot-consume"
+        prepped={false}
       />,
     );
 
@@ -140,9 +145,58 @@ describe("CrisisCard", () => {
         judgement="good"
         clearSave={false}
         saveKind={null}
+        prepped={false}
       />,
     );
 
     expect(screen.queryByText(/Clear save/)).not.toBeInTheDocument();
+  });
+
+  it("shows an anticipated badge when the crisis was prepped", () => {
+    render(
+      <CrisisCard
+        target="Test Target"
+        time="1:30"
+        hitPointsPct={10}
+        maintained={true}
+        judged={true}
+        responded={false}
+        swiftmendReady={false}
+        nsReady={false}
+        idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
+        judgement="good"
+        clearSave={false}
+        saveKind={null}
+        prepped={true}
+      />,
+    );
+
+    expect(screen.getByText(/Anticipated/)).toBeInTheDocument();
+  });
+
+  it("shows no anticipated badge when the crisis was not prepped", () => {
+    render(
+      <CrisisCard
+        target="Test Target"
+        time="1:30"
+        hitPointsPct={10}
+        maintained={true}
+        judged={true}
+        responded={true}
+        swiftmendReady={false}
+        nsReady={false}
+        idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
+        judgement="good"
+        clearSave={false}
+        saveKind={null}
+        prepped={false}
+      />,
+    );
+
+    expect(screen.queryByText(/Anticipated/)).not.toBeInTheDocument();
   });
 });
