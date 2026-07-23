@@ -60,8 +60,9 @@ async function main(): Promise<void> {
   const endingManaPct: MetricSample = { ffDuty: [], nonFfDuty: [] };
   // Summed across both consumable rows (Mana Potion + Rune): used minus
   // its own expected floor. A more negative number means further under
-  // the expected floor -- the thing story 917 is asking whether FF duty
-  // drags down (mana spent on FF, none left over for consumables).
+  // the expected floor -- consumables restore mana, so real FF-duty mana
+  // pressure would be expected to raise consumable use (more need to top
+  // off), not lower it; that's the direction story 917 is checking for.
   const consumableFloorDelta: MetricSample = { ffDuty: [], nonFfDuty: [] };
 
   for (const [key, entry] of Object.entries(archetypeFile.reports)) {
