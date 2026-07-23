@@ -6,9 +6,10 @@ export interface FaerieFireDutyResult {
   castSpanMs: number;
 }
 
-// Provisional thresholds, sourced from real corpus sampling during this
-// story's scoping (docs/specs/faerie-fire-duty-detection-design.md):
-// single-boss fights showed real refresh cadence clustering 20-37s with
+// Provisional thresholds, sourced from real corpus sampling during story
+// 917's scoping (see docs/thresholds.md's Lifebloom discipline section
+// for the full write-up): single-boss fights showed real refresh cadence
+// clustering 20-37s with
 // cast-span coverage typically 60-96% of fight duration. Council fights
 // break a combined median-interval measurement entirely (casts interleave
 // across simultaneous targets), so this detector deliberately checks only

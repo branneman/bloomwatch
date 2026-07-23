@@ -28,8 +28,9 @@ export interface RestackTaxResult {
 // cast per minute elapsed. Reproduces the card mockup's worked example:
 // a 5:41 fight allows good 0-2, fair 3-5, bad 6+.
 //
-// Empirically calibrated (docs/specs/faerie-fire-duty-mitigation-design.md):
-// a druid genuinely carrying Faerie Fire duty spends GCDs that would
+// Empirically calibrated (story 917, see docs/thresholds.md's Lifebloom
+// discipline section for the full write-up): a druid genuinely carrying
+// Faerie Fire duty spends GCDs that would
 // otherwise go to Lifebloom maintenance, measurably raising re-stack tax
 // (within-druid paired median +3 casts/fight; duration-normalized bad-rate
 // 70% FF-duty vs 53% non-FF-duty across the local corpus). +5 casts added
