@@ -14,6 +14,7 @@ import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
+  fetchBossActorIds,
   WclApiError,
   WclGraphQLError,
   withRateLimitDetection,
@@ -30,6 +31,7 @@ import reportFightsFixture from "./fixtures/report-fights.json";
 import reportFightsClassicFixture from "./fixtures/report-fights-classic.json";
 import castsTableFixture from "./fixtures/casts-table.json";
 import masterDataAbilitiesFixture from "./fixtures/masterdata-abilities.json";
+import masterDataActorsFixture from "./fixtures/masterdata-actors.json";
 import { subscribeRateLimitUsage } from "../../src/wcl/rateLimitUsage";
 import { subscribeWclWarmup } from "../../src/wcl/wclWarmup";
 import { aRateLimitUsage } from "../../src/testUtils/factories";
@@ -597,6 +599,18 @@ describe("fetchMasterDataAbilities", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("fetchBossActorIds", () => {
+  it("resolves only actors tagged subType: Boss", async () => {
+    server.use(
+      http.post(USER_API_URL, () => HttpResponse.json(masterDataActorsFixture)),
+    );
+
+    const ids = await fetchBossActorIds("test-token", "4GYHZRdtL3bvhpc8");
+
+    expect(ids).toEqual(new Set([149, 146]));
   });
 });
 

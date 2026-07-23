@@ -358,6 +358,36 @@ export async function fetchCastsTable(
   );
 }
 
+export async function fetchBossActorIds(
+  accessToken: string,
+  reportCode: string,
+  signal?: AbortSignal,
+  host: Host = "fresh",
+): Promise<Set<number>> {
+  const query = `query {
+  rateLimitData { limitPerHour pointsSpentThisHour }
+  reportData {
+    report(code: "${reportCode}") {
+      masterData { actors(type: "NPC") { id subType } }
+    }
+  }
+}`;
+
+  const data = await postGraphQL(accessToken, query, signal, host);
+  const actors = data.reportData.report.masterData.actors as Array<{
+    id: number;
+    subType: string;
+  }>;
+
+  const bossIds = new Set<number>();
+  for (const actor of actors) {
+    if (actor.subType === "Boss") {
+      bossIds.add(actor.id);
+    }
+  }
+  return bossIds;
+}
+
 export interface ReportAbility {
   gameID: number;
   name: string;
