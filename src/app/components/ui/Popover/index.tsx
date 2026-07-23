@@ -61,15 +61,18 @@ export function Popover({
     };
   }, [open]);
 
-  // Real (non-delegated) mouseenter/mouseleave, attached directly to the
+  // Native mouseenter/mouseleave listeners, attached directly to the
   // container rather than via React's onMouseEnter/onMouseLeave props.
   // React synthesizes those from bubbled mouseover/mouseout + relatedTarget,
-  // which fires a false leave the moment the pointer crosses from the
-  // trigger into the popover's own content (still inside the container) if
-  // relatedTarget can't be resolved for the transition. A native listener
-  // fires only when the container's own boundary is actually left, so
-  // moving from the trigger to a link inside the open content correctly
-  // keeps it open.
+  // which requires relatedTarget to be populated to detect whether the
+  // pointer left the container's own subtree. In testing-library's simulated
+  // pointer events (jsdom), relatedTarget is never set, causing false leave
+  // events when the pointer moves from the trigger into the popover's own
+  // content. Native listeners correctly fire only at the actual container
+  // boundary. This may be jsdom/testing-library specific (real browsers
+  // populate relatedTarget correctly), but native listeners are used
+  // regardless as they're the spec-accurate way to detect container-boundary
+  // transitions with no downside.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
