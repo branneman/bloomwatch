@@ -855,7 +855,7 @@ I want an audit of raid-wide near-death moments — a raider's HP dropping criti
 - New card on the single-fight Scorecard (mirrors `DeathForensicsCard`'s structure and placement) and folds into 702's whole-report rollup via 904's existing weighted-median policy, same as every other judged metric.
 - Clearly labeled caveat, matching 501's own: a missed crisis outside your maintained targets is not automatically a failure — this audits your readiness and reaction only, not assignments or positioning.
 
-### 1002 — Refine crisis response's good/fair judgement criteria 🔲 Todo
+### 1002 — Refine crisis response's good/fair judgement criteria ✅ Done
 
 I want crisis response's judgement to distinguish a clear, deliberate "save" from any old heal happening to land in the window, and to recognize when useful resources were available even on a target outside my tank assignment, so the verdict reads as a real diagnosis instead of a blunt responded/not-responded split.
 
