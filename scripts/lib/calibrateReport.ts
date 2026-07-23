@@ -2,6 +2,7 @@ import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
+  fetchBossActorIds,
 } from "../../src/wcl/client";
 import type { Fight, Host } from "../../src/wcl/client";
 import { createEventFetcher } from "../../src/wcl/eventCache";
@@ -19,6 +20,7 @@ import {
   resolveSpellAbilityIds,
 } from "../../src/abilities/resolveAbilities";
 import type { ResolvedAbility } from "../../src/abilities/resolveAbilities";
+import { resolveFaerieFireAbilityIds } from "../../src/abilities/resolveFaerieFireAbilityIds";
 import type { ActorClass } from "../../src/metrics/innervateAudit";
 import { computeGcdUtilization } from "../../src/metrics/gcdUtilization";
 import { computeIdleGaps } from "../../src/metrics/idleGaps";
@@ -32,6 +34,7 @@ import { computeHotClipDetection } from "../../src/metrics/hotClipDetection";
 import { computeSwiftmendAudit } from "../../src/metrics/swiftmendAudit";
 import { computeDownrankingDiscipline } from "../../src/metrics/downrankingDiscipline";
 import { computeNaturesSwiftnessAudit } from "../../src/metrics/naturesSwiftnessAudit";
+import { computeFaerieFireDuty } from "../../src/metrics/faerieFireDuty";
 import { computeManaCurve } from "../../src/metrics/manaCurve";
 import { computeConsumableThroughput } from "../../src/metrics/consumableThroughput";
 import { computeOverhealTable } from "../../src/metrics/overhealTable";
@@ -80,6 +83,8 @@ export interface ReportContext {
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
   healingAbilityIds: Set<number>;
+  faerieFireAbilityIds: Set<number>;
+  bossActorIds: Set<number>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: ReturnType<typeof createEventFetcher>["fetchEvents"];
   fetchLookbackEvents: ReturnType<
@@ -124,6 +129,13 @@ export async function buildReportContext(
     host,
   );
   const resolvedAbilities = resolveAbilities(reportAbilities);
+  const faerieFireAbilityIds = resolveFaerieFireAbilityIds(reportAbilities);
+  const bossActorIds = await fetchBossActorIds(
+    accessToken,
+    reportCode,
+    undefined,
+    host,
+  );
 
   const { fetchEvents, fetchLookbackEvents } = createEventFetcher(
     undefined,
@@ -150,6 +162,8 @@ export async function buildReportContext(
       "Nature's Swiftness",
     ),
     healingAbilityIds: getHealingAbilityIds(resolvedAbilities),
+    faerieFireAbilityIds,
+    bossActorIds,
     actorClasses,
     fetchEvents,
     fetchLookbackEvents,
@@ -232,6 +246,14 @@ export async function computeFightResult(
       true,
     ),
   ]);
+
+  const faerieFireDuty = computeFaerieFireDuty(
+    castEvents,
+    druidId,
+    ctx.faerieFireAbilityIds,
+    ctx.bossActorIds,
+    durationMs,
+  );
 
   const carryInTargets = detectCarryInTargets(
     buffEvents,
@@ -486,6 +508,7 @@ export async function computeFightResult(
     pullNumber,
     durationMs,
     hasNaturesSwiftness,
+    faerieFireDuty,
     epics: {
       gcdEconomy,
       lifebloomDiscipline,

@@ -18,6 +18,7 @@ import type { NearDeathResponseResult } from "../../src/metrics/nearDeathRespons
 import type { PrepHygieneResult } from "../../src/metrics/prepHygiene";
 import type { ConcurrentLb3Result } from "../../src/metrics/concurrentLb3Targets";
 import type { NaturesSwiftnessAuditResult } from "../../src/metrics/naturesSwiftnessAudit";
+import type { FaerieFireDutyResult } from "../../src/metrics/faerieFireDuty";
 
 export interface GcdEconomyMetrics {
   gcdUtilization: GcdUtilizationResult;
@@ -64,6 +65,7 @@ export interface FightResult {
   pullNumber: number | null;
   durationMs: number;
   hasNaturesSwiftness: boolean;
+  faerieFireDuty: FaerieFireDutyResult;
   epics: {
     gcdEconomy: EpicResult<GcdEconomyMetrics>;
     lifebloomDiscipline: EpicResult<LifebloomDisciplineMetrics>;

@@ -47,6 +47,7 @@ function aFightResult(
     pullNumber: 1,
     durationMs,
     hasNaturesSwiftness: false,
+    faerieFireDuty: { onDuty: false, bossCastCount: 0, castSpanMs: 0 },
     epics: {
       gcdEconomy: readyGcd(gcdJudgement, durationMs),
       lifebloomDiscipline: erroredEpic(),
