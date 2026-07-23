@@ -523,6 +523,20 @@ describe("App — About and Judgements routes", () => {
     ).toBeInTheDocument();
   });
 
+  it("scrolls to the linked section instead of resetting to the top when visited directly with a slug (docs/inbox.md regression)", () => {
+    const scrollToSpy = vi
+      .spyOn(window, "scrollTo")
+      .mockImplementation(() => {});
+    const scrollIntoViewSpy = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoViewSpy;
+    window.history.pushState(null, "", "#/judgements/gcd-economy");
+
+    render(<App />);
+
+    expect(scrollIntoViewSpy).toHaveBeenCalled();
+    expect(scrollToSpy).not.toHaveBeenCalled();
+  });
+
   it("links from About to the Judgement Rationale page", async () => {
     window.history.pushState(null, "", "#/about");
     const user = userEvent.setup();
