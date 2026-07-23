@@ -53,6 +53,7 @@ function aFightResult(
       spellDiscipline: erroredEpic(),
       manaEconomy: erroredEpic(),
       deathForensics: erroredEpic(),
+      crisisResponse: erroredEpic(),
       prepHygiene: erroredEpic(),
     },
   };
@@ -90,5 +91,14 @@ describe("rollupDruid", () => {
       fair: 0,
       bad: 0,
     });
+  });
+
+  it("rolls up crisis response with all-zero totals when no fights are ready", () => {
+    const rollup = rollupDruid([]);
+    expect(rollup.crisisResponse.judgement).toBeNull();
+    expect(rollup.crisisResponse.crisesTotal).toBe(0);
+    expect(rollup.crisisResponse.flaggedTotal).toBe(0);
+    expect(rollup.crisisResponse.clearSaveTotal).toBe(0);
+    expect(rollup.crisisResponse.fairUnmaintainedTotal).toBe(0);
   });
 });

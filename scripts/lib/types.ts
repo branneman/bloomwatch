@@ -14,6 +14,7 @@ import type { ConsumableThroughputResult } from "../../src/metrics/consumableThr
 import type { OverhealTableResult } from "../../src/metrics/overhealTable";
 import type { InnervateAuditResult } from "../../src/metrics/innervateAudit";
 import type { DeathForensicsResult } from "../../src/metrics/deathForensics";
+import type { NearDeathResponseResult } from "../../src/metrics/nearDeathResponse";
 import type { PrepHygieneResult } from "../../src/metrics/prepHygiene";
 import type { ConcurrentLb3Result } from "../../src/metrics/concurrentLb3Targets";
 import type { NaturesSwiftnessAuditResult } from "../../src/metrics/naturesSwiftnessAudit";
@@ -44,6 +45,9 @@ export interface ManaEconomyMetrics {
 export interface DeathForensicsMetrics {
   deathForensics: DeathForensicsResult;
 }
+export interface CrisisResponseMetrics {
+  nearDeathResponse: NearDeathResponseResult;
+}
 export interface PrepHygieneMetrics {
   prepHygiene: PrepHygieneResult;
 }
@@ -66,6 +70,7 @@ export interface FightResult {
     spellDiscipline: EpicResult<SpellDisciplineMetrics>;
     manaEconomy: EpicResult<ManaEconomyMetrics>;
     deathForensics: EpicResult<DeathForensicsMetrics>;
+    crisisResponse: EpicResult<CrisisResponseMetrics>;
     prepHygiene: EpicResult<PrepHygieneMetrics>;
   };
 }
@@ -137,6 +142,12 @@ export interface DeathForensicsRollup extends EpicRollupBase {
   deathsTotal: number;
   flaggedTotal: number;
 }
+export interface CrisisResponseRollup extends EpicRollupBase {
+  crisesTotal: number;
+  flaggedTotal: number;
+  clearSaveTotal: number;
+  fairUnmaintainedTotal: number;
+}
 export interface PrepHygieneRollup extends EpicRollupBase {
   totalFights: number;
   fightsWithFlaskOrElixir: number;
@@ -149,6 +160,7 @@ export interface DruidRollup {
   spellDiscipline: SpellDisciplineRollup;
   manaEconomy: ManaEconomyRollup;
   deathForensics: DeathForensicsRollup;
+  crisisResponse: CrisisResponseRollup;
   prepHygiene: PrepHygieneRollup;
 }
 export interface DruidResult extends DruidFights {

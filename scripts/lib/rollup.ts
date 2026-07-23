@@ -11,6 +11,7 @@ import type {
   SpellDisciplineMetrics,
   ManaEconomyMetrics,
   DeathForensicsMetrics,
+  CrisisResponseMetrics,
   PrepHygieneMetrics,
   EpicRollupBase,
   GcdEconomyRollup,
@@ -21,6 +22,7 @@ import type {
   ManaEconomyRollup,
   OverhealRollupRow,
   DeathForensicsRollup,
+  CrisisResponseRollup,
   PrepHygieneRollup,
   DruidRollup,
 } from "./types";
@@ -363,6 +365,32 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     flaggedTotal,
   };
 
+  // --- Crisis response ---
+  const crisisReady = readyEntries<CrisisResponseMetrics>(
+    fights,
+    (f) => f.epics.crisisResponse,
+  );
+  let crisesTotal = 0;
+  let crisisFlaggedTotal = 0;
+  let clearSaveTotal = 0;
+  let fairUnmaintainedTotal = 0;
+  for (const entry of crisisReady) {
+    const { crises, flaggedCount } = entry.metrics.nearDeathResponse;
+    crisesTotal += crises.length;
+    crisisFlaggedTotal += flaggedCount;
+    for (const crisis of crises) {
+      if (crisis.clearSave) clearSaveTotal += 1;
+      if (crisis.judgedByReadyResource) fairUnmaintainedTotal += 1;
+    }
+  }
+  const crisisResponse: CrisisResponseRollup = {
+    ...epicRollupBase(fights.length, crisisReady),
+    crisesTotal,
+    flaggedTotal: crisisFlaggedTotal,
+    clearSaveTotal,
+    fairUnmaintainedTotal,
+  };
+
   // --- Prep hygiene ---
   const prepReady = readyEntries<PrepHygieneMetrics>(
     fights,
@@ -391,6 +419,7 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     spellDiscipline,
     manaEconomy,
     deathForensics,
+    crisisResponse,
     prepHygiene,
   };
 }

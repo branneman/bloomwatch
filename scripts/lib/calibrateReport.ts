@@ -37,6 +37,10 @@ import { computeConsumableThroughput } from "../../src/metrics/consumableThrough
 import { computeOverhealTable } from "../../src/metrics/overhealTable";
 import { computeInnervateAudit } from "../../src/metrics/innervateAudit";
 import { computeDeathForensics } from "../../src/metrics/deathForensics";
+import {
+  computeNearDeathResponse,
+  getHealingAbilityIds,
+} from "../../src/metrics/nearDeathResponse";
 import { computePrepHygiene } from "../../src/metrics/prepHygiene";
 import {
   summarizeGcdEconomy,
@@ -44,6 +48,7 @@ import {
   summarizeSpellDiscipline,
   summarizeManaEconomy,
   summarizeDeathForensics,
+  summarizeNearDeathResponse,
   summarizePrepHygiene,
 } from "../../src/metrics/epicSummary";
 import type { EpicSummary } from "../../src/metrics/epicSummary";
@@ -56,6 +61,7 @@ import type {
   SpellDisciplineMetrics,
   ManaEconomyMetrics,
   DeathForensicsMetrics,
+  CrisisResponseMetrics,
   PrepHygieneMetrics,
   CalibrationOutput,
   DruidResult,
@@ -73,6 +79,7 @@ export interface ReportContext {
   regrowthAbilityIds: Set<number>;
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
+  healingAbilityIds: Set<number>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: ReturnType<typeof createEventFetcher>["fetchEvents"];
   fetchLookbackEvents: ReturnType<
@@ -142,6 +149,7 @@ export async function buildReportContext(
       resolvedAbilities,
       "Nature's Swiftness",
     ),
+    healingAbilityIds: getHealingAbilityIds(resolvedAbilities),
     actorClasses,
     fetchEvents,
     fetchLookbackEvents,
@@ -182,6 +190,7 @@ export async function computeFightResult(
     healingEvents,
     deathEvents,
     combatantInfoEvents,
+    damageEvents,
   ] = await Promise.all([
     ctx.fetchEvents(
       ctx.accessToken,
@@ -214,6 +223,13 @@ export async function computeFightResult(
       ctx.reportCode,
       { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
       "CombatantInfo",
+    ),
+    ctx.fetchEvents(
+      ctx.accessToken,
+      ctx.reportCode,
+      { id: fight.id, startTime: fight.startTime, endTime: fight.endTime },
+      "DamageTaken",
+      true,
     ),
   ]);
 
@@ -428,6 +444,32 @@ export async function computeFightResult(
     };
   });
 
+  const crisisResponse = toEpicResult<CrisisResponseMetrics>(() => {
+    const result = computeNearDeathResponse(
+      damageEvents,
+      healingEvents,
+      deathEvents,
+      castEvents,
+      buffEvents,
+      druidId,
+      ctx.healingAbilityIds,
+      ctx.swiftmendAbilityIds,
+      ctx.naturesSwiftnessAbilityIds,
+      ctx.lifebloomAbilityIds,
+      hasSwiftmend,
+      hasNaturesSwiftness,
+      fight.startTime,
+      fight.endTime,
+      ctx.resolvedAbilities,
+      ctx.rejuvenationAbilityIds,
+      ctx.regrowthAbilityIds,
+    );
+    return {
+      summary: summarizeNearDeathResponse(result),
+      metrics: { nearDeathResponse: result },
+    };
+  });
+
   const prepHygiene = toEpicResult<PrepHygieneMetrics>(() => {
     const result = computePrepHygiene(combatantInfoEvents, druidId);
     return {
@@ -450,6 +492,7 @@ export async function computeFightResult(
       spellDiscipline,
       manaEconomy,
       deathForensics,
+      crisisResponse,
       prepHygiene,
     },
   };
