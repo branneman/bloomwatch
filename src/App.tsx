@@ -40,6 +40,7 @@ import {
   useRateLimitUsage,
   useRateLimitUsageData,
 } from "./wcl/useRateLimitUsage";
+import { useWclWarmupActive } from "./wcl/useWclWarmupActive";
 import { useHashRoute } from "./app/routing/useHashRoute";
 import type { EpicId } from "./app/components/Scorecard/useFightEpicSummaries";
 import type { DruidCandidate } from "./report/druidDetection";
@@ -62,6 +63,7 @@ function App() {
   } = useWclAuth(reportError);
   const usagePct = useRateLimitUsage();
   const rateLimitUsage = useRateLimitUsageData();
+  const wclWarmupActive = useWclWarmupActive();
   const { route, navigate } = useHashRoute();
   const [loadedReport, setLoadedReport] = useState<ReportFights | null>(null);
   const [druidCandidates, setDruidCandidates] = useState<
@@ -504,6 +506,22 @@ function App() {
             <RateLimitBanner usagePct={usagePct} onConnect={connect} />
           </Shell>
         )}
+
+      {/* A report whose WCL-side analysis cache isn't warm yet (e.g. an
+          archived report re-accessed after a long dormancy) can make queries
+          fail for a few seconds before recovering on their own via
+          postGraphQL's retry (see isBackendWarmupError, wcl/client.ts) —
+          this reassures the user that's what's happening instead of leaving
+          them looking at plain "Calculating…" text with no explanation. */}
+      {accessToken && wclWarmupActive && (
+        <Shell>
+          <Alert tone="warning">
+            Waiting on Warcraft Logs to finish preparing this report. This can
+            take a few extra seconds for a report that hasn&apos;t been viewed
+            in a while.
+          </Alert>
+        </Shell>
+      )}
 
       {accessToken && (
         <div

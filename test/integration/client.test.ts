@@ -20,6 +20,7 @@ import {
   WclTimeoutError,
   fetchWithTimeout,
   withErrorReporting,
+  isBackendWarmupError,
   TOKEN_URL,
   USER_API_URL,
   CLASSIC_USER_API_URL,
@@ -30,6 +31,7 @@ import reportFightsClassicFixture from "./fixtures/report-fights-classic.json";
 import castsTableFixture from "./fixtures/casts-table.json";
 import masterDataAbilitiesFixture from "./fixtures/masterdata-abilities.json";
 import { subscribeRateLimitUsage } from "../../src/wcl/rateLimitUsage";
+import { subscribeWclWarmup } from "../../src/wcl/wclWarmup";
 import { aRateLimitUsage } from "../../src/testUtils/factories";
 
 const server = setupServer();
@@ -287,7 +289,45 @@ describe("fetchCastsTable", () => {
     }
   });
 
-  it("throws a readable WclGraphQLError if every retry is exhausted", async () => {
+  // This specific error text gets a much larger retry budget than the
+  // generic GraphQL-error case above (see isBackendWarmupError/
+  // GRAPHQL_WARMUP_MAX_ATTEMPTS in client.ts) — even 5 consecutive failures
+  // (well past the generic 3-attempt ceiling that used to throw here)
+  // still recovers on the 6th attempt.
+  it("retries past the generic 3-attempt budget and succeeds, for this specific warmup error text", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(USER_API_URL, () => {
+        callCount++;
+        if (callCount <= 5) {
+          return HttpResponse.json({
+            data: { reportData: { report: null } },
+            errors: [
+              {
+                message:
+                  "You must either provide fightIDs, or provide startTime and endTime, or both.",
+              },
+            ],
+          });
+        }
+        return HttpResponse.json(castsTableFixture);
+      }),
+    );
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6]);
+      await vi.advanceTimersByTimeAsync(10000);
+      const result = await promise;
+
+      expect(callCount).toBe(6);
+      expect(result).toHaveLength(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("throws a readable WclGraphQLError if even the extended warmup budget is exhausted", async () => {
     server.use(
       http.post(USER_API_URL, () =>
         HttpResponse.json({
@@ -306,11 +346,71 @@ describe("fetchCastsTable", () => {
     try {
       const promise = fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6]);
       const rejects = expect(promise).rejects.toThrow(WclGraphQLError);
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(10000);
       await rejects;
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("publishes wclWarmup retry activity while retrying this specific error, and clears it once resolved", async () => {
+    let callCount = 0;
+    server.use(
+      http.post(USER_API_URL, () => {
+        callCount++;
+        if (callCount === 1) {
+          return HttpResponse.json({
+            data: { reportData: { report: null } },
+            errors: [
+              {
+                message:
+                  "You must either provide fightIDs, or provide startTime and endTime, or both.",
+              },
+            ],
+          });
+        }
+        return HttpResponse.json(castsTableFixture);
+      }),
+    );
+
+    const seen: number[] = [];
+    const unsubscribe = subscribeWclWarmup((count) => seen.push(count));
+
+    vi.useFakeTimers();
+    try {
+      const promise = fetchCastsTable("test-token", "4GYHZRdtL3bvhpc8", [6]);
+      await vi.advanceTimersByTimeAsync(2000);
+      await promise;
+
+      expect(seen).toEqual([0, 1, 0]);
+    } finally {
+      vi.useRealTimers();
+      unsubscribe();
+    }
+  });
+});
+
+describe("isBackendWarmupError", () => {
+  it("recognizes WCL's fightIDs/startTime-and-endTime validation message", () => {
+    const err = new WclGraphQLError(200, "{}", [
+      {
+        message:
+          "You must either provide fightIDs, or provide startTime and endTime, or both. Use the fights query to obtain the time ranges of each fight.",
+      },
+    ]);
+    expect(isBackendWarmupError(err)).toBe(true);
+  });
+
+  it("does not match an unrelated GraphQL error message", () => {
+    const err = new WclGraphQLError(200, "{}", [
+      { message: "This report's data is not yet available." },
+    ]);
+    expect(isBackendWarmupError(err)).toBe(false);
+  });
+
+  it("does not match a non-WclGraphQLError value", () => {
+    expect(isBackendWarmupError(new WclApiError(500, "boom"))).toBe(false);
+    expect(isBackendWarmupError(new Error("boom"))).toBe(false);
   });
 });
 

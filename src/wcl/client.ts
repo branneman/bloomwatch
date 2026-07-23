@@ -1,4 +1,5 @@
 import { publishRateLimitUsage } from "./rateLimitUsage";
+import { beginWclWarmupRetry, endWclWarmupRetry } from "./wclWarmup";
 
 export type Host = "fresh" | "classic";
 
@@ -78,6 +79,27 @@ const GRAPHQL_RETRY_DELAY_MS = 1000;
 // fetchCastsTable's test for the reproduction).
 const GRAPHQL_MAX_ATTEMPTS = 3;
 
+// A more specific case of the above: WCL reuses its own argument-validation
+// error text as a fallback when the backend can't resolve an otherwise
+// well-formed query yet because this report's analysis cache isn't warm —
+// reported live again on mtRh3kJ9YMLazyvQ, this time exhausting the full
+// GRAPHQL_MAX_ATTEMPTS budget (~2s) before the cache finished warming; only
+// a manual page refresh (more elapsed real time) recovered. Detected by
+// message text since WCL exposes no distinct error code for this condition.
+// Given a larger budget than the generic retry above, since a cold analysis
+// cache can plausibly take longer than ~2s to warm for a long-dormant
+// archived report — this number is a heuristic, not measured against real
+// WCL timing data; revisit if it still proves insufficient in practice.
+const GRAPHQL_WARMUP_MAX_ATTEMPTS = 6;
+const WARMUP_ERROR_TEXT =
+  "must either provide fightIDs, or provide startTime and endTime";
+
+export function isBackendWarmupError(err: unknown): boolean {
+  return (
+    err instanceof WclGraphQLError && err.message.includes(WARMUP_ERROR_TEXT)
+  );
+}
+
 async function postGraphQLOnce(
   accessToken: string,
   query: string,
@@ -118,20 +140,29 @@ export async function postGraphQL(
   signal?: AbortSignal,
   host: Host = "fresh",
 ) {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await postGraphQLOnce(accessToken, query, signal, host);
-    } catch (err) {
-      if (
-        !(err instanceof WclGraphQLError) ||
-        attempt >= GRAPHQL_MAX_ATTEMPTS
-      ) {
-        throw err;
+  let trackingWarmupRetry = false;
+  try {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await postGraphQLOnce(accessToken, query, signal, host);
+      } catch (err) {
+        if (!(err instanceof WclGraphQLError)) throw err;
+        const isWarmup = isBackendWarmupError(err);
+        const maxAttempts = isWarmup
+          ? GRAPHQL_WARMUP_MAX_ATTEMPTS
+          : GRAPHQL_MAX_ATTEMPTS;
+        if (attempt >= maxAttempts) throw err;
+        if (isWarmup && !trackingWarmupRetry) {
+          trackingWarmupRetry = true;
+          beginWclWarmupRetry();
+        }
+        await new Promise((resolve) =>
+          setTimeout(resolve, GRAPHQL_RETRY_DELAY_MS),
+        );
       }
-      await new Promise((resolve) =>
-        setTimeout(resolve, GRAPHQL_RETRY_DELAY_MS),
-      );
     }
+  } finally {
+    if (trackingWarmupRetry) endWclWarmupRetry();
   }
 }
 

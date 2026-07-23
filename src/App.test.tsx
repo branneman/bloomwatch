@@ -13,6 +13,7 @@ import {
 } from "./wcl/client";
 import { fetchEventsPage } from "./wcl/events";
 import { publishRateLimitUsage } from "./wcl/rateLimitUsage";
+import { beginWclWarmupRetry, endWclWarmupRetry } from "./wcl/wclWarmup";
 import {
   aReportFights,
   aFight,
@@ -966,5 +967,46 @@ describe("App — Rate-limit usage banner", () => {
     expect(
       screen.queryByText(/Shared connection is running low/),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("App — WCL warmup banner", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.history.pushState(null, "", "#");
+    vi.clearAllMocks();
+    localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
+  });
+
+  it("shows a friendlier message while a WCL query is retrying a cold-cache warmup error, and hides it again once resolved", async () => {
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    setUpHappyPathMocks();
+    const user = userEvent.setup();
+
+    render(<App />);
+    await loadReport(user);
+
+    expect(
+      screen.queryByText(/Waiting on Warcraft Logs/),
+    ).not.toBeInTheDocument();
+
+    act(() => {
+      beginWclWarmupRetry();
+    });
+
+    expect(
+      await screen.findByText(/Waiting on Warcraft Logs/),
+    ).toBeInTheDocument();
+
+    act(() => {
+      endWclWarmupRetry();
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/Waiting on Warcraft Logs/),
+      ).not.toBeInTheDocument(),
+    );
   });
 });
