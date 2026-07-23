@@ -13,6 +13,8 @@ describe("DeathCard", () => {
         swiftmendReady={true}
         nsReady={true}
         idlePreceding={true}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
         judgement="bad"
       />,
     );
@@ -35,6 +37,8 @@ describe("DeathCard", () => {
         swiftmendReady={false}
         nsReady={true}
         idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
         judgement={null}
       />,
     );

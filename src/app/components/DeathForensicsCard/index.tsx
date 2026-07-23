@@ -17,6 +17,7 @@ import {
   SWIFTMEND_MIN_RESTORATION,
   NATURES_SWIFTNESS_MIN_RESTORATION,
 } from "../../../report/archetypeDetection";
+import { describeIneligibleCooldowns } from "../ui/cooldownEligibilityNote";
 
 export interface DeathForensicsCardProps {
   accessToken: string;
@@ -38,7 +39,12 @@ export interface DeathForensicsCardProps {
 }
 
 type FetchResult =
-  | { accessToken: string; result: DeathForensicsResult }
+  | {
+      accessToken: string;
+      result: DeathForensicsResult;
+      hasSwiftmend: boolean;
+      hasNaturesSwiftness: boolean;
+    }
   | { accessToken: string; error: string };
 
 const ICON =
@@ -77,6 +83,9 @@ export function DeathForensicsCard({
         try {
           const talents = parseTalentPoints(combatantInfoEvents, druidId);
           const restoration = talents === null ? 0 : talents[2];
+          const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
+          const hasNaturesSwiftness =
+            restoration >= NATURES_SWIFTNESS_MIN_RESTORATION;
           const computed = computeDeathForensics(
             deathEvents,
             castEvents,
@@ -85,12 +94,17 @@ export function DeathForensicsCard({
             swiftmendAbilityIds,
             naturesSwiftnessAbilityIds,
             lifebloomAbilityIds,
-            restoration >= SWIFTMEND_MIN_RESTORATION,
-            restoration >= NATURES_SWIFTNESS_MIN_RESTORATION,
+            hasSwiftmend,
+            hasNaturesSwiftness,
             fight.startTime,
             fight.endTime,
           );
-          setResult({ accessToken, result: computed });
+          setResult({
+            accessToken,
+            result: computed,
+            hasSwiftmend,
+            hasNaturesSwiftness,
+          });
         } catch (err) {
           setResult({
             accessToken,
@@ -149,6 +163,11 @@ export function DeathForensicsCard({
   }
 
   const { deaths, flaggedCount, judgement } = result.result;
+  const { hasSwiftmend, hasNaturesSwiftness } = result;
+  const ineligibleNote = describeIneligibleCooldowns(
+    hasSwiftmend,
+    hasNaturesSwiftness,
+  );
 
   return (
     <MetricCard
@@ -199,6 +218,8 @@ export function DeathForensicsCard({
               swiftmendReady={death.swiftmendReady}
               nsReady={death.nsReady}
               idlePreceding={death.idlePreceding}
+              hasSwiftmend={hasSwiftmend}
+              hasNaturesSwiftness={hasNaturesSwiftness}
               judgement={death.judgement}
             />
           ))}
@@ -210,6 +231,11 @@ export function DeathForensicsCard({
           readiness only; not target selection, assignments, or positioning.
         </Alert>
       </div>
+      {ineligibleNote && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <Alert tone="warning">{ineligibleNote}</Alert>
+        </div>
+      )}
     </MetricCard>
   );
 }

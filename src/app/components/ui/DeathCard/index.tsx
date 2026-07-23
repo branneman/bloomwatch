@@ -11,6 +11,8 @@ export interface DeathCardProps {
   swiftmendReady: boolean;
   nsReady: boolean;
   idlePreceding: boolean;
+  hasSwiftmend: boolean;
+  hasNaturesSwiftness: boolean;
   judgement: Judgement | null;
 }
 
@@ -22,6 +24,8 @@ export function DeathCard({
   swiftmendReady,
   nsReady,
   idlePreceding,
+  hasSwiftmend,
+  hasNaturesSwiftness,
   judgement,
 }: DeathCardProps) {
   const rows: [string, string][] = [
@@ -29,10 +33,20 @@ export function DeathCard({
       "LB3 rolling on target",
       maintained ? (lb3 ? "Yes" : "No") : "n/a (not maintained)",
     ],
-    ["Swiftmend available", swiftmendReady ? "Ready" : "On cooldown"],
-    ["Nature's Swiftness available", nsReady ? "Ready" : "On cooldown"],
-    ["Idle in preceding 5s", idlePreceding ? "Yes" : "No"],
   ];
+  if (hasSwiftmend) {
+    rows.push([
+      "Swiftmend available",
+      swiftmendReady ? "Ready" : "On cooldown",
+    ]);
+  }
+  if (hasNaturesSwiftness) {
+    rows.push([
+      "Nature's Swiftness available",
+      nsReady ? "Ready" : "On cooldown",
+    ]);
+  }
+  rows.push(["Idle in preceding 5s", idlePreceding ? "Yes" : "No"]);
 
   return (
     <div className={styles.card}>

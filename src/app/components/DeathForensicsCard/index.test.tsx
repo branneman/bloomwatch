@@ -326,5 +326,133 @@ describe("DeathForensicsCard", () => {
     await waitFor(() =>
       expect(screen.getByText("1 of 1 deaths flagged")).toBeInTheDocument(),
     );
+    // Swiftmend is talent-unreachable at 26 Restoration -> its row is
+    // omitted entirely, not shown as a misleading "On cooldown".
+    expect(screen.queryByText(/Swiftmend available/)).not.toBeInTheDocument();
+    // Nature's Swiftness is talent-reachable at 26 Restoration -> its row
+    // still renders normally.
+    expect(
+      screen.getByText(/Nature's Swiftness available/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "This build's talents can't reach Swiftmend; that row isn't shown.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("hides both cooldown rows and shows the combined note when neither talent threshold is reached", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+    ];
+    const deathEvents = [aDeathEvent({ timestamp: 90000, targetID: 50 })];
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> => {
+      if (dataType === "Deaths") return Promise.resolve(deathEvents);
+      if (dataType === "Casts") return Promise.resolve([]);
+      if (dataType === "CombatantInfo") {
+        return Promise.resolve([
+          aCombatantInfoEvent({
+            sourceID: 2,
+            talents: [{ id: 0 }, { id: 0 }, { id: 0 }],
+          }),
+        ]);
+      }
+      return Promise.resolve(buffEvents);
+    };
+
+    render(
+      <DeathForensicsCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[50, "Offtank"]])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    // Note: with neither Swiftmend nor Nature's Swiftness talent-reachable,
+    // only "idle in the preceding 5s" can contribute to this death's
+    // unspentCount (capped at 1 -> "fair"), so this death reads "0 of 1
+    // deaths flagged" here, unlike the "bad"/"1 of 1" fixture above where
+    // Nature's Swiftness alone was still reachable.
+    await waitFor(() =>
+      expect(screen.getByText("0 of 1 deaths flagged")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/Swiftmend available/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Nature's Swiftness available/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "This build's talents can't reach Swiftmend or Nature's Swiftness; those rows aren't shown.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows both cooldown rows and no note when both talent thresholds are reached", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+    ];
+    const deathEvents = [aDeathEvent({ timestamp: 90000, targetID: 50 })];
+
+    render(
+      <DeathForensicsCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[50, "Offtank"]])}
+        fetchEvents={makeFetchEvents(deathEvents, [], buffEvents)}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("1 of 1 deaths flagged")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/Swiftmend available/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nature's Swiftness available/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/can't reach/)).not.toBeInTheDocument();
   });
 });
