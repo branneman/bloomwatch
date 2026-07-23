@@ -148,6 +148,7 @@ export interface CrisisResponseRollup extends EpicRollupBase {
   clearSaveTotal: number;
   fairUnmaintainedTotal: number;
   preppedTotal: number;
+  preppedElsewhereTotal: number;
 }
 export interface PrepHygieneRollup extends EpicRollupBase {
   totalFights: number;
