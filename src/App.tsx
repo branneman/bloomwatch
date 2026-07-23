@@ -308,6 +308,18 @@ function App() {
     }
   }
 
+  function handleOpenFightEpic(fightId: number, epicId: EpicId) {
+    if (reportCode === null || selectedDruid === null || host === null) return;
+    navigate({
+      screen: "fightEpic",
+      reportCode,
+      host,
+      druidName: selectedDruid.name,
+      fightId,
+      epicId,
+    });
+  }
+
   function advanceFromPicker(druidName: string) {
     if (route.screen !== "druidPicker") return;
     if (pendingFightId !== null) {
@@ -589,9 +601,7 @@ function App() {
                   onCloseFight={handleCloseFight}
                   activeEpicId={activeEpicId}
                   onSelectEpic={handleSelectEpic}
-                  // Temporary compile-compat placeholder: real navigation
-                  // wiring lands in a follow-up task.
-                  onOpenFightEpic={() => {}}
+                  onOpenFightEpic={handleOpenFightEpic}
                   onStartOver={handleStartOver}
                 />
               </Shell>
