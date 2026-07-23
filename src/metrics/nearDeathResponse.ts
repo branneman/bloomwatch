@@ -207,6 +207,7 @@ export interface CrisisEvent {
   idlePreceding: boolean;
   unspentCount: number;
   judgement: Judgement | null;
+  judgedByReadyResource: boolean;
 }
 
 export interface NearDeathResponseResult {
@@ -240,7 +241,10 @@ export function computeNearDeathResponse(
 
   // Scope/exemption: "maintained targets" is exactly story 201/501's
   // definition. A clear tank assignment (1-2 maintained targets) exempts
-  // crises on other raiders from judgement — they're shown as context only.
+  // crises on other raiders from judgement — they're shown as context
+  // only — UNLESS a real resource (Swiftmend or Nature's Swiftness) was
+  // ready at the time, which reads "fair" per story 1002: surfacing "you
+  // could have helped" without grading the miss further.
   const lifebloomTimelines = reconstructLifebloomTimelines(
     buffEvents,
     druidId,
@@ -278,7 +282,6 @@ export function computeNearDeathResponse(
 
   const crises: CrisisEvent[] = episodes.map((episode) => {
     const maintained = maintainedTargetIds.has(episode.targetId);
-    const judged = maintained || !hasClearAssignment;
 
     const responded = druidCasts.some(
       (cast) =>
@@ -303,11 +306,32 @@ export function computeNearDeathResponse(
       Boolean,
     ).length;
 
+    // Story 1002: a crisis on a target outside the druid's maintained
+    // assignment is judged in two cases -- the existing "no clear
+    // assignment at all" case, and (new) whenever a real resource was
+    // ready to help even though the target wasn't "yours". The second
+    // case always reads "fair" -- it surfaces "you could have helped",
+    // it doesn't grade the miss further via the maintained-target
+    // severity tally.
+    const judgedElsewhereReady = !maintained && (swiftmendReady || nsReady);
+    const judged = maintained || !hasClearAssignment || judgedElsewhereReady;
+
+    // Tracked separately from `judgement === "fair"` because a crisis can
+    // also land on "fair" via the pre-existing no-clear-assignment path
+    // (judgeDeathReadiness(1), e.g. idlePreceding alone with neither
+    // resource ready) -- this flag is true only for the new rule above,
+    // so downstream calibration pooling (story 1002, scripts/lib/rollup.ts)
+    // can count real occurrences of the new tier precisely, not by
+    // re-deriving an approximation from `maintained`/`judgement` alone.
+    const judgedByReadyResource = judgedElsewhereReady && hasClearAssignment;
+
     const judgement = !judged
       ? null
       : responded
         ? "good"
-        : judgeDeathReadiness(unspentCount);
+        : maintained || !hasClearAssignment
+          ? judgeDeathReadiness(unspentCount)
+          : "fair";
 
     return {
       timestampMs: episode.timestampMs,
@@ -321,6 +345,7 @@ export function computeNearDeathResponse(
       idlePreceding,
       unspentCount,
       judgement,
+      judgedByReadyResource,
     };
   });
 

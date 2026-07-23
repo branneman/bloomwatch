@@ -247,7 +247,7 @@ describe("computeNearDeathResponse", () => {
     expect(result.crises[0].judged).toBe(true);
   });
 
-  it("shows a crisis on a non-maintained target as context only (not judged) when the druid has a clear 1-2 target tank assignment", () => {
+  it("judges a non-maintained crisis as fair when a resource was ready, even without a reactive heal", () => {
     const buffEvents = [
       anApplyBuffEvent({ timestamp: 0, targetID: 60, abilityGameID: 33763 }),
       anApplyBuffStackEvent({
@@ -264,7 +264,10 @@ describe("computeNearDeathResponse", () => {
       }),
     ];
     // targetID 999 is never maintained -> the druid has exactly one
-    // maintained target (60) elsewhere, a clear tank assignment.
+    // maintained target (60) elsewhere, a clear tank assignment. No prior
+    // Swiftmend/Nature's Swiftness casts exist, so both read "ready" by
+    // default -- surfacing "you could have helped" even though this
+    // wasn't your assigned target.
     const damageEvents = [
       aDamageEvent({ timestamp: 90000, targetID: 999, hitPoints: 10 }),
       aDamageEvent({ timestamp: 91000, targetID: 999, hitPoints: 40 }),
@@ -288,8 +291,126 @@ describe("computeNearDeathResponse", () => {
     );
 
     expect(result.crises[0].maintained).toBe(false);
+    expect(result.crises[0].judged).toBe(true);
+    expect(result.crises[0].judgement).toBe("fair");
+    expect(result.crises[0].judgedByReadyResource).toBe(true);
+    expect(result.flaggedCount).toBe(0);
+  });
+
+  it("judges a non-maintained crisis as fair when only one of the two resources was ready", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 60, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 60,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 60,
+        abilityGameID: 33763,
+      }),
+    ];
+    // A Swiftmend cast 5s before the crisis leaves it on cooldown (15s
+    // cooldown); Nature's Swiftness has no prior cast, so it's ready.
+    const castEvents = [
+      aCastEvent({
+        timestamp: 85000,
+        sourceID: DRUID_ID,
+        targetID: 60,
+        abilityGameID: 18562,
+      }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 90000, targetID: 999, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 91000, targetID: 999, hitPoints: 40 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      castEvents,
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+    );
+
+    expect(result.crises[0].swiftmendReady).toBe(false);
+    expect(result.crises[0].nsReady).toBe(true);
+    expect(result.crises[0].judged).toBe(true);
+    expect(result.crises[0].judgement).toBe("fair");
+    expect(result.crises[0].judgedByReadyResource).toBe(true);
+  });
+
+  it("still shows a non-maintained crisis as context only when neither resource was ready", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 60, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 60,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 60,
+        abilityGameID: 33763,
+      }),
+    ];
+    // Both on cooldown: Swiftmend 5s prior (15s cooldown), Nature's
+    // Swiftness 60s prior (180s cooldown).
+    const castEvents = [
+      aCastEvent({
+        timestamp: 30000,
+        sourceID: DRUID_ID,
+        targetID: 60,
+        abilityGameID: 17116,
+      }),
+      aCastEvent({
+        timestamp: 85000,
+        sourceID: DRUID_ID,
+        targetID: 60,
+        abilityGameID: 18562,
+      }),
+    ];
+    const damageEvents = [
+      aDamageEvent({ timestamp: 90000, targetID: 999, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 91000, targetID: 999, hitPoints: 40 }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      [],
+      [],
+      castEvents,
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+    );
+
+    expect(result.crises[0].swiftmendReady).toBe(false);
+    expect(result.crises[0].nsReady).toBe(false);
     expect(result.crises[0].judged).toBe(false);
     expect(result.crises[0].judgement).toBeNull();
+    expect(result.crises[0].judgedByReadyResource).toBe(false);
     expect(result.flaggedCount).toBe(0);
   });
 
