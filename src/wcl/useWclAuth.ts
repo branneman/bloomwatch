@@ -21,8 +21,14 @@ export function useWclAuth(reportError: (error: unknown) => void = () => {}) {
   );
   const clientId = customClientId ?? DEFAULT_CLIENT_ID;
   const usingDefaultClient = customClientId === null;
+  // Persisted in localStorage, not sessionStorage: WCL tokens are long-lived
+  // (~360 days), and sessionStorage is unreliably preserved by mobile browsers
+  // when a backgrounded tab is evicted under memory pressure, which would log
+  // the user out with no way to recover short of re-authenticating. The
+  // single-shot PKCE values below stay on sessionStorage — they're only needed
+  // across one OAuth redirect round-trip.
   const [accessToken, setAccessToken] = useState(() =>
-    sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY),
+    localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY),
   );
   const [rateLimited, setRateLimited] = useState(false);
 
@@ -83,7 +89,7 @@ export function useWclAuth(reportError: (error: unknown) => void = () => {}) {
         verifier,
         redirectUri: redirectUri(),
       });
-      sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, result.accessToken);
+      localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, result.accessToken);
       setAccessToken(result.accessToken);
     }
 

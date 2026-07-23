@@ -129,8 +129,22 @@ describe("useWclAuth", () => {
     expect(popstateFired).toBe(true);
   });
 
+  it("reads the access token from localStorage so it survives a backgrounded-tab eviction that wipes sessionStorage", () => {
+    // WCL tokens are long-lived (~360 days), so they belong in localStorage.
+    // sessionStorage is unreliably preserved by mobile browsers when a
+    // backgrounded tab is evicted under memory pressure — the token would be
+    // gone on return, forcing a spurious re-login. Only localStorage is set
+    // here (sessionStorage stays empty) to prove the token doesn't depend on
+    // sessionStorage at all.
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "persisted-token");
+
+    const { result } = renderHook(() => useWclAuth());
+
+    expect(result.current.accessToken).toBe("persisted-token");
+  });
+
   it("reportRateLimited flips rateLimited without touching the access token", () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "existing-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "existing-token");
     const { result } = renderHook(() => useWclAuth());
 
     act(() => result.current.reportRateLimited());

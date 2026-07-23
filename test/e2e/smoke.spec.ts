@@ -10,7 +10,7 @@ test("a pre-authenticated visit renders the real fight list and allows picking a
 }) => {
   await page.addInitScript((token) => {
     window.localStorage.setItem("bloomwatch_onboarding_seen", "true");
-    window.sessionStorage.setItem("wcl_access_token", token as string);
+    window.localStorage.setItem("wcl_access_token", token as string);
   }, accessToken);
 
   // "/" would resolve to the domain root on GitHub Pages (base path is /bloomwatch/,

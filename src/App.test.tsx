@@ -111,7 +111,7 @@ describe("App", () => {
   });
 
   it("renders the report-input screen (not Connect) once a token is present but no report is loaded", () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
 
     render(<App />);
 
@@ -122,7 +122,7 @@ describe("App", () => {
   });
 
   it("detects druids across the whole report immediately once it loads, with no fight-selection step first", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -141,7 +141,7 @@ describe("App", () => {
   });
 
   it("resets to the report-input screen when the header logo/wordmark is clicked", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -154,7 +154,7 @@ describe("App", () => {
   });
 
   it("excludes trash fights from the fights it detects druids across", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({
         title: REPORT_TITLE,
@@ -184,7 +184,7 @@ describe("App", () => {
   });
 
   it("requires picking a druid before continuing to the dashboard, when more than one is detected", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     vi.mocked(fetchCastsTable).mockResolvedValue([
       aCastTableEntry(),
@@ -215,7 +215,7 @@ describe("App", () => {
   });
 
   it("returns to the report-input screen after clicking Load different WCL report on the druid-pick screen", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     vi.mocked(fetchCastsTable).mockResolvedValue([
       aCastTableEntry(),
@@ -236,7 +236,7 @@ describe("App", () => {
   });
 
   it("fetches master data abilities exactly once per report, even when that fetch is still in flight when the report finishes loading", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
     );
@@ -261,7 +261,7 @@ describe("App", () => {
   });
 
   it("still resolves master data abilities fetched before the report finished loading, not aborted by the later transition to the dashboard", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
     );
@@ -307,7 +307,7 @@ describe("App", () => {
   });
 
   it("jumps straight to the whole-report dashboard once the sole druid auto-selects, with no button click needed", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -333,7 +333,7 @@ describe("App", () => {
   });
 
   it("drills into a fight's scorecard from the whole-report dashboard, and back to the fight list via ← All fights", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -360,7 +360,7 @@ describe("App", () => {
   });
 
   it("shows the rate-limit fallback banner (without unmounting the current screen) when a request hits the default client's rate limit, and lets the user submit their own Client ID", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
     );
@@ -392,7 +392,7 @@ describe("App", () => {
   });
 
   it("shows the recovery overlay (with the error visible in View details) when the report fails to load for a reason other than a rate limit", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockRejectedValue(
       new Error("WCL API responded 500: server error"),
     );
@@ -481,7 +481,7 @@ describe("App — Onboarding", () => {
 
   it("reopens onboarding from the persistent footer's About link once authenticated", async () => {
     localStorage.setItem(ONBOARDING_SEEN_KEY, "true");
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     const user = userEvent.setup();
     render(<App />);
 
@@ -554,7 +554,7 @@ describe("App — About and Judgements routes", () => {
   });
 
   it("opens the Judgement Rationale page from the footer, once authenticated", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     const user = userEvent.setup();
 
     render(<App />);
@@ -585,7 +585,7 @@ describe("App — first-visit redirect to About", () => {
   });
 
   it("returns to the originally-requested screen after Continue", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     const user = userEvent.setup();
 
     render(<App />);
@@ -621,7 +621,7 @@ describe("App — shareable URL state", () => {
   });
 
   it("updates the URL hash as the user navigates report → druid → dashboard → fight → epic", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -656,7 +656,7 @@ describe("App — shareable URL state", () => {
   });
 
   it("moves back a screen via the browser back button, same as the in-app back-link", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -708,7 +708,7 @@ describe("App — shareable URL state", () => {
   });
 
   it("resumes directly on a deep-linked fight+epic screen, skipping the report-input step", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     window.history.pushState(
       null,
@@ -727,7 +727,7 @@ describe("App — shareable URL state", () => {
   });
 
   it("falls back to the druid picker when the URL names a druid that isn't a detected candidate", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
     );
@@ -755,7 +755,7 @@ describe("App — shareable URL state", () => {
   });
 
   it("falls back to the dashboard when the URL names a fight that isn't in this report", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     window.history.pushState(
       null,
@@ -825,7 +825,7 @@ describe("App — Rate-limit usage banner", () => {
   });
 
   it("shows the banner once usage crosses 75% on the shared default client, and hides it again below that", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -861,7 +861,7 @@ describe("App — Rate-limit usage banner", () => {
 
   it("never shows the banner once a custom Client ID has been set, regardless of usage", async () => {
     localStorage.setItem("wcl_client_id", "my-own-client-id");
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();
     const user = userEvent.setup();
 
@@ -880,7 +880,7 @@ describe("App — Rate-limit usage banner", () => {
   });
 
   it("does not show the banner while the 008 rate-limited fallback is already showing", async () => {
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     vi.mocked(fetchReportFights).mockResolvedValue(
       aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
     );
