@@ -37,3 +37,9 @@
   color: var(--text-h);
   font-weight: 500;
 }
+.clearSave {
+  font-size: var(--text-small-size);
+  font-weight: 600;
+  color: var(--judgement-good);
+  margin-top: var(--space-2);
+}

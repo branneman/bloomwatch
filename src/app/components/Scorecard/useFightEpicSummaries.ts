@@ -122,6 +122,9 @@ export function useFightEpicSummaries(
     swiftmendAbilityIds,
     naturesSwiftnessAbilityIds,
     lifebloomAbilityIds,
+    rejuvenationAbilityIds,
+    regrowthAbilityIds,
+    resolvedAbilities,
     fetchEvents,
   );
   const prep = usePrepHygieneSummary(

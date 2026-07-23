@@ -16,7 +16,17 @@ export interface CrisisCardProps {
   hasSwiftmend: boolean;
   hasNaturesSwiftness: boolean;
   judgement: Judgement | null;
+  clearSave: boolean;
+  saveKind: "natures-swiftness-combo" | "swiftmend-hot-consume" | null;
 }
+
+const CLEAR_SAVE_LABELS: Record<
+  "natures-swiftness-combo" | "swiftmend-hot-consume",
+  string
+> = {
+  "natures-swiftness-combo": "Clear save: Nature's Swiftness into a heal",
+  "swiftmend-hot-consume": "Clear save: Swiftmend consumed a Rejuvenation",
+};
 
 export function CrisisCard({
   target,
@@ -31,6 +41,8 @@ export function CrisisCard({
   hasSwiftmend,
   hasNaturesSwiftness,
   judgement,
+  clearSave,
+  saveKind,
 }: CrisisCardProps) {
   const rows: [string, string][] = [
     ["HP at crisis", `${Math.round(hitPointsPct)}%`],
@@ -68,6 +80,9 @@ export function CrisisCard({
           <span className={styles.contextOnly}>Context only</span>
         )}
       </div>
+      {clearSave && saveKind !== null && (
+        <div className={styles.clearSave}>{CLEAR_SAVE_LABELS[saveKind]}</div>
+      )}
       <div className={styles.grid}>
         {rows.map(([label, value]) => (
           <div key={label} className={styles.row}>

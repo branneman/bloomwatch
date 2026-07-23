@@ -75,6 +75,9 @@ describe("NearDeathResponseCard", () => {
         swiftmendAbilityIds={new Set([18562])}
         naturesSwiftnessAbilityIds={new Set([17116])}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([774])}
+        regrowthAbilityIds={new Set([8936])}
+        resolvedAbilities={new Map()}
         targetNames={new Map([[999, "Random raider"]])}
         fetchEvents={makeFetchEvents(damageEvents)}
       />,
@@ -111,6 +114,9 @@ describe("NearDeathResponseCard", () => {
         swiftmendAbilityIds={new Set([18562])}
         naturesSwiftnessAbilityIds={new Set([17116])}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([774])}
+        regrowthAbilityIds={new Set([8936])}
+        resolvedAbilities={new Map()}
         targetNames={new Map()}
         fetchEvents={makeFetchEvents([])}
       />,
@@ -139,6 +145,9 @@ describe("NearDeathResponseCard", () => {
         swiftmendAbilityIds={new Set([18562])}
         naturesSwiftnessAbilityIds={new Set([17116])}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([774])}
+        regrowthAbilityIds={new Set([8936])}
+        resolvedAbilities={new Map()}
         targetNames={new Map([[999, "Random raider"]])}
         // 26 Restoration: below Swiftmend's 30-point threshold, at/above
         // Nature's Swiftness's 20-point threshold -- the real Dreamstate-
@@ -179,6 +188,9 @@ describe("NearDeathResponseCard", () => {
         swiftmendAbilityIds={new Set([18562])}
         naturesSwiftnessAbilityIds={new Set([17116])}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([774])}
+        regrowthAbilityIds={new Set([8936])}
+        resolvedAbilities={new Map()}
         targetNames={new Map([[999, "Random raider"]])}
         fetchEvents={makeFetchEventsWithTalents(damageEvents, 0)}
       />,
@@ -226,6 +238,9 @@ describe("NearDeathResponseCard", () => {
         swiftmendAbilityIds={new Set([18562])}
         naturesSwiftnessAbilityIds={new Set([17116])}
         lifebloomAbilityIds={new Set([33763])}
+        rejuvenationAbilityIds={new Set([774])}
+        regrowthAbilityIds={new Set([8936])}
+        resolvedAbilities={new Map()}
         targetNames={new Map([[999, "Random raider"]])}
         fetchEvents={fetchEvents}
       />,

@@ -558,6 +558,9 @@ export function Scorecard({
             swiftmendAbilityIds={swiftmendAbilityIds}
             naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
             lifebloomAbilityIds={lifebloomAbilityIds}
+            rejuvenationAbilityIds={rejuvenationAbilityIds}
+            regrowthAbilityIds={regrowthAbilityIds}
+            resolvedAbilities={resolvedAbilities}
             targetNames={targetNames}
             fetchEvents={fetchEvents}
           />

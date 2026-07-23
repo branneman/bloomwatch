@@ -53,6 +53,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises).toHaveLength(1);
@@ -88,6 +91,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].responded).toBe(false);
@@ -118,6 +124,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises).toHaveLength(1);
@@ -145,6 +154,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises).toHaveLength(0);
@@ -175,6 +187,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       200000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises).toHaveLength(0);
@@ -200,6 +215,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises).toHaveLength(1);
@@ -242,6 +260,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].maintained).toBe(true);
@@ -289,6 +310,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].maintained).toBe(false);
@@ -344,6 +368,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].swiftmendReady).toBe(false);
@@ -405,6 +432,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].swiftmendReady).toBe(false);
@@ -436,6 +466,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].judged).toBe(true);
@@ -483,6 +516,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].responded).toBe(false);
@@ -504,6 +540,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result).toEqual({ crises: [], flaggedCount: 0, judgement: "good" });
@@ -529,6 +568,9 @@ describe("computeNearDeathResponse", () => {
       false,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].swiftmendReady).toBe(false);
@@ -560,6 +602,9 @@ describe("computeNearDeathResponse", () => {
       true,
       0,
       100000,
+      new Map(),
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises).toHaveLength(2);
@@ -614,6 +659,8 @@ describe("computeNearDeathResponse clear-save detection", () => {
       0,
       100000,
       RESOLVED_ABILITIES,
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].judgement).toBe("good");
@@ -653,6 +700,8 @@ describe("computeNearDeathResponse clear-save detection", () => {
       0,
       100000,
       RESOLVED_ABILITIES,
+      new Set(),
+      new Set(),
     );
 
     expect(result.crises[0].judgement).toBe("good");

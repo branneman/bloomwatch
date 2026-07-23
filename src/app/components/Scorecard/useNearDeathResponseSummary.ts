@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { computeNearDeathResponse } from "../../../metrics/nearDeathResponse";
 import { summarizeNearDeathResponse } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
@@ -22,6 +23,9 @@ export function useNearDeathResponseSummary(
   swiftmendAbilityIds: Set<number>,
   naturesSwiftnessAbilityIds: Set<number>,
   lifebloomAbilityIds: Set<number>,
+  rejuvenationAbilityIds: Set<number>,
+  regrowthAbilityIds: Set<number>,
+  resolvedAbilities: Map<number, ResolvedAbility>,
   fetchEvents: (
     accessToken: string,
     reportCode: string,
@@ -72,6 +76,9 @@ export function useNearDeathResponseSummary(
             restoration >= NATURES_SWIFTNESS_MIN_RESTORATION,
             fight.startTime,
             fight.endTime,
+            resolvedAbilities,
+            rejuvenationAbilityIds,
+            regrowthAbilityIds,
           );
           setState({
             accessToken,
@@ -105,6 +112,9 @@ export function useNearDeathResponseSummary(
     swiftmendAbilityIds,
     naturesSwiftnessAbilityIds,
     lifebloomAbilityIds,
+    rejuvenationAbilityIds,
+    regrowthAbilityIds,
+    resolvedAbilities,
     fetchEvents,
   ]);
 

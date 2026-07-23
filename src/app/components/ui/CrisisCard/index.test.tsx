@@ -18,6 +18,8 @@ describe("CrisisCard", () => {
         hasSwiftmend={true}
         hasNaturesSwiftness={true}
         judgement="fair"
+        clearSave={false}
+        saveKind={null}
       />,
     );
 
@@ -42,6 +44,8 @@ describe("CrisisCard", () => {
         hasSwiftmend={true}
         hasNaturesSwiftness={true}
         judgement={null}
+        clearSave={false}
+        saveKind={null}
       />,
     );
 
@@ -63,9 +67,82 @@ describe("CrisisCard", () => {
         hasSwiftmend={true}
         hasNaturesSwiftness={true}
         judgement="good"
+        clearSave={false}
+        saveKind={null}
       />,
     );
 
     expect(screen.getByText("Responded")).toBeInTheDocument();
+  });
+
+  it("shows a distinct badge for a clear-save Nature's Swiftness combo", () => {
+    render(
+      <CrisisCard
+        target="Test Target"
+        time="1:30"
+        hitPointsPct={10}
+        maintained={true}
+        judged={true}
+        responded={true}
+        swiftmendReady={false}
+        nsReady={false}
+        idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
+        judgement="good"
+        clearSave={true}
+        saveKind="natures-swiftness-combo"
+      />,
+    );
+
+    expect(screen.getByText(/Clear save/)).toBeInTheDocument();
+    expect(screen.getByText(/Nature's Swiftness/)).toBeInTheDocument();
+  });
+
+  it("shows a distinct badge for a clear-save Swiftmend combo", () => {
+    render(
+      <CrisisCard
+        target="Test Target"
+        time="1:30"
+        hitPointsPct={10}
+        maintained={true}
+        judged={true}
+        responded={true}
+        swiftmendReady={false}
+        nsReady={false}
+        idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
+        judgement="good"
+        clearSave={true}
+        saveKind="swiftmend-hot-consume"
+      />,
+    );
+
+    expect(screen.getByText(/Clear save/)).toBeInTheDocument();
+    expect(screen.getByText(/Swiftmend/)).toBeInTheDocument();
+  });
+
+  it("shows no clear-save badge for a plain responded crisis", () => {
+    render(
+      <CrisisCard
+        target="Test Target"
+        time="1:30"
+        hitPointsPct={10}
+        maintained={true}
+        judged={true}
+        responded={true}
+        swiftmendReady={false}
+        nsReady={false}
+        idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
+        judgement="good"
+        clearSave={false}
+        saveKind={null}
+      />,
+    );
+
+    expect(screen.queryByText(/Clear save/)).not.toBeInTheDocument();
   });
 });

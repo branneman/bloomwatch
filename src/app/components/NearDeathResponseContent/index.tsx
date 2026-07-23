@@ -2,6 +2,7 @@ import type { Fight } from "../../../wcl/client";
 import type { WclEvent, WclEventDataType } from "../../../wcl/events";
 import type { EventFetcherFight } from "../../../wcl/eventCache";
 import type { Host } from "../../../report/parseReportInput";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { NearDeathResponseCard } from "../NearDeathResponseCard";
 import styles from "./index.module.css";
 
@@ -15,6 +16,9 @@ export interface NearDeathResponseContentProps {
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
   lifebloomAbilityIds: Set<number>;
+  rejuvenationAbilityIds: Set<number>;
+  regrowthAbilityIds: Set<number>;
+  resolvedAbilities: Map<number, ResolvedAbility>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -35,6 +39,9 @@ export function NearDeathResponseContent({
   swiftmendAbilityIds,
   naturesSwiftnessAbilityIds,
   lifebloomAbilityIds,
+  rejuvenationAbilityIds,
+  regrowthAbilityIds,
+  resolvedAbilities,
   targetNames,
   fetchEvents,
 }: NearDeathResponseContentProps) {
@@ -50,6 +57,9 @@ export function NearDeathResponseContent({
         swiftmendAbilityIds={swiftmendAbilityIds}
         naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
         lifebloomAbilityIds={lifebloomAbilityIds}
+        rejuvenationAbilityIds={rejuvenationAbilityIds}
+        regrowthAbilityIds={regrowthAbilityIds}
+        resolvedAbilities={resolvedAbilities}
         targetNames={targetNames}
         fetchEvents={fetchEvents}
       />

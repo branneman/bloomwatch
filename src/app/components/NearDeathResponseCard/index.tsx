@@ -7,6 +7,7 @@ import {
   type NearDeathResponseResult,
 } from "../../../metrics/nearDeathResponse";
 import type { Host } from "../../../report/parseReportInput";
+import type { ResolvedAbility } from "../../../abilities/resolveAbilities";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
@@ -29,6 +30,9 @@ export interface NearDeathResponseCardProps {
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
   lifebloomAbilityIds: Set<number>;
+  rejuvenationAbilityIds: Set<number>;
+  regrowthAbilityIds: Set<number>;
+  resolvedAbilities: Map<number, ResolvedAbility>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -52,7 +56,7 @@ const ICON =
   "https://wow.zamimg.com/images/wow/icons/large/spell_holy_layonhands.jpg";
 
 const THRESHOLD =
-  "A crisis is a raider's HP dropping to <=15% (provisional) and surviving. The response window runs from that reading until HP recovers, the target dies (excluded; tracked separately under Death forensics), or the fight ends. Good if you landed a new reactive healing cast in that window; otherwise good/fair/bad from the same unspent-resource tally used in Death forensics (Swiftmend ready / Nature's Swiftness ready / a GCD available). Crises on a target you're not maintaining are shown as context only when you have a clear 1-2 target tank assignment elsewhere.";
+  "A crisis is a raider's HP dropping to <=15% (provisional) and surviving. The response window runs from that reading until HP recovers, the target dies (excluded; tracked separately under Death forensics), or the fight ends. Good if you landed a new reactive healing cast in that window, with a distinct \"clear save\" callout for an unambiguous burst save (Nature's Swiftness into Healing Touch or Regrowth, or a Swiftmend that consumed a Rejuvenation). Otherwise, on a maintained target (or with no clear tank assignment) good/fair/bad comes from the same unspent-resource tally used in Death forensics (Swiftmend ready / Nature's Swiftness ready / a GCD available). A crisis on a target you're not maintaining reads fair when a resource was ready to help even though it wasn't your assignment, and stays context only otherwise.";
 
 export function NearDeathResponseCard({
   accessToken,
@@ -64,6 +68,9 @@ export function NearDeathResponseCard({
   swiftmendAbilityIds,
   naturesSwiftnessAbilityIds,
   lifebloomAbilityIds,
+  rejuvenationAbilityIds,
+  regrowthAbilityIds,
+  resolvedAbilities,
   targetNames,
   fetchEvents,
 }: NearDeathResponseCardProps) {
@@ -113,6 +120,9 @@ export function NearDeathResponseCard({
               hasNaturesSwiftness,
               fight.startTime,
               fight.endTime,
+              resolvedAbilities,
+              rejuvenationAbilityIds,
+              regrowthAbilityIds,
             );
             // A failed talent read (no CombatantInfo match) is genuinely
             // unknown eligibility, not confirmed ineligibility -- collapsing
@@ -160,6 +170,9 @@ export function NearDeathResponseCard({
     swiftmendAbilityIds,
     naturesSwiftnessAbilityIds,
     lifebloomAbilityIds,
+    resolvedAbilities,
+    rejuvenationAbilityIds,
+    regrowthAbilityIds,
     fetchEvents,
   ]);
 
@@ -252,6 +265,8 @@ export function NearDeathResponseCard({
               hasSwiftmend={hasSwiftmend}
               hasNaturesSwiftness={hasNaturesSwiftness}
               judgement={crisis.judgement}
+              clearSave={crisis.clearSave}
+              saveKind={crisis.saveKind}
             />
           ))}
         </div>

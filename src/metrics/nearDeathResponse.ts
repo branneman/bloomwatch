@@ -238,9 +238,9 @@ export function computeNearDeathResponse(
   hasNaturesSwiftness: boolean,
   fightStart: number,
   fightEnd: number,
-  resolvedAbilities: Map<number, ResolvedAbility> = new Map(),
-  rejuvenationAbilityIds: Set<number> = new Set(),
-  regrowthAbilityIds: Set<number> = new Set(),
+  resolvedAbilities: Map<number, ResolvedAbility>,
+  rejuvenationAbilityIds: Set<number>,
+  regrowthAbilityIds: Set<number>,
 ): NearDeathResponseResult {
   const timelinesByTarget = buildHpTimelines(
     damageEvents,

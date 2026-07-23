@@ -18,6 +18,9 @@ describe("useNearDeathResponseSummary", () => {
         new Set([18562]),
         new Set([17116]),
         new Set([33763]),
+        new Set([774]),
+        new Set([8936]),
+        new Map(),
         fetchEvents,
       ),
     );
@@ -47,6 +50,9 @@ describe("useNearDeathResponseSummary", () => {
         new Set([18562]),
         new Set([17116]),
         new Set([33763]),
+        new Set([774]),
+        new Set([8936]),
+        new Map(),
         fetchEvents,
       ),
     );
