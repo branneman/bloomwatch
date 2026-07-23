@@ -868,3 +868,42 @@ I want crisis response's judgement to distinguish a clear, deliberate "save" fro
 - Every case not covered by the two bullets above continues to fall back to context-only / unjudged, and continues to be excluded from `NearDeathResponseResult.judgement`/`flaggedCount` and from 904's whole-report rollup — same as `computeNearDeathResponse` already does for every currently-unjudged crisis. This story only adds distinctions within what's already judged, plus the one new "fair" tier; it doesn't widen what counts as judged beyond that.
 - The card's existing threshold-explanation copy (`NearDeathResponseCard`'s explainer text) and `docs/thresholds.md`'s Crisis response section are both updated to describe the refined matrix.
 - Real crisis examples from the local calibration corpus back each new distinction, matching this repo's convention of citing real data for every calibration-adjacent change — not just the hypothetical combos proposed above.
+
+### 1003 — Recognize anticipatory HoT prep ahead of crisis onset 🔲 Todo
+
+I want crisis response to recognize a HoT already active on a target when a crisis opens, not only a new cast landing during the crisis window, so that placing a Lifebloom stack (or a Rejuvenation/Regrowth) ahead of a spike a druid expects is credited as anticipation rather than being invisible next to the reactive save it already tracks.
+
+**Note on current behavior, checked against the real shipped code before writing this story:** `computeNearDeathResponse`'s `responded` field (`src/metrics/nearDeathResponse.ts`) only counts a cast whose timestamp falls inside the crisis window (`>= episode.timestampMs`); by its own documented rule ("a HoT already ticking from an earlier cast does not count on its own"), a target who enters a crisis already carrying a HoT applied moments earlier for exactly this reason, and survives on that HoT's ticks with no further cast during the window, currently reads identically to a target nobody helped at all — it falls straight to `judgeDeathReadiness(unspentCount)`, which can read "bad."
+
+**Acceptance criteria**
+
+- A crisis episode gains a `prepped` signal: true when the target already had an active HoT from the druid — Lifebloom at any stack count (1-3), Rejuvenation, or Regrowth — applied before the episode's onset timestamp and not yet expired at that moment. This does not require the target to clear the existing 30%-uptime "maintained" bar (story 201/501's definition): a single Lifebloom stack placed ahead of one specific expected spike, on a target the druid isn't otherwise maintaining across the fight, is exactly the pattern this story exists to catch, and prepped status is evaluated per-crisis, not per-fight.
+- A crisis that is prepped, whether or not a further reactive cast lands during the window, is judged "good" — closing the gap in the note above where a fully anticipated hit that needed no follow-up cast currently scores as if nothing had been done.
+- `prepped` and the existing `responded` are tracked as independent booleans on the crisis event (a crisis can be both — topping off a HoT, then also reacting, is real play), each surfaced distinctly so a druid can tell "anticipated" apart from "scrambled and it worked" and from "did both."
+- An application landing at or after the crisis's onset timestamp is reactive, not prep, regardless of how fast it was — prep is strictly "already there when the reading crossed the threshold."
+- `NearDeathResponseCard` surfaces prepped crises distinctly (e.g. a badge alongside the existing clear-save badge), with explainer copy in plain language, no story numbers or internal terms.
+- `docs/thresholds.md`'s Crisis response section is updated to describe the refined criteria.
+- Real prepped-crisis examples from the local calibration corpus back the new signal, matching this repo's convention of citing real data for calibration-adjacent changes.
+
+---
+
+## Epic K — Damage anticipation
+
+An idea raised in design review: healing process quality plausibly depends not just on mechanical discipline (uptime, cadence, GCD usage) but on whether a druid is positioning for damage that's about to happen versus reacting to damage that already has. Story 1003 (Epic J) captures the narrowest, already-buildable slice of that idea: anticipatory HoT prep ahead of one target's own near-death crisis. The larger, harder version of the idea is raid-wide: across a whole fight, is a druid's healing timed against the fight's actual damage profile, distinguishing damage that's genuinely predictable (a recurring boss mechanic, a raid-wide cleave) from damage that plainly isn't (a single random target eating a burst hit that can't be prepared for individually). That distinction can't come from a boss-specific mechanics database — the roadmap explicitly excludes positioning/mechanics knowledge as an input, to keep the app reproducible across every TBC boss with no hardcoded-per-encounter maintenance burden — so any signal has to be derived from the event log alone, if one exists at all.
+
+### 1101 — Investigate a boss-agnostic signal for "predictable" raid damage 🔲 Todo
+
+I want to know whether Warcraft Logs event data actually supports telling predictable, anticipatable raid damage apart from single-target random damage, purely from event-log structure, so a future anticipatory-healing metric has a real, non-hardcoded signal to build on instead of a per-boss mechanics table.
+
+**Findings needed before any implementation** (an investigation story: nothing here is committed to build, only to determine feasibility)
+
+- Whether WCL's `Casts` dataType, fetched for a fight without a `sourceID` filter, actually returns hostile NPC cast events (`begincast`/`cast`) alongside player casts — confirmed live against a real report, not assumed. If it does, a boss ability with a real cast time gives an actual telegraph window (cast begins, then damage lands) that mirrors what a player sees on a boss cast bar: a non-heuristic, directly defensible "this was announced" signal, though it only covers cast-time abilities, not instant ones.
+- Whether multi-target clustering (the same ability landing on 2+ targets within a tight time window) is a usable proxy for "raid-wide or cleave mechanic, hence more anticipatable than a single random-target hit," checked against real fights with both known-raid-wide and known-single-target-random damage patterns, to see whether the signal actually separates the two cases or produces too many false positives/negatives to be trustworthy.
+- Whether either signal, or a combination, achieves separation clean enough to threshold on at all — modeled on story 917's own "check the corpus, mitigate only what the corpus confirms" discipline — versus being fundamentally too noisy, in which case the finding is "no reliable boss-agnostic signal exists" and the idea does not proceed past investigation.
+- If a usable signal is found, a rough sketch (not a full spec) of what a resulting metric could measure without reopening principle 1: the presence/timing of a HoT on the affected target(s) relative to the predictable-damage instance, in the same shape as story 1003, never a comparison against alternative spell choices or a healing-optimality score.
+
+**Acceptance criteria**
+
+- A written finding, recorded in `docs/thresholds.md` (or a dedicated section added to this entry), stating clearly whether a boss-agnostic "predictable damage" signal exists in WCL event data, which of the two candidate signals (or neither, or both) hold up, and why.
+- If no reliable signal is found, this story is closed as "investigated, not viable" (matching this repo's existing "checked, no mitigation needed" convention) and Epic K is retired without further stories.
+- If a reliable signal is found, a follow-up story is added to Epic K to design and build the actual metric, scoped narrowly to presence/timing per story 1003's precedent, not spell-choice optimality.
