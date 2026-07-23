@@ -55,8 +55,14 @@ export function useHashRoute(): {
 
   // Every screen change — including epic-to-epic drill-down within a fight,
   // and browser back/forward — should read from the top, not carry over
-  // whatever scroll position the previous screen was left at.
+  // whatever scroll position the previous screen was left at. The one
+  // exception: a judgements deep link with a slug (e.g. a per-metric "read
+  // the full rationale" link into #/judgements/<slug>) already has its own
+  // scroll target, handled by JudgementRationale's own scrollIntoView
+  // effect — resetting to the top here would race against and clobber
+  // that, which is exactly the bug this exception fixes (docs/inbox.md).
   useEffect(() => {
+    if (route.screen === "judgements" && route.slug) return;
     window.scrollTo(0, 0);
   }, [route]);
 

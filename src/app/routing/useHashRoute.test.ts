@@ -149,6 +149,18 @@ describe("useHashRoute", () => {
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0);
   });
 
+  it("does not scroll to the top when navigating to a judgements route with a slug, leaving the anchor scroll to JudgementRationale", () => {
+    const scrollToSpy = vi.spyOn(window, "scrollTo");
+    const { result } = renderHook(() => useHashRoute());
+    scrollToSpy.mockClear(); // only interested in scrolls caused by navigation, not mount
+
+    act(() => {
+      result.current.navigate({ screen: "judgements", slug: "gcd-economy" });
+    });
+
+    expect(scrollToSpy).not.toHaveBeenCalled();
+  });
+
   it("re-syncs on a hashchange event, not just popstate (a plain <a href> anchor click fires hashchange, never popstate)", () => {
     const { result } = renderHook(() => useHashRoute());
 
