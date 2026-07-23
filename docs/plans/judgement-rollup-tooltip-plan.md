@@ -1084,8 +1084,19 @@ weightMs }`. `fights` groups every _ready_ entry's `{fightId, label}` by its own
 
 - [ ] **Step 2: Pass it to `ReportDashboard`**
 
-  In the `<ReportDashboard ... />` JSX (around line 569-593), add a new prop after
-  `onSelectEpic={handleSelectEpic}`:
+  In the `<ReportDashboard ... />` JSX, find the `onOpenFightEpic` prop. Task 4 (already done)
+  had to add a temporary placeholder there to keep the project typechecking, so the file
+  currently reads:
+
+  ```tsx
+  // Temporary compile-compat placeholder: real navigation
+  // wiring lands in a follow-up task.
+  onOpenFightEpic={() => {}}
+  ```
+
+  Replace that entire three-line placeholder (comment included) with the real wiring — do not
+  leave the placeholder comment behind, and do not add a second `onOpenFightEpic` prop alongside
+  it (a duplicate JSX prop fails this project's ESLint config):
 
   ```tsx
   onOpenFightEpic = { handleOpenFightEpic };
