@@ -83,6 +83,7 @@ function aFightResultWithLifebloom(
     pullNumber: 1,
     durationMs: 5000,
     hasNaturesSwiftness: false,
+    faerieFireDuty: { onDuty: false, bossCastCount: 0, castSpanMs: 0 },
     epics: {
       gcdEconomy: erroredEpic(),
       lifebloomDiscipline: lifebloomEpic,
