@@ -374,6 +374,7 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
   let crisisFlaggedTotal = 0;
   let clearSaveTotal = 0;
   let fairUnmaintainedTotal = 0;
+  let preppedTotal = 0;
   for (const entry of crisisReady) {
     const { crises, flaggedCount } = entry.metrics.nearDeathResponse;
     crisesTotal += crises.length;
@@ -381,6 +382,7 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     for (const crisis of crises) {
       if (crisis.clearSave) clearSaveTotal += 1;
       if (crisis.judgedByReadyResource) fairUnmaintainedTotal += 1;
+      if (crisis.prepped) preppedTotal += 1;
     }
   }
   const crisisResponse: CrisisResponseRollup = {
@@ -389,6 +391,7 @@ export function rollupDruid(fights: FightResult[]): DruidRollup {
     flaggedTotal: crisisFlaggedTotal,
     clearSaveTotal,
     fairUnmaintainedTotal,
+    preppedTotal,
   };
 
   // --- Prep hygiene ---

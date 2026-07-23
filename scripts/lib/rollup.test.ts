@@ -100,5 +100,6 @@ describe("rollupDruid", () => {
     expect(rollup.crisisResponse.flaggedTotal).toBe(0);
     expect(rollup.crisisResponse.clearSaveTotal).toBe(0);
     expect(rollup.crisisResponse.fairUnmaintainedTotal).toBe(0);
+    expect(rollup.crisisResponse.preppedTotal).toBe(0);
   });
 });
