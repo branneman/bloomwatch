@@ -707,6 +707,68 @@ describe("App — shareable URL state", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("refetches when browser back/forward lands on a different previously-viewed report, instead of showing the first report's stale fight list", async () => {
+    localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
+    const REPORT_CODE_B = "wXyZ0123AbCd4567";
+    const REPORT_B_TITLE = "Sunwell 2026-07-20";
+    // Two distinct reports with different fight lists but the same lone druid,
+    // so both auto-advance to a dashboard. fetchReportFights is keyed on
+    // reportCode so each report returns its own fights.
+    vi.mocked(fetchReportFights).mockImplementation((_token, code) =>
+      Promise.resolve(
+        code === REPORT_CODE_B
+          ? aReportFights({
+              title: REPORT_B_TITLE,
+              fights: [aFight({ id: 1, name: "Kalecgos" })],
+            })
+          : aReportFights({ title: REPORT_TITLE, fights: [aFight({ id: 1 })] }),
+      ),
+    );
+    vi.mocked(fetchCastsTable).mockResolvedValue([aCastTableEntry()]);
+    vi.mocked(fetchMasterDataAbilities).mockResolvedValue([
+      aReportAbility(),
+      aReportAbility({ gameID: 33763, name: "Lifebloom" }),
+    ]);
+    vi.mocked(fetchEventsPage).mockResolvedValue({
+      events: [],
+      nextPageTimestamp: null,
+    });
+
+    // Land straight on report A's dashboard (a deep link), which loads it.
+    window.history.pushState(
+      null,
+      "",
+      `#/r/${REPORT_CODE}/d/${encodeURIComponent("Dassz")}`,
+    );
+    render(<App />);
+    expect(
+      await screen.findByRole("button", { name: /Pull 1 · Coilfang Frenzy/ }),
+    ).toBeInTheDocument();
+
+    // Simulate the browser back/forward button landing on a *different*
+    // previously-viewed report's dashboard URL — a hash change via popstate
+    // that bypasses handleReportSubmit/handleStartOver (the only two places
+    // that reset report-scoped state imperatively), exactly like a real
+    // back/forward navigation across two reports viewed in the same tab.
+    act(() => {
+      window.history.pushState(
+        null,
+        "",
+        `#/r/${REPORT_CODE_B}/d/${encodeURIComponent("Dassz")}`,
+      );
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+
+    // The dashboard must now reflect report B, not keep showing report A's
+    // stale fights (the "wrong boss names, some fights missing" symptom).
+    expect(
+      await screen.findByRole("button", { name: /Pull 1 · Kalecgos/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Coilfang Frenzy/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it("resumes directly on a deep-linked fight+epic screen, skipping the report-input step", async () => {
     localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, "test-token");
     setUpHappyPathMocks();

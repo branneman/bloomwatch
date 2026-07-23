@@ -79,6 +79,10 @@ function App() {
   > | null>(null);
   const [eventFetcher] = useState(() => createEventFetcher());
   const pendingRouteRef = useRef<Route | null>(null);
+  // Which reportCode the currently-loaded report-scoped state belongs to, so a
+  // reactive effect below can tell when the derived reportCode has drifted to a
+  // *different* report than what's loaded (see that effect for why).
+  const loadedForReportCodeRef = useRef<string | null>(null);
 
   // First-time visit anywhere (not already headed to #/about itself):
   // remember where the visitor was actually headed, then redirect to
@@ -159,6 +163,30 @@ function App() {
     setResolvedAbilities(null);
     setPickedDruidId(null);
   }
+
+  // Report-scoped state (loadedReport/druidCandidates/resolvedAbilities/etc.)
+  // is tied to whichever report it was fetched for. handleReportSubmit and
+  // handleStartOver reset it imperatively, but reportCode can also change
+  // through paths that bypass them — most visibly the browser back/forward
+  // button crossing between two different reports viewed in the same tab (story
+  // 703 makes the URL hash the source of truth, so those buttons just change
+  // the hash). Without this, ConnectPanel — only mounted while
+  // `reportCode && !loadedReport` — never refetches, and the dashboard keeps
+  // rendering the previous report's stale fight list against the new
+  // reportCode. This effect drops the stale state so ConnectPanel remounts and
+  // refetches for whatever report the hash now names.
+  useEffect(() => {
+    if (reportCode === null) return;
+    if (loadedReport === null) {
+      // Nothing loaded yet (fresh, or just reset) — record which report the
+      // pending load will belong to.
+      loadedForReportCodeRef.current = reportCode;
+      return;
+    }
+    if (loadedForReportCodeRef.current === reportCode) return;
+    loadedForReportCodeRef.current = reportCode;
+    resetReportState();
+  }, [reportCode, loadedReport]);
 
   function handleReportSubmit(parsed: ParsedReport) {
     resetReportState();
