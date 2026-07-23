@@ -455,4 +455,59 @@ describe("DeathForensicsCard", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/can't reach/)).not.toBeInTheDocument();
   });
+
+  it("shows both cooldown rows and no note when talent data can't be read (unknown eligibility, not confirmed ineligible)", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 50, abilityGameID: 33763 }),
+      anApplyBuffStackEvent({
+        timestamp: 1000,
+        stack: 2,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 2000,
+        stack: 3,
+        targetID: 50,
+        abilityGameID: 33763,
+      }),
+    ];
+    const deathEvents = [aDeathEvent({ timestamp: 90000, targetID: 50 })];
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> => {
+      if (dataType === "Deaths") return Promise.resolve(deathEvents);
+      if (dataType === "Casts") return Promise.resolve([]);
+      if (dataType === "CombatantInfo") return Promise.resolve([]);
+      return Promise.resolve(buffEvents);
+    };
+
+    render(
+      <DeathForensicsCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        swiftmendAbilityIds={new Set([18562])}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[50, "Offtank"]])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/deaths flagged/)).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/Swiftmend available/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nature's Swiftness available/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/can't reach/)).not.toBeInTheDocument();
+  });
 });

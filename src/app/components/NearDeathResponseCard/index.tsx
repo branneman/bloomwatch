@@ -114,11 +114,23 @@ export function NearDeathResponseCard({
               fight.startTime,
               fight.endTime,
             );
+            // A failed talent read (no CombatantInfo match) is genuinely
+            // unknown eligibility, not confirmed ineligibility -- collapsing
+            // it to false here (as the judgement math above already does,
+            // unchanged) would make the display layer assert "this build
+            // can't reach Swiftmend/Nature's Swiftness" when that isn't
+            // actually known. Show both rows and skip the note in that
+            // case, matching this project's existing precedent of leaving
+            // unknown talent data unflagged rather than guessing either
+            // way.
+            const displayHasSwiftmend = talents === null ? true : hasSwiftmend;
+            const displayHasNaturesSwiftness =
+              talents === null ? true : hasNaturesSwiftness;
             setResult({
               accessToken,
               result: computed,
-              hasSwiftmend,
-              hasNaturesSwiftness,
+              hasSwiftmend: displayHasSwiftmend,
+              hasNaturesSwiftness: displayHasNaturesSwiftness,
             });
           } catch (err) {
             setResult({

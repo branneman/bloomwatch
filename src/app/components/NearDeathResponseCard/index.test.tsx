@@ -197,4 +197,47 @@ describe("NearDeathResponseCard", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("shows both cooldown rows and no note when talent data can't be read (unknown eligibility, not confirmed ineligible)", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 100000 });
+    const damageEvents = [
+      aDamageEvent({ timestamp: 90000, targetID: 999, hitPoints: 10 }),
+      aDamageEvent({ timestamp: 91000, targetID: 999, hitPoints: 40 }),
+    ];
+    const fetchEvents = (
+      _accessToken: string,
+      _reportCode: string,
+      _fight: EventFetcherFight,
+      dataType: WclEventDataType,
+    ): Promise<WclEvent[]> => {
+      if (dataType === "DamageTaken") return Promise.resolve(damageEvents);
+      if (dataType === "CombatantInfo") return Promise.resolve([]);
+      return Promise.resolve([]);
+    };
+
+    render(
+      <NearDeathResponseCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        healingAbilityIds={new Set([33763])}
+        swiftmendAbilityIds={new Set([18562])}
+        naturesSwiftnessAbilityIds={new Set([17116])}
+        lifebloomAbilityIds={new Set([33763])}
+        targetNames={new Map([[999, "Random raider"]])}
+        fetchEvents={fetchEvents}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/crises flagged/)).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/Swiftmend available/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nature's Swiftness available/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/can't reach/)).not.toBeInTheDocument();
+  });
 });
