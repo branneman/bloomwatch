@@ -6,16 +6,17 @@ export interface FaerieFireDutyResult {
   castSpanMs: number;
 }
 
-// Provisional thresholds, sourced from real corpus sampling during story
-// 917's scoping (see docs/thresholds.md's Lifebloom discipline section
-// for the full write-up): single-boss fights showed real refresh cadence
-// clustering 20-37s with
-// cast-span coverage typically 60-96% of fight duration. Council fights
-// break a combined median-interval measurement entirely (casts interleave
-// across simultaneous targets), so this detector deliberately checks only
-// cast count and span, not cadence -- a boolean "on duty" signal, not a
-// quality measurement (that's story 918's job). Both constants are
-// provisional pending the empirical study this same story runs.
+// Thresholds sourced from real corpus sampling during story 917's scoping
+// (see docs/thresholds.md's Lifebloom discipline section for the drag
+// findings and the resulting re-stack tax allowance; these detector
+// cutoffs are a boolean gate, not a judged Good/Fair/Bad threshold, so
+// they aren't themselves indexed there): single-boss fights showed real
+// refresh cadence clustering 20-37s with cast-span coverage typically
+// 60-96% of fight duration. Council fights break a combined
+// median-interval measurement entirely (casts interleave across
+// simultaneous targets), so this detector deliberately checks only cast
+// count and span, not cadence -- a boolean "on duty" signal, not a
+// quality measurement (that's story 918's job).
 const MIN_CAST_COUNT_FLOOR = 2;
 const CAST_COUNT_PER_MS = 1 / 80_000;
 const MIN_SPAN_SHARE = 0.5;

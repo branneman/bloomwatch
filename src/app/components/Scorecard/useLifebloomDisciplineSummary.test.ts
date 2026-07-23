@@ -198,7 +198,7 @@ describe("useLifebloomDisciplineSummary", () => {
     expect(fetchLookbackEvents).toHaveBeenCalledTimes(0);
   });
 
-  it("widens the re-stack tax judgement when the druid is on Faerie Fire duty this fight", async () => {
+  it("passes the genuine on-duty signal through to computeRestackTax without throwing", async () => {
     const fight = aFight({ id: 6, startTime: 0, endTime: 300000 });
     const FF_ID = 26993;
     const BOSS_ID = 149;
@@ -217,8 +217,10 @@ describe("useLifebloomDisciplineSummary", () => {
         stack: 3,
       }),
     ];
-    // 3 boss-targeted Faerie Fire casts spanning most of the fight, meeting
-    // computeFaerieFireDuty's on-duty thresholds for this duration.
+    // 4 boss-targeted Faerie Fire casts spanning most of the fight -- meets
+    // computeFaerieFireDuty's on-duty thresholds for this 300000ms duration
+    // (requires >= ceil(300000/80000) = 4 casts and a span >= 150000ms; here
+    // the span is 245000ms), so onDuty genuinely resolves true.
     const castEvents = [
       aCastEvent({
         timestamp: 5000,
@@ -234,6 +236,12 @@ describe("useLifebloomDisciplineSummary", () => {
       }),
       aCastEvent({
         timestamp: 200000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+      aCastEvent({
+        timestamp: 250000,
         sourceID: 2,
         targetID: BOSS_ID,
         abilityGameID: FF_ID,
@@ -266,12 +274,15 @@ describe("useLifebloomDisciplineSummary", () => {
     );
 
     await waitFor(() => expect(result.current.status).toBe("ready"));
-    // Real assertion: this test's fixture has zero re-stack tax casts, so
-    // the allowance can't be observed via the judgement here (0 casts is
-    // "good" either way) -- this test instead verifies the plumbing
-    // reaches computeRestackTax without throwing and the summary still
-    // resolves "ready". The allowance's actual effect on the judgement
-    // boundary is unit-tested directly in restackTax.test.ts (Task 3,
-    // Step 3), which is the load-bearing test for the numeric behavior.
+    // This fixture's Faerie Fire casts genuinely trigger onDuty: true (see
+    // comment above), confirming the hook's plumbing reaches
+    // computeFaerieFireDuty/computeRestackTax with the real onDuty value
+    // and resolves "ready" without throwing. This fixture's re-stack tax
+    // cast count is 0, so the allowance's numeric effect on the good/fair
+    // boundary can't be observed at this hook's output (which only exposes
+    // the folded-together epic judgement, not each sibling metric's own
+    // judgement) -- that boundary is unit-tested directly against
+    // computeRestackTax/judgeRestackTax in restackTax.test.ts, which is the
+    // load-bearing test for the numeric behavior.
   });
 });
