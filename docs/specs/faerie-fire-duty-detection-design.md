@@ -17,7 +17,7 @@ All confirmed live against the real local corpus and WCL API this session:
 - **A confirmed one-off/incidental case**: `t3qNHgVKd46YDaj9` fight 12 (Fathom-Lord Karathress, 46s), druid Oxtaled — exactly 1 Faerie Fire cast, 36s into the pull, never repeated. Not FF duty by any reasonable definition.
 - **A confirmed genuine-excellence case**: `gNYhK1ZAP7RQz2pa` fight 18 (Morogrim Tidewalker, 199s), druid Cowpop — real Debuff-event uptime tracking (not cast count) shows 98.5% uptime, applied 2.9s into the pull and refreshed every ~34-39s with zero gaps for the entire fight.
 - **A confirmed council-fight reality check**: real per-target Debuff uptime on the 4 highest-cast-count Fathom-Lord Karathress fights in the corpus all show the same shape — the main boss gets 85-94% uptime, but all three Fathom-Guards get only 16-50% uptime each. Nobody in the corpus maintains FF across all 4 simultaneous council targets at once. This doesn't block phase 1 (the detector only needs a boolean "on duty" signal, not per-target uptime), but it's now documented on story 918's backlog entry as a hard constraint on that future metric's threshold calibration.
-- **`fetchMasterDataAbilities` (`src/wcl/client.ts`) currently fetches only `masterData.abilities`** in its one query — no `actors` field at all. Extending it to also request `actors(type: "NPC") { id subType }` costs no extra WCL request (same round trip), consistent with story 010's no-redundant-queries precedent.
+- **`fetchMasterDataAbilities` (`src/wcl/client.ts`) currently fetches only `masterData.abilities`**, and its `ReportAbility[]` return type is consumed directly by the live UI (`AbilityResolver` → `App.tsx`) — widening it to also carry boss-actor data would ripple into production UI code this phase has no reason to touch. Boss-tier resolution gets its own standalone fetch function instead (see Design §2), a deliberate deviation from story 010's shared-query-efficiency precedent since that precedent is about production rate-limit pressure, which a manually-run calibration script doesn't have.
 - **`calibration-data/*.json` already caches rich per-fight numeric detail** for every phase-1 candidate metric (`lifebloomDiscipline.refreshCadence`, `.accidentalBlooms`, `.restackTax`, and `manaEconomy`'s consumable-throughput/mana-curve figures) — no need to refetch any of that for the empirical check. Only FF-duty classification is new data.
 
 ## Scope
@@ -25,7 +25,7 @@ All confirmed live against the real local corpus and WCL API this session:
 In scope:
 
 - Faerie Fire ability resolution (own path, not `DruidHealingSpell`).
-- Boss-tier NPC actor ID resolution, added to the existing single-request `masterData` fetch.
+- Boss-tier NPC actor ID resolution, via a new standalone fetch function.
 - A pure `computeFaerieFireDuty`-style detector (`src/metrics/*.ts`), unit-tested like every other metric in this codebase.
 - Extending `scripts/lib/calibrateReport.ts` to compute FF-duty per fight for every corpus druid, cached into the existing `calibration-data/*.json` shape (so story 918 can reuse it later without redoing this work).
 - A study comparing FF-duty vs. non-FF-duty fights (within the same archetype bucket) across the 4 candidate metrics named in story 917: LB3 refresh cadence (202), accidental blooms (203), re-stack tax (204), and mana curve / consumable throughput (401/402).
@@ -86,23 +86,18 @@ The exact lower-rank gameID list is compiled during implementation from wowhead,
 
 ### 2. Boss-tier NPC resolution
 
-Extend `fetchMasterDataAbilities` in `src/wcl/client.ts` to also request `actors(type: "NPC") { id subType }` in the same query (no extra WCL request). New exported function:
+**Revised after checking real call sites**: `fetchMasterDataAbilities`'s existing `ReportAbility[]` return type is consumed directly by the live UI (`AbilityResolver` → `resolveAbilities(abilities)`, threaded through `App.tsx`). Widening its return shape would ripple into production UI code this phase has no business touching (phase 1 makes no UI changes at all). Instead, add a standalone new function in `src/wcl/client.ts`, making its own separate request — the "no extra WCL request" concern story 010 cared about is a production shared-rate-limit issue; this fetcher's only consumer in this phase is the calibration script, run manually, with no such pressure. Merging the two queries into one production-facing fetch is a decision for whenever phase 2 actually wires this into the live UI, not now.
 
 ```ts
-export interface ReportMasterData {
-  abilities: ReportAbility[];
-  bossActorIds: Set<number>;
-}
-
-export async function fetchMasterData(
+export async function fetchBossActorIds(
   accessToken: string,
   reportCode: string,
   signal?: AbortSignal,
   host: Host = "fresh",
-): Promise<ReportMasterData>;
+): Promise<Set<number>>;
 ```
 
-(Exact name/shape decided during implementation — may keep `fetchMasterDataAbilities`'s existing name and signature and just widen its return type, to avoid touching every existing call site's name; a plan-time decision, not fixed here.) Filters `actors` to `subType === "Boss"` and returns the ID set. No per-fight enemy-list lookup is needed: a boss ID not present as a target in a given fight's own Casts/Debuffs events simply never matches, so the same report-wide set works correctly across every fight, including council fights with multiple simultaneous boss-tagged targets.
+Queries `masterData { actors(type: "NPC") { id subType } }` and filters to `subType === "Boss"`. No per-fight enemy-list lookup is needed: a boss ID not present as a target in a given fight's own Casts/Debuffs events simply never matches, so the same report-wide set works correctly across every fight, including council fights with multiple simultaneous boss-tagged targets.
 
 ### 3. The FF-duty detector
 
@@ -149,7 +144,7 @@ A small new analysis script (or an extension of an existing `scripts/lib/` modul
 
 - `src/abilities/resolveFaerieFireAbilityIds.test.ts` (Tier 1): confirms `26993`-family IDs resolve, confirms `27011`/"Faerie Fire (Feral)" is never included even if present in the same report's abilities list, confirms an unrecognized gameID with the exact name "Faerie Fire" still resolves via the fallback.
 - `src/metrics/faerieFireDuty.test.ts` (Tier 1): fixtures for (a) the confirmed one-off case shape (1 cast, short fight) → `onDuty: false`; (b) sustained single-target casting meeting both thresholds → `onDuty: true`; (c) casts on a non-boss target only → `onDuty: false` regardless of count; (d) casts split across multiple boss-tagged targets (council-fight shape) still correctly counted toward the combined `bossCastCount`/`castSpanMs`.
-- `test/integration/client.test.ts` (Tier 2, MSW-mocked) additions for the widened `fetchMasterDataAbilities`/`fetchMasterData`: confirms `bossActorIds` filters correctly on `subType`, using an extended `test/integration/fixtures/masterdata-abilities.json` (its existing fixture already backs this same function's ability-resolution tests).
+- `test/integration/client.test.ts` (Tier 2, MSW-mocked) additions for the new `fetchBossActorIds`: confirms it filters correctly on `subType === "Boss"`, using a new fixture (e.g. `test/integration/fixtures/masterdata-actors.json`) rather than touching the existing `masterdata-abilities.json` fixture, since the two functions make separate requests.
 - No test changes needed for `calibration-data/*.json` consumers outside the calibration script itself — this phase adds no new UI-facing behavior.
 
 ## Out of scope (restated)
