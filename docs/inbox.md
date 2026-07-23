@@ -8,17 +8,6 @@ bug) and delete its entry here.
 
 ---
 
-## Deep-link judgement anchors don't scroll into view
-
-Linking deep to a judgement (e.g. a per-metric "read the full rationale"
-link into `#/judgements`, story 710) doesn't actually scroll the page —
-always lands at the top instead of at the linked section.
-
-Likely area: `useHashRoute.ts` / `JudgementRationale` — this is a
-hash-routed SPA, not native browser anchors, so a hash change probably
-isn't triggering a `scrollIntoView` the way a plain `<a href="#foo">`
-would on a static page.
-
 ## Pull-time consumables check layout is inconsistent
 
 `PrepHygieneCard`/`PrepHygieneContent` (story 601, now also carrying 602's
