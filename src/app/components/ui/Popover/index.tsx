@@ -17,8 +17,7 @@ export interface PopoverProps {
 
 // Hand-rolled hover/focus/tap popover (the project has no positioning
 // library dependency) — one interaction model composes mouse, keyboard,
-// and touch input rather than branching on device type. See
-// docs/specs/judgement-rollup-tooltip-design.md.
+// and touch input rather than branching on device type.
 export function Popover({
   triggerLabel,
   triggerClassName,
