@@ -15,6 +15,8 @@ describe("CrisisCard", () => {
         swiftmendReady={true}
         nsReady={false}
         idlePreceding={true}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
         judgement="fair"
       />,
     );
@@ -37,6 +39,8 @@ describe("CrisisCard", () => {
         swiftmendReady={true}
         nsReady={true}
         idlePreceding={true}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
         judgement={null}
       />,
     );
@@ -56,6 +60,8 @@ describe("CrisisCard", () => {
         swiftmendReady={false}
         nsReady={false}
         idlePreceding={false}
+        hasSwiftmend={true}
+        hasNaturesSwiftness={true}
         judgement="good"
       />,
     );

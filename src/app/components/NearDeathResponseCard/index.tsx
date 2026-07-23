@@ -17,6 +17,7 @@ import {
   SWIFTMEND_MIN_RESTORATION,
   NATURES_SWIFTNESS_MIN_RESTORATION,
 } from "../../../report/archetypeDetection";
+import { describeIneligibleCooldowns } from "../ui/cooldownEligibilityNote";
 
 export interface NearDeathResponseCardProps {
   accessToken: string;
@@ -39,7 +40,12 @@ export interface NearDeathResponseCardProps {
 }
 
 type FetchResult =
-  | { accessToken: string; result: NearDeathResponseResult }
+  | {
+      accessToken: string;
+      result: NearDeathResponseResult;
+      hasSwiftmend: boolean;
+      hasNaturesSwiftness: boolean;
+    }
   | { accessToken: string; error: string };
 
 const ICON =
@@ -89,6 +95,9 @@ export function NearDeathResponseCard({
           try {
             const talents = parseTalentPoints(combatantInfoEvents, druidId);
             const restoration = talents === null ? 0 : talents[2];
+            const hasSwiftmend = restoration >= SWIFTMEND_MIN_RESTORATION;
+            const hasNaturesSwiftness =
+              restoration >= NATURES_SWIFTNESS_MIN_RESTORATION;
             const computed = computeNearDeathResponse(
               damageEvents,
               healingEvents,
@@ -100,12 +109,17 @@ export function NearDeathResponseCard({
               swiftmendAbilityIds,
               naturesSwiftnessAbilityIds,
               lifebloomAbilityIds,
-              restoration >= SWIFTMEND_MIN_RESTORATION,
-              restoration >= NATURES_SWIFTNESS_MIN_RESTORATION,
+              hasSwiftmend,
+              hasNaturesSwiftness,
               fight.startTime,
               fight.endTime,
             );
-            setResult({ accessToken, result: computed });
+            setResult({
+              accessToken,
+              result: computed,
+              hasSwiftmend,
+              hasNaturesSwiftness,
+            });
           } catch (err) {
             setResult({
               accessToken,
@@ -166,6 +180,11 @@ export function NearDeathResponseCard({
   }
 
   const { crises, flaggedCount, judgement } = result.result;
+  const { hasSwiftmend, hasNaturesSwiftness } = result;
+  const ineligibleNote = describeIneligibleCooldowns(
+    hasSwiftmend,
+    hasNaturesSwiftness,
+  );
 
   return (
     <MetricCard
@@ -218,6 +237,8 @@ export function NearDeathResponseCard({
               swiftmendReady={crisis.swiftmendReady}
               nsReady={crisis.nsReady}
               idlePreceding={crisis.idlePreceding}
+              hasSwiftmend={hasSwiftmend}
+              hasNaturesSwiftness={hasNaturesSwiftness}
               judgement={crisis.judgement}
             />
           ))}
@@ -230,6 +251,11 @@ export function NearDeathResponseCard({
           positioning, and not whether anyone else&apos;s response was enough.
         </Alert>
       </div>
+      {ineligibleNote && (
+        <div style={{ marginTop: "var(--space-3)" }}>
+          <Alert tone="warning">{ineligibleNote}</Alert>
+        </div>
+      )}
     </MetricCard>
   );
 }

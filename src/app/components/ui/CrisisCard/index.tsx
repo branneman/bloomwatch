@@ -13,6 +13,8 @@ export interface CrisisCardProps {
   swiftmendReady: boolean;
   nsReady: boolean;
   idlePreceding: boolean;
+  hasSwiftmend: boolean;
+  hasNaturesSwiftness: boolean;
   judgement: Judgement | null;
 }
 
@@ -26,6 +28,8 @@ export function CrisisCard({
   swiftmendReady,
   nsReady,
   idlePreceding,
+  hasSwiftmend,
+  hasNaturesSwiftness,
   judgement,
 }: CrisisCardProps) {
   const rows: [string, string][] = [
@@ -34,11 +38,19 @@ export function CrisisCard({
     ["Reactive heal landed", responded ? "Responded" : "No"],
   ];
   if (!responded) {
-    rows.push(
-      ["Swiftmend available", swiftmendReady ? "Ready" : "On cooldown"],
-      ["Nature's Swiftness available", nsReady ? "Ready" : "On cooldown"],
-      ["Idle in preceding 5s", idlePreceding ? "Yes" : "No"],
-    );
+    if (hasSwiftmend) {
+      rows.push([
+        "Swiftmend available",
+        swiftmendReady ? "Ready" : "On cooldown",
+      ]);
+    }
+    if (hasNaturesSwiftness) {
+      rows.push([
+        "Nature's Swiftness available",
+        nsReady ? "Ready" : "On cooldown",
+      ]);
+    }
+    rows.push(["Idle in preceding 5s", idlePreceding ? "Yes" : "No"]);
   }
 
   return (
