@@ -319,6 +319,8 @@ export function ReportDashboard({
             onRoleEntries.map((e) => ({
               status: e.summaries[id],
               weightMs: e.fight.endTime - e.fight.startTime,
+              fightId: e.fight.id,
+              label: e.fight.name,
             })),
           );
           return (

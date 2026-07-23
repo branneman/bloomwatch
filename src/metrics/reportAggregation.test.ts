@@ -52,8 +52,8 @@ describe("rollupEpicJudgement", () => {
   it("returns null when nothing has resolved yet", () => {
     expect(
       rollupEpicJudgement([
-        { status: loading, weightMs: 1000 },
-        { status: loading, weightMs: 1000 },
+        { status: loading, weightMs: 1000, fightId: 1, label: "Boss A" },
+        { status: loading, weightMs: 1000, fightId: 2, label: "Boss B" },
       ]),
     ).toBeNull();
   });
@@ -64,27 +64,40 @@ describe("rollupEpicJudgement", () => {
     // which dominates by duration.
     expect(
       rollupEpicJudgement([
-        { status: good, weightMs: 9000 },
-        { status: loading, weightMs: 9000 },
-        { status: errored, weightMs: 9000 },
-        { status: bad, weightMs: 1000 },
+        { status: good, weightMs: 9000, fightId: 1, label: "Boss A" },
+        { status: loading, weightMs: 9000, fightId: 2, label: "Boss B" },
+        { status: errored, weightMs: 9000, fightId: 3, label: "Boss C" },
+        { status: bad, weightMs: 1000, fightId: 4, label: "Boss D" },
       ]),
     ).toEqual({
       judgement: "fair",
       breakdown: { good: 1, fair: 0, bad: 1 },
+      fights: {
+        good: [{ fightId: 1, label: "Boss A" }],
+        fair: [],
+        bad: [{ fightId: 4, label: "Boss D" }],
+      },
     });
   });
 
   it("reports fair, not a worst-of or a pure weighted median, when both good and bad fights are present", () => {
     expect(
       rollupEpicJudgement([
-        { status: good, weightMs: 8000 },
-        { status: good, weightMs: 8000 },
-        { status: bad, weightMs: 1000 },
+        { status: good, weightMs: 8000, fightId: 1, label: "Boss A" },
+        { status: good, weightMs: 8000, fightId: 2, label: "Boss B" },
+        { status: bad, weightMs: 1000, fightId: 3, label: "Boss C" },
       ]),
     ).toEqual({
       judgement: "fair",
       breakdown: { good: 2, fair: 0, bad: 1 },
+      fights: {
+        good: [
+          { fightId: 1, label: "Boss A" },
+          { fightId: 2, label: "Boss B" },
+        ],
+        fair: [],
+        bad: [{ fightId: 3, label: "Boss C" }],
+      },
     });
   });
 });

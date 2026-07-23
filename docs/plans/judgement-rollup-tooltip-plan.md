@@ -41,12 +41,22 @@ format:check` before committing — run `npx prettier --write <file>` if the pre
 **Files:**
 
 - Modify: `src/metrics/reportAggregation.ts:36-70`
+- Modify: `src/app/components/ReportDashboard/index.tsx` (one call site only — see Step 5)
 - Test: `src/metrics/reportAggregation.test.ts:51-90`
 
 **Interfaces:**
 
 - Consumes: nothing new — this task only changes `rollupEpicJudgement`'s own input/output
   shape.
+- Note on the `ReportDashboard/index.tsx` touch: this repo's pre-commit hook runs
+  `npm run typecheck` full-project on every commit, with no scoping and no bypassing (Global
+  Constraints). Widening `rollupEpicJudgement`'s required entry fields makes
+  `ReportDashboard/index.tsx`'s existing call site fail to typecheck the moment this task's
+  main change lands, so this task must also patch that one call site to keep the whole
+  project green — it is not deferrable to Task 4. This is a minimal, temporary patch (fills
+  the two new required fields with straightforward values, no pull-number formatting, no UI
+  change); Task 4 replaces this entire block anyway as part of wiring in the interactive
+  breakdown, so nothing here needs to be elegant or final.
 - Produces (for Task 4 to consume):
 
   ```ts
@@ -209,20 +219,48 @@ weightMs }`. `fights` groups every _ready_ entry's `{fightId, label}` by its own
   Run: `npx vitest run src/metrics/reportAggregation.test.ts`
   Expected: PASS (all tests in the file).
 
-- [ ] **Step 5: Typecheck**
+- [ ] **Step 5: Patch the one downstream call site so the project still typechecks**
+
+  In `src/app/components/ReportDashboard/index.tsx`, find the `rollupEpicJudgement` call inside
+  the `EPIC_META.map(({ id, label }) => { ... })` block (inside the `chipStrip` render). It
+  currently reads:
+
+  ```tsx
+  const rollup = rollupEpicJudgement(
+    onRoleEntries.map((e) => ({
+      status: e.summaries[id],
+      weightMs: e.fight.endTime - e.fight.startTime,
+    })),
+  );
+  ```
+
+  Add the two new required fields, using the fight's own `id`/`name` directly (no pull-number
+  formatting — that refinement, and the interactive UI that will actually use `rollup.fights`,
+  is Task 4's job, which replaces this entire block):
+
+  ```tsx
+  const rollup = rollupEpicJudgement(
+    onRoleEntries.map((e) => ({
+      status: e.summaries[id],
+      weightMs: e.fight.endTime - e.fight.startTime,
+      fightId: e.fight.id,
+      label: e.fight.name,
+    })),
+  );
+  ```
+
+  Do not change anything else in this file — no other line references the new `fights` field
+  yet, and none needs to.
+
+- [ ] **Step 6: Typecheck**
 
   Run: `npm run typecheck`
-  Expected: no errors. (This will surface `ReportDashboard/index.tsx`'s now-outdated call to
-  `rollupEpicJudgement` with the old two-field entry shape — that's expected and fixed in
-  Task 4, not here. If `tsc -b`'s project-reference build fails the whole command because of
-  that downstream error, that's fine; just confirm the error is specifically in
-  `ReportDashboard/index.tsx` about the missing `fightId`/`label` fields, not somewhere in
-  `reportAggregation.ts` or its test.)
+  Expected: no errors, project-wide.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
   ```bash
-  git add src/metrics/reportAggregation.ts src/metrics/reportAggregation.test.ts
+  git add src/metrics/reportAggregation.ts src/metrics/reportAggregation.test.ts src/app/components/ReportDashboard/index.tsx
   git commit -m "feat(judgements): carry fight identity through epic rollup breakdown"
   ```
 

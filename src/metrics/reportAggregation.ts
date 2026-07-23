@@ -36,17 +36,25 @@ export function combineFightEpicStatus(
 export interface EpicRollup {
   judgement: Judgement;
   breakdown: Record<Judgement, number>;
+  fights: Record<Judgement, { fightId: number; label: string }[]>;
 }
 
 // One epic's judgement across every fight in the report -> a single strip
-// chip, plus how many fights landed in each bucket (story 904) so a user
-// can still see what drove the result even though the headline is a
-// duration-weighted median rather than a raw worst-of. Progressive: counts
-// only fights whose this-epic summary has resolved so far, ignoring ones
-// still loading or errored, so the chip can appear before the whole report
-// finishes computing and can only get more accurate as more fights resolve.
+// chip, plus how many fights landed in each bucket (story 904) and which
+// fights those are (judgement rollup breakdown tooltip) so a user can
+// still see, and jump to, what drove the result even though the headline
+// is a duration-weighted median rather than a raw worst-of. Progressive:
+// counts only fights whose this-epic summary has resolved so far,
+// ignoring ones still loading or errored, so the chip can appear before
+// the whole report finishes computing and can only get more accurate as
+// more fights resolve.
 export function rollupEpicJudgement(
-  entries: { status: EpicSummaryStatus; weightMs: number }[],
+  entries: {
+    status: EpicSummaryStatus;
+    weightMs: number;
+    fightId: number;
+    label: string;
+  }[],
 ): EpicRollup | null {
   const ready = entries.filter(
     (
@@ -54,17 +62,31 @@ export function rollupEpicJudgement(
     ): e is {
       status: Extract<EpicSummaryStatus, { status: "ready" }>;
       weightMs: number;
+      fightId: number;
+      label: string;
     } => e.status.status === "ready",
   );
   if (ready.length === 0) return null;
   const judgement = weightedMedianJudgement(
-    ready.map((e) => ({ judgement: e.status.judgement, weightMs: e.weightMs })),
+    ready.map((e) => ({
+      judgement: e.status.judgement,
+      weightMs: e.weightMs,
+    })),
   );
   if (judgement === null) return null;
+  const fights: Record<Judgement, { fightId: number; label: string }[]> = {
+    good: [],
+    fair: [],
+    bad: [],
+  };
+  for (const e of ready) {
+    fights[e.status.judgement].push({ fightId: e.fightId, label: e.label });
+  }
   return {
     judgement,
     breakdown: judgementBreakdown(
       ready.map((e) => ({ judgement: e.status.judgement })),
     ),
+    fights,
   };
 }
