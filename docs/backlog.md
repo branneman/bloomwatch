@@ -869,7 +869,7 @@ I want crisis response's judgement to distinguish a clear, deliberate "save" fro
 - The card's existing threshold-explanation copy (`NearDeathResponseCard`'s explainer text) and `docs/thresholds.md`'s Crisis response section are both updated to describe the refined matrix.
 - Real crisis examples from the local calibration corpus back each new distinction, matching this repo's convention of citing real data for every calibration-adjacent change — not just the hypothetical combos proposed above.
 
-### 1003 — Recognize anticipatory HoT prep ahead of crisis onset 🔲 Todo
+### 1003 — Recognize anticipatory HoT prep ahead of crisis onset ✅ Done
 
 I want crisis response to recognize a HoT already active on a target when a crisis opens, not only a new cast landing during the crisis window, so that placing a Lifebloom stack (or a Rejuvenation/Regrowth) ahead of a spike a druid expects is credited as anticipation rather than being invisible next to the reactive save it already tracks.
 
