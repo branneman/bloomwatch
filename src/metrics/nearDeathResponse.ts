@@ -366,7 +366,10 @@ export function computeNearDeathResponse(
     // that next tracked healing spell is (per naturesSwiftnessAudit.ts's
     // own findFollowUp), if it's Healing Touch or Regrowth and it lands on
     // this crisis's target within this crisis's window, that's an
-    // unambiguous burst save.
+    // unambiguous burst save. Real example: report 3YLbnvyWwaXN6fpH, fight
+    // 36, target 31, crisis at 4736343ms. Confirmed against the local
+    // calibration corpus (~121 reports re-run live, story 1002): 56 such
+    // combos found, so this is a real recurring pattern, not a hypothetical.
     let saveKind: CrisisEvent["saveKind"] = null;
     if (responded) {
       const nsComboMatch = nsCastsWithFollowUp.find(
@@ -383,7 +386,11 @@ export function computeNearDeathResponse(
       } else {
         // The reactive cast is the earliest of the druid's own healing
         // casts that landed on this target inside the crisis window --
-        // same cast `responded` above already confirmed exists.
+        // same cast `responded` above already confirmed exists. Real
+        // example (a reactive Swiftmend that consumed a Rejuvenation):
+        // report 4QP6RCHfKWGcZFb3, fight 75, target 24, crisis at
+        // 9727119ms. Confirmed against the local calibration corpus
+        // (~121 reports re-run live, story 1002): 22 such combos found.
         const respondingCast = druidCasts.find(
           (cast) =>
             cast.targetID === episode.targetId &&
