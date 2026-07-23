@@ -6,7 +6,11 @@ import {
   deriveLifebloomTargetState,
 } from "./lifebloomStacks";
 import { MAINTAINED_MIN_UPTIME_PCT } from "./lb3Uptime";
-import { SWIFTMEND_COOLDOWN_MS } from "./swiftmendAudit";
+import {
+  SWIFTMEND_COOLDOWN_MS,
+  trackHotRemovals,
+  findConsumedHot,
+} from "./swiftmendAudit";
 import { NATURES_SWIFTNESS_COOLDOWN_MS } from "./naturesSwiftnessAudit";
 import {
   isReady,
@@ -235,6 +239,8 @@ export function computeNearDeathResponse(
   fightStart: number,
   fightEnd: number,
   resolvedAbilities: Map<number, ResolvedAbility> = new Map(),
+  rejuvenationAbilityIds: Set<number> = new Set(),
+  regrowthAbilityIds: Set<number> = new Set(),
 ): NearDeathResponseResult {
   const timelinesByTarget = buildHpTimelines(
     damageEvents,
@@ -293,6 +299,13 @@ export function computeNearDeathResponse(
       nsCast.timestamp,
     ),
   }));
+
+  const hotRemovals = trackHotRemovals(
+    buffEvents,
+    druidId,
+    rejuvenationAbilityIds,
+    regrowthAbilityIds,
+  );
 
   const crises: CrisisEvent[] = episodes.map((episode) => {
     const maintained = maintainedTargetIds.has(episode.targetId);
@@ -367,6 +380,30 @@ export function computeNearDeathResponse(
       );
       if (nsComboMatch !== undefined) {
         saveKind = "natures-swiftness-combo";
+      } else {
+        // The reactive cast is the earliest of the druid's own healing
+        // casts that landed on this target inside the crisis window --
+        // same cast `responded` above already confirmed exists.
+        const respondingCast = druidCasts.find(
+          (cast) =>
+            cast.targetID === episode.targetId &&
+            healingAbilityIds.has(cast.abilityGameID as number) &&
+            cast.timestamp >= episode.timestampMs &&
+            cast.timestamp <= episode.windowEndMs,
+        );
+        if (
+          respondingCast !== undefined &&
+          swiftmendAbilityIds.has(respondingCast.abilityGameID as number)
+        ) {
+          const consumed = findConsumedHot(
+            hotRemovals,
+            episode.targetId,
+            respondingCast.timestamp,
+          );
+          if (consumed?.spell === "Rejuvenation") {
+            saveKind = "swiftmend-hot-consume";
+          }
+        }
       }
     }
     const clearSave = saveKind !== null;

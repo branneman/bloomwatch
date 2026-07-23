@@ -39,7 +39,7 @@ export interface SwiftmendAuditResult {
   utilizationJudgement: Judgement;
 }
 
-interface HotRemoval {
+export interface HotRemoval {
   timestampMs: number;
   targetId: number;
   spell: HotClipSpell;
@@ -89,7 +89,7 @@ function judgeUtilization(utilizationPct: number): Judgement {
   });
 }
 
-function trackHotRemovals(
+export function trackHotRemovals(
   buffEvents: WclEvent[],
   druidId: number,
   rejuvenationAbilityIds: Set<number>,
@@ -145,7 +145,7 @@ function trackHotRemovals(
   return removals;
 }
 
-function findConsumedHot(
+export function findConsumedHot(
   removals: HotRemoval[],
   targetId: number,
   castTimestamp: number,

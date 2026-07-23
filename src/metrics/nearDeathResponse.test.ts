@@ -10,6 +10,7 @@ import {
   aCastEvent,
   anApplyBuffEvent,
   anApplyBuffStackEvent,
+  aRemoveBuffEvent,
 } from "../testUtils/factories";
 import type { ResolvedAbility } from "../abilities/resolveAbilities";
 
@@ -652,6 +653,116 @@ describe("computeNearDeathResponse clear-save detection", () => {
       0,
       100000,
       RESOLVED_ABILITIES,
+    );
+
+    expect(result.crises[0].judgement).toBe("good");
+    expect(result.crises[0].clearSave).toBe(false);
+    expect(result.crises[0].saveKind).toBeNull();
+  });
+
+  it("flags a clear save when the reactive cast is a Swiftmend that consumed a Rejuvenation", () => {
+    const REJUVENATION_ID = 774;
+    const REGROWTH_ID = 26980;
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 12 }),
+    ];
+    const healingEvents = [
+      aHealEvent({ timestamp: 10500, targetID: 50, hitPoints: 40 }),
+    ];
+    const buffEvents = [
+      anApplyBuffEvent({
+        timestamp: 5000,
+        targetID: 50,
+        abilityGameID: REJUVENATION_ID,
+      }),
+      aRemoveBuffEvent({
+        timestamp: 10500,
+        targetID: 50,
+        abilityGameID: REJUVENATION_ID,
+      }),
+    ];
+    const castEvents = [
+      aCastEvent({
+        timestamp: 10500,
+        sourceID: DRUID_ID,
+        targetID: 50,
+        abilityGameID: 18562,
+      }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      healingEvents,
+      [],
+      castEvents,
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      RESOLVED_ABILITIES,
+      new Set([REJUVENATION_ID]),
+      new Set([REGROWTH_ID]),
+    );
+
+    expect(result.crises[0].judgement).toBe("good");
+    expect(result.crises[0].clearSave).toBe(true);
+    expect(result.crises[0].saveKind).toBe("swiftmend-hot-consume");
+  });
+
+  it("does not flag a clear save when the reactive Swiftmend consumed a Regrowth instead of a Rejuvenation", () => {
+    const REJUVENATION_ID = 774;
+    const REGROWTH_ID = 26980;
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 12 }),
+    ];
+    const healingEvents = [
+      aHealEvent({ timestamp: 10500, targetID: 50, hitPoints: 40 }),
+    ];
+    const buffEvents = [
+      anApplyBuffEvent({
+        timestamp: 5000,
+        targetID: 50,
+        abilityGameID: REGROWTH_ID,
+      }),
+      aRemoveBuffEvent({
+        timestamp: 10500,
+        targetID: 50,
+        abilityGameID: REGROWTH_ID,
+      }),
+    ];
+    const castEvents = [
+      aCastEvent({
+        timestamp: 10500,
+        sourceID: DRUID_ID,
+        targetID: 50,
+        abilityGameID: 18562,
+      }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      healingEvents,
+      [],
+      castEvents,
+      buffEvents,
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      RESOLVED_ABILITIES,
+      new Set([REJUVENATION_ID]),
+      new Set([REGROWTH_ID]),
     );
 
     expect(result.crises[0].judgement).toBe("good");
