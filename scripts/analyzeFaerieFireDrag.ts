@@ -47,12 +47,69 @@ function report(name: string, sample: MetricSample): void {
   );
 }
 
+interface PairedSample {
+  deltas: number[];
+}
+
+function reportPaired(name: string, sample: PairedSample): void {
+  const total = sample.deltas.length;
+  const positive = sample.deltas.filter((d) => d > 0).length;
+  const negative = sample.deltas.filter((d) => d < 0).length;
+  const zero = total - positive - negative;
+  console.log(`\n=== ${name} (within-druid paired) ===`);
+  console.log(
+    `n=${total} druid-report pairs with data in both groups; ` +
+      `median delta=${median(sample.deltas)}; ` +
+      `positive=${positive} negative=${negative} zero=${zero}`,
+  );
+}
+
+interface JudgementCounts {
+  good: number;
+  fair: number;
+  bad: number;
+}
+
+function reportJudgementDistribution(
+  name: string,
+  ffDuty: JudgementCounts,
+  nonFfDuty: JudgementCounts,
+): void {
+  const pct = (counts: JudgementCounts) => {
+    const total = counts.good + counts.fair + counts.bad;
+    if (total === 0) return "n=0";
+    return (
+      `n=${total} good=${((counts.good / total) * 100).toFixed(1)}% ` +
+      `fair=${((counts.fair / total) * 100).toFixed(1)}% ` +
+      `bad=${((counts.bad / total) * 100).toFixed(1)}%`
+    );
+  };
+  console.log(`\n=== ${name} (judgement distribution) ===`);
+  console.log(`FF-duty:     ${pct(ffDuty)}`);
+  console.log(`non-FF-duty: ${pct(nonFfDuty)}`);
+}
+
 async function main(): Promise<void> {
   const archetypeRaw = await readFile(
     "docs/calibration-archetypes.json",
     "utf8",
   );
   const archetypeFile = JSON.parse(archetypeRaw) as ArchetypeFile;
+
+  const restackTaxJudgeFf: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const restackTaxJudgeNon: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const bloomsJudgeFf: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const bloomsJudgeNon: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const cadenceJudgeFf: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const cadenceJudgeNon: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const manaJudgeFf: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const manaJudgeNon: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const consumableJudgeFf: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+  const consumableJudgeNon: JudgementCounts = { good: 0, fair: 0, bad: 0 };
+
+  const restackTaxPaired: PairedSample = { deltas: [] };
+  const bloomsPaired: PairedSample = { deltas: [] };
+  const manaPaired: PairedSample = { deltas: [] };
 
   const refreshCadence: MetricSample = { ffDuty: [], nonFfDuty: [] };
   const accidentalBlooms: MetricSample = { ffDuty: [], nonFfDuty: [] };
@@ -93,18 +150,32 @@ async function main(): Promise<void> {
           metrics?: {
             // medianMs is null when intervalCount is 0 (no LB3 refreshes
             // occurred that fight, e.g. no maintained target) -- confirmed
-            // live against the real corpus: 117 of 358 fights.
-            refreshCadence?: { medianMs: number | null };
-            accidentalBlooms?: { count: number };
-            restackTax?: { castCount: number };
+            // live against the real corpus: 117 of 358 fights. judgement
+            // is separately nullable in that same no-refreshes case.
+            refreshCadence?: {
+              medianMs: number | null;
+              judgement: "good" | "fair" | "bad" | null;
+            };
+            accidentalBlooms?: {
+              count: number;
+              judgement: "good" | "fair" | "bad";
+            };
+            restackTax?: {
+              castCount: number;
+              judgement: "good" | "fair" | "bad";
+            };
           };
         };
         manaEconomy: {
           status: string;
           metrics?: {
-            manaCurve?: { endingPct: number | null };
+            manaCurve?: {
+              endingPct: number | null;
+              judgement: "good" | "fair" | "bad" | null;
+            };
             consumableThroughput?: {
               rows: Array<{ used: number; expectedFloor: number }>;
+              judgement: "good" | "fair" | "bad";
             };
           };
         };
@@ -115,8 +186,16 @@ async function main(): Promise<void> {
       druid.healingCastCount / Math.max(fights.length, 1);
     if (healingCastsPerFight < MIN_HEALING_CASTS_PER_FIGHT) continue;
 
+    const fightRestackTax: MetricSample = { ffDuty: [], nonFfDuty: [] };
+    const fightAccidentalBlooms: MetricSample = { ffDuty: [], nonFfDuty: [] };
+    const fightEndingManaPct: MetricSample = { ffDuty: [], nonFfDuty: [] };
+
     for (const fight of fights) {
       const bucket = fight.faerieFireDuty.onDuty ? "ffDuty" : "nonFfDuty";
+      const judgeBucket = (counts: {
+        ffDuty: JudgementCounts;
+        nonFfDuty: JudgementCounts;
+      }) => (fight.faerieFireDuty.onDuty ? counts.ffDuty : counts.nonFfDuty);
 
       if (fight.epics.lifebloomDiscipline.status === "ready") {
         const metrics = fight.epics.lifebloomDiscipline.metrics;
@@ -126,11 +205,25 @@ async function main(): Promise<void> {
         ) {
           refreshCadence[bucket].push(metrics.refreshCadence.medianMs);
         }
+        if (metrics?.refreshCadence?.judgement) {
+          judgeBucket({ ffDuty: cadenceJudgeFf, nonFfDuty: cadenceJudgeNon })[
+            metrics.refreshCadence.judgement
+          ]++;
+        }
         if (metrics?.accidentalBlooms) {
           accidentalBlooms[bucket].push(metrics.accidentalBlooms.count);
+          fightAccidentalBlooms[bucket].push(metrics.accidentalBlooms.count);
+          judgeBucket({ ffDuty: bloomsJudgeFf, nonFfDuty: bloomsJudgeNon })[
+            metrics.accidentalBlooms.judgement
+          ]++;
         }
         if (metrics?.restackTax) {
           restackTax[bucket].push(metrics.restackTax.castCount);
+          fightRestackTax[bucket].push(metrics.restackTax.castCount);
+          judgeBucket({
+            ffDuty: restackTaxJudgeFf,
+            nonFfDuty: restackTaxJudgeNon,
+          })[metrics.restackTax.judgement]++;
         }
       }
 
@@ -141,6 +234,12 @@ async function main(): Promise<void> {
           metrics?.manaCurve?.endingPct !== undefined
         ) {
           endingManaPct[bucket].push(metrics.manaCurve.endingPct);
+          fightEndingManaPct[bucket].push(metrics.manaCurve.endingPct);
+        }
+        if (metrics?.manaCurve?.judgement) {
+          judgeBucket({ ffDuty: manaJudgeFf, nonFfDuty: manaJudgeNon })[
+            metrics.manaCurve.judgement
+          ]++;
         }
         if (metrics?.consumableThroughput) {
           const delta = metrics.consumableThroughput.rows.reduce(
@@ -148,7 +247,42 @@ async function main(): Promise<void> {
             0,
           );
           consumableFloorDelta[bucket].push(delta);
+          judgeBucket({
+            ffDuty: consumableJudgeFf,
+            nonFfDuty: consumableJudgeNon,
+          })[metrics.consumableThroughput.judgement]++;
         }
+      }
+    }
+
+    if (
+      fightRestackTax.ffDuty.length > 0 &&
+      fightRestackTax.nonFfDuty.length > 0
+    ) {
+      const ffMedian = median(fightRestackTax.ffDuty);
+      const nonFfMedian = median(fightRestackTax.nonFfDuty);
+      if (ffMedian !== null && nonFfMedian !== null) {
+        restackTaxPaired.deltas.push(ffMedian - nonFfMedian);
+      }
+    }
+    if (
+      fightAccidentalBlooms.ffDuty.length > 0 &&
+      fightAccidentalBlooms.nonFfDuty.length > 0
+    ) {
+      const ffMedian = median(fightAccidentalBlooms.ffDuty);
+      const nonFfMedian = median(fightAccidentalBlooms.nonFfDuty);
+      if (ffMedian !== null && nonFfMedian !== null) {
+        bloomsPaired.deltas.push(ffMedian - nonFfMedian);
+      }
+    }
+    if (
+      fightEndingManaPct.ffDuty.length > 0 &&
+      fightEndingManaPct.nonFfDuty.length > 0
+    ) {
+      const ffMedian = median(fightEndingManaPct.ffDuty);
+      const nonFfMedian = median(fightEndingManaPct.nonFfDuty);
+      if (ffMedian !== null && nonFfMedian !== null) {
+        manaPaired.deltas.push(ffMedian - nonFfMedian);
       }
     }
   }
@@ -158,6 +292,31 @@ async function main(): Promise<void> {
   report("Re-stack tax (cast count)", restackTax);
   report("Ending mana %", endingManaPct);
   report("Consumable used-minus-floor delta (summed)", consumableFloorDelta);
+
+  reportPaired("Re-stack tax", restackTaxPaired);
+  reportPaired("Accidental blooms", bloomsPaired);
+  reportPaired("Ending mana %", manaPaired);
+  reportJudgementDistribution(
+    "Re-stack tax",
+    restackTaxJudgeFf,
+    restackTaxJudgeNon,
+  );
+  reportJudgementDistribution(
+    "Accidental blooms",
+    bloomsJudgeFf,
+    bloomsJudgeNon,
+  );
+  reportJudgementDistribution(
+    "Refresh cadence",
+    cadenceJudgeFf,
+    cadenceJudgeNon,
+  );
+  reportJudgementDistribution("Ending mana %", manaJudgeFf, manaJudgeNon);
+  reportJudgementDistribution(
+    "Consumable throughput",
+    consumableJudgeFf,
+    consumableJudgeNon,
+  );
 }
 
 main().catch((err: unknown) => {
