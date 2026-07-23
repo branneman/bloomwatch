@@ -13,6 +13,7 @@ import {
   wasIdlePreceding,
   judgeDeathReadiness,
 } from "./deathForensics";
+import { findFollowUp } from "./naturesSwiftnessAudit";
 import { computeCastIntervals } from "./castIntervals";
 import {
   resolveSpellAbilityIds,
@@ -208,6 +209,8 @@ export interface CrisisEvent {
   unspentCount: number;
   judgement: Judgement | null;
   judgedByReadyResource: boolean;
+  clearSave: boolean;
+  saveKind: "natures-swiftness-combo" | "swiftmend-hot-consume" | null;
 }
 
 export interface NearDeathResponseResult {
@@ -231,6 +234,7 @@ export function computeNearDeathResponse(
   hasNaturesSwiftness: boolean,
   fightStart: number,
   fightEnd: number,
+  resolvedAbilities: Map<number, ResolvedAbility> = new Map(),
 ): NearDeathResponseResult {
   const timelinesByTarget = buildHpTimelines(
     damageEvents,
@@ -279,6 +283,16 @@ export function computeNearDeathResponse(
     naturesSwiftnessAbilityIds.has(event.abilityGameID as number),
   );
   const castIntervals = computeCastIntervals(castEvents, druidId);
+
+  const nsCastsWithFollowUp = nsCasts.map((nsCast) => ({
+    timestampMs: nsCast.timestamp,
+    followUp: findFollowUp(
+      druidCasts,
+      resolvedAbilities,
+      naturesSwiftnessAbilityIds,
+      nsCast.timestamp,
+    ),
+  }));
 
   const crises: CrisisEvent[] = episodes.map((episode) => {
     const maintained = maintainedTargetIds.has(episode.targetId);
@@ -333,6 +347,30 @@ export function computeNearDeathResponse(
           ? judgeDeathReadiness(unspentCount)
           : "fair";
 
+    // Story 1002: within an already-"good" (responded) crisis, distinguish
+    // a clearly deliberate save from any other reactive heal landing. A
+    // Nature's Swiftness cast makes the very next cast instant -- whatever
+    // that next tracked healing spell is (per naturesSwiftnessAudit.ts's
+    // own findFollowUp), if it's Healing Touch or Regrowth and it lands on
+    // this crisis's target within this crisis's window, that's an
+    // unambiguous burst save.
+    let saveKind: CrisisEvent["saveKind"] = null;
+    if (responded) {
+      const nsComboMatch = nsCastsWithFollowUp.find(
+        (entry) =>
+          entry.followUp !== null &&
+          entry.followUp.targetId === episode.targetId &&
+          (entry.followUp.spell === "Healing Touch" ||
+            entry.followUp.spell === "Regrowth") &&
+          entry.followUp.timestampMs >= episode.timestampMs &&
+          entry.followUp.timestampMs <= episode.windowEndMs,
+      );
+      if (nsComboMatch !== undefined) {
+        saveKind = "natures-swiftness-combo";
+      }
+    }
+    const clearSave = saveKind !== null;
+
     return {
       timestampMs: episode.timestampMs,
       targetId: episode.targetId,
@@ -346,6 +384,8 @@ export function computeNearDeathResponse(
       unspentCount,
       judgement,
       judgedByReadyResource,
+      clearSave,
+      saveKind,
     };
   });
 

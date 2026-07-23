@@ -12,6 +12,7 @@ export interface NaturesSwiftnessFollowUp {
   spell: DruidHealingSpell;
   rank: number | null;
   targetId: number | undefined;
+  timestampMs: number;
 }
 
 export interface NaturesSwiftnessCast {
@@ -32,7 +33,7 @@ export interface NaturesSwiftnessAuditResult {
 // itself — skipping consumables (mana potions, runes) or anything
 // unresolved along the way, since the NS buff is only consumed by an
 // actual spell cast, not an item use, per docs/specs' design decision.
-function findFollowUp(
+export function findFollowUp(
   sortedDruidCasts: WclEvent[],
   resolvedAbilities: Map<number, ResolvedAbility>,
   naturesSwiftnessAbilityIds: Set<number>,
@@ -51,6 +52,7 @@ function findFollowUp(
       spell: resolved.spell,
       rank: resolved.rank,
       targetId: event.targetID,
+      timestampMs: event.timestamp,
     };
   }
   return null;

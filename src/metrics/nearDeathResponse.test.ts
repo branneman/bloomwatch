@@ -568,6 +568,98 @@ describe("computeNearDeathResponse", () => {
   });
 });
 
+describe("computeNearDeathResponse clear-save detection", () => {
+  const RESOLVED_ABILITIES: Map<number, ResolvedAbility> = new Map([
+    [17116, { kind: "spell", spell: "Nature's Swiftness", rank: 1 }],
+    [HEALING_TOUCH_ID, { kind: "spell", spell: "Healing Touch", rank: 8 }],
+    [26980, { kind: "spell", spell: "Regrowth", rank: 10 }],
+  ]);
+
+  it("flags a clear save when Nature's Swiftness is immediately followed by Healing Touch on the crisis target", () => {
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 12 }),
+    ];
+    const healingEvents = [
+      aHealEvent({ timestamp: 11500, targetID: 50, hitPoints: 40 }),
+    ];
+    const castEvents = [
+      aCastEvent({
+        timestamp: 11000,
+        sourceID: DRUID_ID,
+        targetID: -1,
+        abilityGameID: 17116,
+      }),
+      aCastEvent({
+        timestamp: 11500,
+        sourceID: DRUID_ID,
+        targetID: 50,
+        abilityGameID: HEALING_TOUCH_ID,
+      }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      healingEvents,
+      [],
+      castEvents,
+      [],
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      RESOLVED_ABILITIES,
+    );
+
+    expect(result.crises[0].judgement).toBe("good");
+    expect(result.crises[0].clearSave).toBe(true);
+    expect(result.crises[0].saveKind).toBe("natures-swiftness-combo");
+  });
+
+  it("does not flag a clear save for a plain reactive heal with no preceding Nature's Swiftness", () => {
+    const damageEvents = [
+      aDamageEvent({ timestamp: 10000, targetID: 50, hitPoints: 12 }),
+    ];
+    const healingEvents = [
+      aHealEvent({ timestamp: 11000, targetID: 50, hitPoints: 40 }),
+    ];
+    const castEvents = [
+      aCastEvent({
+        timestamp: 10500,
+        sourceID: DRUID_ID,
+        targetID: 50,
+        abilityGameID: HEALING_TOUCH_ID,
+      }),
+    ];
+
+    const result = computeNearDeathResponse(
+      damageEvents,
+      healingEvents,
+      [],
+      castEvents,
+      [],
+      DRUID_ID,
+      HEALING_IDS,
+      SWIFTMEND_IDS,
+      NS_IDS,
+      LB_IDS,
+      true,
+      true,
+      0,
+      100000,
+      RESOLVED_ABILITIES,
+    );
+
+    expect(result.crises[0].judgement).toBe("good");
+    expect(result.crises[0].clearSave).toBe(false);
+    expect(result.crises[0].saveKind).toBeNull();
+  });
+});
+
 describe("getHealingAbilityIds", () => {
   it("unions every tracked healing spell's ability ids, excluding Nature's Swiftness and Innervate", () => {
     const resolved = new Map<number, ResolvedAbility>([

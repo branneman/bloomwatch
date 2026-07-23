@@ -953,6 +953,8 @@ describe("summarizeNearDeathResponse", () => {
           unspentCount: 3,
           judgement: "bad",
           judgedByReadyResource: false,
+          clearSave: false,
+          saveKind: null,
         },
       ],
       flaggedCount: 1,

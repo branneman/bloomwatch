@@ -49,7 +49,12 @@ describe("computeNaturesSwiftnessAudit", () => {
     expect(result.casts).toEqual([
       {
         timestampMs: 1000,
-        followUp: { spell: "Healing Touch", rank: 8, targetId: 50 },
+        followUp: {
+          spell: "Healing Touch",
+          rank: 8,
+          targetId: 50,
+          timestampMs: 1500,
+        },
       },
     ]);
     expect(result.castCount).toBe(1);
@@ -74,6 +79,7 @@ describe("computeNaturesSwiftnessAudit", () => {
       spell: "Healing Touch",
       rank: 8,
       targetId: 50,
+      timestampMs: 1500,
     });
   });
 
@@ -114,11 +120,13 @@ describe("computeNaturesSwiftnessAudit", () => {
       spell: "Healing Touch",
       rank: 8,
       targetId: 50,
+      timestampMs: 1500,
     });
     expect(result.casts[1].followUp).toEqual({
       spell: "Regrowth",
       rank: 10,
       targetId: 60,
+      timestampMs: 100500,
     });
   });
 
