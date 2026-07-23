@@ -51,6 +51,8 @@ describe("RestackTaxCard", () => {
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set()}
+        bossActorIds={new Set()}
         targetNames={new Map([[42, "Offtank"]])}
         fetchEvents={makeFetchEvents(buffEvents, castEvents)}
       />,
@@ -77,6 +79,8 @@ describe("RestackTaxCard", () => {
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set()}
+        bossActorIds={new Set()}
         targetNames={new Map()}
         fetchEvents={makeFetchEvents([], [])}
       />,
@@ -102,6 +106,8 @@ describe("RestackTaxCard", () => {
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set()}
+        bossActorIds={new Set()}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
       />,
@@ -126,6 +132,8 @@ describe("RestackTaxCard", () => {
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set()}
+        bossActorIds={new Set()}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
       />,
@@ -155,6 +163,8 @@ describe("RestackTaxCard", () => {
         fight={fight}
         druidId={2}
         lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set()}
+        bossActorIds={new Set()}
         targetNames={new Map()}
         fetchEvents={fetchEvents}
       />,

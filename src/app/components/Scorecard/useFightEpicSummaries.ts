@@ -61,6 +61,8 @@ export function useFightEpicSummaries(
   actorClasses: Map<number, ActorClass>,
   fetchEvents: FetchEvents,
   fetchLookbackEvents: FetchLookbackEvents,
+  faerieFireAbilityIds: Set<number>,
+  bossActorIds: Set<number>,
 ): FightEpicSummaries {
   const gcd = useGcdEconomySummary(
     accessToken,
@@ -77,6 +79,8 @@ export function useFightEpicSummaries(
     lifebloomAbilityIds,
     fetchEvents,
     fetchLookbackEvents,
+    faerieFireAbilityIds,
+    bossActorIds,
   );
   const spell = useSpellDisciplineSummary(
     accessToken,

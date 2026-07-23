@@ -27,13 +27,25 @@ export interface RestackTaxResult {
 // good-tier tax cast is allowed per 2 minutes elapsed, one fair-tier
 // cast per minute elapsed. Reproduces the card mockup's worked example:
 // a 5:41 fight allows good 0-2, fair 3-5, bad 6+.
+//
+// Empirically calibrated (docs/specs/faerie-fire-duty-mitigation-design.md):
+// a druid genuinely carrying Faerie Fire duty spends GCDs that would
+// otherwise go to Lifebloom maintenance, measurably raising re-stack tax
+// (within-druid paired median +3 casts/fight; duration-normalized bad-rate
+// 70% FF-duty vs 53% non-FF-duty across the local corpus). +5 casts added
+// to both goodMax/fairMax brings the FF-duty judgement distribution
+// closest to the non-FF-duty baseline of any integer allowance tested.
+export const FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE = 5;
+
 function judgeRestackTax(
   castCount: number,
   fightDurationMs: number,
+  onFaerieFireDuty: boolean,
 ): Judgement {
   const fightMinutes = fightDurationMs / 60000;
-  const goodMax = Math.floor(fightMinutes / 2) + 1;
-  const fairMax = Math.floor(fightMinutes);
+  const allowance = onFaerieFireDuty ? FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE : 0;
+  const goodMax = Math.floor(fightMinutes / 2) + 1 + allowance;
+  const fairMax = Math.floor(fightMinutes) + allowance;
   return judgeThresholdBelow(castCount, { goodMax, fairMax });
 }
 
@@ -53,6 +65,7 @@ export function computeRestackTax(
   druidId: number,
   lifebloomAbilityIds: Set<number>,
   fightDurationMs: number,
+  onFaerieFireDuty: boolean,
 ): RestackTaxResult {
   const timelines = reconstructLifebloomTimelines(
     buffEvents,
@@ -132,6 +145,6 @@ export function computeRestackTax(
     casts: taxCasts,
     castCount,
     estimatedMana: castCount * LIFEBLOOM_MANA_COST,
-    judgement: judgeRestackTax(castCount, fightDurationMs),
+    judgement: judgeRestackTax(castCount, fightDurationMs, onFaerieFireDuty),
   };
 }

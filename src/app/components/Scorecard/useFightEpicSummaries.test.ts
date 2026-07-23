@@ -24,6 +24,8 @@ describe("useFightEpicSummaries", () => {
         new Map(),
         fetchEvents,
         fetchLookbackEvents,
+        new Set(),
+        new Set(),
       ),
     );
 

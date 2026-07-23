@@ -20,6 +20,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result).toEqual({
       casts: [],
@@ -47,6 +48,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result.castCount).toBe(0);
   });
@@ -71,6 +73,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result.castCount).toBe(0);
   });
@@ -96,6 +99,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result.castCount).toBe(1);
     expect(result.casts).toEqual([{ timestampMs: 101000, targetId: 42 }]);
@@ -127,6 +131,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result.castCount).toBe(3);
     expect(result.casts).toEqual([
@@ -161,6 +166,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result.castCount).toBe(0);
   });
@@ -177,6 +183,7 @@ describe("computeRestackTax", () => {
       DRUID_ID,
       LIFEBLOOM_IDS,
       FIGHT_DURATION_MS,
+      false,
     );
     expect(result.castCount).toBe(0);
   });
@@ -214,9 +221,78 @@ describe("computeRestackTax", () => {
         DRUID_ID,
         LIFEBLOOM_IDS,
         FIGHT_DURATION_MS,
+        false,
       );
       expect(result.castCount).toBe(restackCasts);
       expect(result.judgement).toBe(expected);
     },
   );
+
+  it("adds no allowance when not on Faerie Fire duty", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 100, targetID: 42, stack: 2 }),
+      anApplyBuffStackEvent({ timestamp: 200, targetID: 42, stack: 3 }),
+      aRemoveBuffEvent({ timestamp: 10000, targetID: 42 }),
+    ];
+    // 6 rebuild casts after the free ramp, on a 5-minute fight: goodMax
+    // without allowance = floor(5/2)+1 = 3, fairMax = floor(5) = 5 -- 6
+    // casts is > fairMax, so this reads "bad" with no allowance.
+    const castEvents = [
+      aCastEvent({ timestamp: 0, targetID: 42 }),
+      aCastEvent({ timestamp: 100, targetID: 42 }),
+      aCastEvent({ timestamp: 200, targetID: 42 }),
+      aCastEvent({ timestamp: 20000, targetID: 42 }),
+      aCastEvent({ timestamp: 21000, targetID: 42 }),
+      aCastEvent({ timestamp: 22000, targetID: 42 }),
+      aCastEvent({ timestamp: 23000, targetID: 42 }),
+      aCastEvent({ timestamp: 24000, targetID: 42 }),
+      aCastEvent({ timestamp: 25000, targetID: 42 }),
+    ];
+
+    const result = computeRestackTax(
+      buffEvents,
+      castEvents,
+      DRUID_ID,
+      LIFEBLOOM_IDS,
+      300000,
+      false,
+    );
+    expect(result.castCount).toBe(6);
+    expect(result.judgement).toBe("bad");
+  });
+
+  it("widens the good/fair bands by the calibrated allowance when on Faerie Fire duty", () => {
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 100, targetID: 42, stack: 2 }),
+      anApplyBuffStackEvent({ timestamp: 200, targetID: 42, stack: 3 }),
+      aRemoveBuffEvent({ timestamp: 10000, targetID: 42 }),
+    ];
+    // Same 6-cast shape as the previous test, but with onFaerieFireDuty
+    // true: fairMax becomes floor(5)+5 = 10, so 6 casts now reads "good"
+    // (goodMax = floor(5/2)+1+5 = 8, and 6 < 8).
+    const castEvents = [
+      aCastEvent({ timestamp: 0, targetID: 42 }),
+      aCastEvent({ timestamp: 100, targetID: 42 }),
+      aCastEvent({ timestamp: 200, targetID: 42 }),
+      aCastEvent({ timestamp: 20000, targetID: 42 }),
+      aCastEvent({ timestamp: 21000, targetID: 42 }),
+      aCastEvent({ timestamp: 22000, targetID: 42 }),
+      aCastEvent({ timestamp: 23000, targetID: 42 }),
+      aCastEvent({ timestamp: 24000, targetID: 42 }),
+      aCastEvent({ timestamp: 25000, targetID: 42 }),
+    ];
+
+    const result = computeRestackTax(
+      buffEvents,
+      castEvents,
+      DRUID_ID,
+      LIFEBLOOM_IDS,
+      300000,
+      true,
+    );
+    expect(result.castCount).toBe(6);
+    expect(result.judgement).toBe("good");
+  });
 });

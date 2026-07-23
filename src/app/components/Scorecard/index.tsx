@@ -45,6 +45,8 @@ export interface ScorecardProps {
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
   resolvedAbilities: Map<number, ResolvedAbility>;
+  faerieFireAbilityIds: Set<number>;
+  bossActorIds: Set<number>;
   targetNames: Map<number, string>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: (
@@ -105,6 +107,8 @@ export function Scorecard({
   swiftmendAbilityIds,
   naturesSwiftnessAbilityIds,
   resolvedAbilities,
+  faerieFireAbilityIds,
+  bossActorIds,
   targetNames,
   actorClasses,
   fetchEvents,
@@ -136,6 +140,8 @@ export function Scorecard({
     actorClasses,
     fetchEvents,
     fetchLookbackEvents,
+    faerieFireAbilityIds,
+    bossActorIds,
   );
   const healingAbilityIds = useMemo(
     () => getHealingAbilityIds(resolvedAbilities),
@@ -431,6 +437,8 @@ export function Scorecard({
             fight={fight}
             druidId={druidId}
             lifebloomAbilityIds={lifebloomAbilityIds}
+            faerieFireAbilityIds={faerieFireAbilityIds}
+            bossActorIds={bossActorIds}
             targetNames={targetNames}
             fetchEvents={fetchEvents}
             fetchLookbackEvents={fetchLookbackEvents}

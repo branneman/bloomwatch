@@ -7,18 +7,22 @@ describe("AbilityResolver", () => {
   it("fetches master data abilities and reports the resolved map once loaded", async () => {
     const ability = aReportAbility({ gameID: 33763, name: "Lifebloom" });
     const fetchMasterDataAbilities = () => Promise.resolve([ability]);
+    const fetchBossActorIds = () => Promise.resolve(new Set([149]));
     const onResolved = vi.fn();
     render(
       <AbilityResolver
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
         fetchMasterDataAbilities={fetchMasterDataAbilities}
+        fetchBossActorIds={fetchBossActorIds}
         onResolved={onResolved}
       />,
     );
     await waitFor(() =>
       expect(onResolved).toHaveBeenCalledWith(
         new Map([[33763, { kind: "spell", spell: "Lifebloom", rank: 1 }]]),
+        new Set(),
+        new Set([149]),
       ),
     );
   });
@@ -30,6 +34,7 @@ describe("AbilityResolver", () => {
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
         fetchMasterDataAbilities={fetchMasterDataAbilities}
+        fetchBossActorIds={() => Promise.resolve(new Set())}
         onResolved={vi.fn()}
       />,
     );
@@ -47,6 +52,7 @@ describe("AbilityResolver", () => {
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
         fetchMasterDataAbilities={fetchMasterDataAbilities}
+        fetchBossActorIds={() => Promise.resolve(new Set())}
         onResolved={vi.fn()}
       />,
     );
@@ -75,6 +81,7 @@ describe("AbilityResolver", () => {
         accessToken="test-token"
         reportCode="4GYHZRdtL3bvhpc8"
         fetchMasterDataAbilities={fetchMasterDataAbilities}
+        fetchBossActorIds={() => Promise.resolve(new Set())}
         onResolved={vi.fn()}
       />,
     );
@@ -82,5 +89,27 @@ describe("AbilityResolver", () => {
     expect(capturedSignal?.aborted).toBe(false);
     unmount();
     expect(capturedSignal?.aborted).toBe(true);
+  });
+
+  it("resolves Faerie Fire ability IDs and boss actor IDs alongside the ability map", async () => {
+    const ability = aReportAbility({ gameID: 33763, name: "Lifebloom" });
+    const ffAbility = aReportAbility({ gameID: 26993, name: "Faerie Fire" });
+    const fetchMasterDataAbilities = () =>
+      Promise.resolve([ability, ffAbility]);
+    const fetchBossActorIds = () => Promise.resolve(new Set([149]));
+    const onResolved = vi.fn();
+    render(
+      <AbilityResolver
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        fetchMasterDataAbilities={fetchMasterDataAbilities}
+        fetchBossActorIds={fetchBossActorIds}
+        onResolved={onResolved}
+      />,
+    );
+    await waitFor(() => expect(onResolved).toHaveBeenCalled());
+    const [, faerieFireAbilityIds, bossActorIds] = onResolved.mock.calls[0];
+    expect(faerieFireAbilityIds).toEqual(new Set([26993]));
+    expect(bossActorIds).toEqual(new Set([149]));
   });
 });

@@ -16,6 +16,8 @@ export interface LifebloomDisciplineContentProps {
   fight: Fight;
   druidId: number;
   lifebloomAbilityIds: Set<number>;
+  faerieFireAbilityIds: Set<number>;
+  bossActorIds: Set<number>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -40,6 +42,8 @@ export function LifebloomDisciplineContent({
   fight,
   druidId,
   lifebloomAbilityIds,
+  faerieFireAbilityIds,
+  bossActorIds,
   targetNames,
   fetchEvents,
   fetchLookbackEvents,
@@ -81,6 +85,8 @@ export function LifebloomDisciplineContent({
         fight={fight}
         druidId={druidId}
         lifebloomAbilityIds={lifebloomAbilityIds}
+        faerieFireAbilityIds={faerieFireAbilityIds}
+        bossActorIds={bossActorIds}
         targetNames={targetNames}
         fetchEvents={fetchEvents}
       />

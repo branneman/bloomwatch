@@ -7,6 +7,7 @@ import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
+  fetchBossActorIds,
   exchangeCodeForToken,
   WclApiError,
   type ReportAbility,
@@ -27,6 +28,7 @@ vi.mock("./wcl/client", async (importOriginal) => ({
   fetchReportFights: vi.fn(),
   fetchCastsTable: vi.fn(),
   fetchMasterDataAbilities: vi.fn(),
+  fetchBossActorIds: vi.fn(),
   exchangeCodeForToken: vi.fn(),
 }));
 
@@ -62,6 +64,7 @@ function setUpHappyPathMocks() {
     events: [],
     nextPageTimestamp: null,
   });
+  vi.mocked(fetchBossActorIds).mockResolvedValue(new Set());
 }
 
 async function loadReport(user: ReturnType<typeof userEvent.setup>) {

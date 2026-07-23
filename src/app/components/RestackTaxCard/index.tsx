@@ -6,6 +6,7 @@ import {
   computeRestackTax,
   type RestackTaxResult,
 } from "../../../metrics/restackTax";
+import { computeFaerieFireDuty } from "../../../metrics/faerieFireDuty";
 import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
@@ -19,6 +20,8 @@ export interface RestackTaxCardProps {
   fight: Fight;
   druidId: number;
   lifebloomAbilityIds: Set<number>;
+  faerieFireAbilityIds: Set<number>;
+  bossActorIds: Set<number>;
   targetNames: Map<number, string>;
   fetchEvents: (
     accessToken: string,
@@ -30,7 +33,7 @@ export interface RestackTaxCardProps {
 }
 
 type FetchResult =
-  | { accessToken: string; result: RestackTaxResult }
+  | { accessToken: string; result: RestackTaxResult; onDuty: boolean }
   | { accessToken: string; error: string };
 
 const THRESHOLD =
@@ -43,6 +46,8 @@ export function RestackTaxCard({
   fight,
   druidId,
   lifebloomAbilityIds,
+  faerieFireAbilityIds,
+  bossActorIds,
   targetNames,
   fetchEvents,
 }: RestackTaxCardProps) {
@@ -60,14 +65,26 @@ export function RestackTaxCard({
     ])
       .then(([buffEvents, castEvents]) => {
         try {
+          const faerieFireDuty = computeFaerieFireDuty(
+            castEvents,
+            druidId,
+            faerieFireAbilityIds,
+            bossActorIds,
+            fight.endTime - fight.startTime,
+          );
           const computed = computeRestackTax(
             buffEvents,
             castEvents,
             druidId,
             lifebloomAbilityIds,
             fight.endTime - fight.startTime,
+            faerieFireDuty.onDuty,
           );
-          setResult({ accessToken, result: computed });
+          setResult({
+            accessToken,
+            result: computed,
+            onDuty: faerieFireDuty.onDuty,
+          });
         } catch (err) {
           setResult({
             accessToken,
@@ -93,6 +110,8 @@ export function RestackTaxCard({
     druidId,
     lifebloomAbilityIds,
     fetchEvents,
+    faerieFireAbilityIds,
+    bossActorIds,
   ]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;

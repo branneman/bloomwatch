@@ -7,6 +7,7 @@ import {
   anApplyBuffStackEvent,
   aRefreshBuffEvent,
   aFight,
+  aCastEvent,
 } from "../../../testUtils/factories";
 
 describe("useLifebloomDisciplineSummary", () => {
@@ -44,6 +45,8 @@ describe("useLifebloomDisciplineSummary", () => {
         new Set([33763]),
         fetchEvents,
         fetchLookbackEvents,
+        new Set(),
+        new Set(),
       ),
     );
 
@@ -68,6 +71,8 @@ describe("useLifebloomDisciplineSummary", () => {
         new Set([33763]),
         fetchEvents,
         fetchLookbackEvents,
+        new Set(),
+        new Set(),
       ),
     );
 
@@ -109,6 +114,8 @@ describe("useLifebloomDisciplineSummary", () => {
     // `new Set(...)` in the renderHook callback would be a new reference
     // every render, re-triggering the effect and inflating call counts).
     const lifebloomAbilityIds = new Set([33763]);
+    const faerieFireAbilityIds = new Set<number>();
+    const bossActorIds = new Set<number>();
 
     const { result } = renderHook(() =>
       useLifebloomDisciplineSummary(
@@ -119,6 +126,8 @@ describe("useLifebloomDisciplineSummary", () => {
         lifebloomAbilityIds,
         fetchEvents,
         fetchLookbackEvents,
+        faerieFireAbilityIds,
+        bossActorIds,
       ),
     );
 
@@ -178,6 +187,8 @@ describe("useLifebloomDisciplineSummary", () => {
         lifebloomAbilityIds,
         fetchEvents,
         fetchLookbackEvents,
+        new Set(),
+        new Set(),
       ),
     );
 
@@ -185,5 +196,82 @@ describe("useLifebloomDisciplineSummary", () => {
 
     expect(fetchLookbackEvents).not.toHaveBeenCalled();
     expect(fetchLookbackEvents).toHaveBeenCalledTimes(0);
+  });
+
+  it("widens the re-stack tax judgement when the druid is on Faerie Fire duty this fight", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 300000 });
+    const FF_ID = 26993;
+    const BOSS_ID = 149;
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, sourceID: 2, targetID: 42 }),
+      anApplyBuffStackEvent({
+        timestamp: 100,
+        sourceID: 2,
+        targetID: 42,
+        stack: 2,
+      }),
+      anApplyBuffStackEvent({
+        timestamp: 200,
+        sourceID: 2,
+        targetID: 42,
+        stack: 3,
+      }),
+    ];
+    // 3 boss-targeted Faerie Fire casts spanning most of the fight, meeting
+    // computeFaerieFireDuty's on-duty thresholds for this duration.
+    const castEvents = [
+      aCastEvent({
+        timestamp: 5000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+      aCastEvent({
+        timestamp: 100000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+      aCastEvent({
+        timestamp: 200000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+    ];
+    const fetchEvents = (
+      _token: string,
+      _report: string,
+      _fight: unknown,
+      dataType: string,
+    ) => {
+      if (dataType === "Buffs") return Promise.resolve(buffEvents);
+      if (dataType === "Casts") return Promise.resolve(castEvents);
+      return Promise.resolve([]);
+    };
+    const fetchLookbackEvents = () => Promise.resolve([]);
+
+    const { result } = renderHook(() =>
+      useLifebloomDisciplineSummary(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+        fight,
+        2,
+        new Set([33763]),
+        fetchEvents,
+        fetchLookbackEvents,
+        new Set([FF_ID]),
+        new Set([BOSS_ID]),
+      ),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+    // Real assertion: this test's fixture has zero re-stack tax casts, so
+    // the allowance can't be observed via the judgement here (0 casts is
+    // "good" either way) -- this test instead verifies the plumbing
+    // reaches computeRestackTax without throwing and the summary still
+    // resolves "ready". The allowance's actual effect on the judgement
+    // boundary is unit-tested directly in restackTax.test.ts (Task 3,
+    // Step 3), which is the load-bearing test for the numeric behavior.
   });
 });

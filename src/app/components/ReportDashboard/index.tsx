@@ -44,6 +44,8 @@ export interface ReportDashboardProps {
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
   resolvedAbilities: Map<number, ResolvedAbility>;
+  faerieFireAbilityIds: Set<number>;
+  bossActorIds: Set<number>;
   targetNames: Map<number, string>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: (
@@ -148,6 +150,8 @@ interface FightRowProps {
   swiftmendAbilityIds: Set<number>;
   naturesSwiftnessAbilityIds: Set<number>;
   resolvedAbilities: Map<number, ResolvedAbility>;
+  faerieFireAbilityIds: Set<number>;
+  bossActorIds: Set<number>;
   actorClasses: Map<number, ActorClass>;
   fetchEvents: ReportDashboardProps["fetchEvents"];
   fetchLookbackEvents: ReportDashboardProps["fetchLookbackEvents"];
@@ -168,6 +172,8 @@ function FightRow({
   swiftmendAbilityIds,
   naturesSwiftnessAbilityIds,
   resolvedAbilities,
+  faerieFireAbilityIds,
+  bossActorIds,
   actorClasses,
   fetchEvents,
   fetchLookbackEvents,
@@ -186,6 +192,8 @@ function FightRow({
     actorClasses,
     fetchEvents,
     fetchLookbackEvents,
+    faerieFireAbilityIds,
+    bossActorIds,
   );
   const healingRole = useHealingRoleThisFight(
     accessToken,
@@ -260,6 +268,8 @@ export function ReportDashboard({
   swiftmendAbilityIds,
   naturesSwiftnessAbilityIds,
   resolvedAbilities,
+  faerieFireAbilityIds,
+  bossActorIds,
   targetNames,
   actorClasses,
   fetchEvents,
@@ -318,6 +328,8 @@ export function ReportDashboard({
         swiftmendAbilityIds={swiftmendAbilityIds}
         naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
         resolvedAbilities={resolvedAbilities}
+        faerieFireAbilityIds={faerieFireAbilityIds}
+        bossActorIds={bossActorIds}
         targetNames={targetNames}
         actorClasses={actorClasses}
         fetchEvents={fetchEvents}
@@ -418,6 +430,8 @@ export function ReportDashboard({
             swiftmendAbilityIds={swiftmendAbilityIds}
             naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
             resolvedAbilities={resolvedAbilities}
+            faerieFireAbilityIds={faerieFireAbilityIds}
+            bossActorIds={bossActorIds}
             actorClasses={actorClasses}
             fetchEvents={fetchEvents}
             fetchLookbackEvents={fetchLookbackEvents}

@@ -4,6 +4,7 @@ import {
   resolveAbilities,
   type ResolvedAbility,
 } from "../../../abilities/resolveAbilities";
+import { resolveFaerieFireAbilityIds } from "../../../abilities/resolveFaerieFireAbilityIds";
 import { Shell } from "../ui/Shell";
 
 export interface AbilityResolverProps {
@@ -14,7 +15,16 @@ export interface AbilityResolverProps {
     reportCode: string,
     signal?: AbortSignal,
   ) => Promise<ReportAbility[]>;
-  onResolved: (resolved: Map<number, ResolvedAbility>) => void;
+  fetchBossActorIds: (
+    accessToken: string,
+    reportCode: string,
+    signal?: AbortSignal,
+  ) => Promise<Set<number>>;
+  onResolved: (
+    resolved: Map<number, ResolvedAbility>,
+    faerieFireAbilityIds: Set<number>,
+    bossActorIds: Set<number>,
+  ) => void;
 }
 
 type FetchResult = {
@@ -26,26 +36,37 @@ export function AbilityResolver({
   accessToken,
   reportCode,
   fetchMasterDataAbilities,
+  fetchBossActorIds,
   onResolved,
 }: AbilityResolverProps) {
   const [result, setResult] = useState<FetchResult | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchMasterDataAbilities(accessToken, reportCode, controller.signal)
-      .then((abilities) => {
+    Promise.all([
+      fetchMasterDataAbilities(accessToken, reportCode, controller.signal),
+      fetchBossActorIds(accessToken, reportCode, controller.signal),
+    ])
+      .then(([abilities, bossActorIds]) => {
         const resolved = resolveAbilities(abilities);
+        const faerieFireAbilityIds = resolveFaerieFireAbilityIds(abilities);
         setResult({ accessToken, resolved });
-        onResolved(resolved);
+        onResolved(resolved, faerieFireAbilityIds, bossActorIds);
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         // Anything else is already escalated to the full-screen recovery
-        // overlay by the wrapped fetchMasterDataAbilities (see
-        // wcl/client.ts's withErrorReporting) — nothing to render locally.
+        // overlay by the wrapped fetch functions (see wcl/client.ts's
+        // withErrorReporting) — nothing to render locally.
       });
     return () => controller.abort();
-  }, [accessToken, reportCode, fetchMasterDataAbilities, onResolved]);
+  }, [
+    accessToken,
+    reportCode,
+    fetchMasterDataAbilities,
+    fetchBossActorIds,
+    onResolved,
+  ]);
 
   const isCurrent = result !== null && result.accessToken === accessToken;
   if (!isCurrent)

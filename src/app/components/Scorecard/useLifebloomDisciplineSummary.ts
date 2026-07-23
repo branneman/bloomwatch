@@ -7,6 +7,7 @@ import { computeRefreshCadence } from "../../../metrics/refreshCadence";
 import { computeAccidentalBlooms } from "../../../metrics/accidentalBlooms";
 import { computeRestackTax } from "../../../metrics/restackTax";
 import { computeConcurrentLb3Targets } from "../../../metrics/concurrentLb3Targets";
+import { computeFaerieFireDuty } from "../../../metrics/faerieFireDuty";
 import { detectCarryInTargets } from "../../../metrics/lifebloomStacks";
 import { summarizeLifebloomDiscipline } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
@@ -36,6 +37,8 @@ export function useLifebloomDisciplineSummary(
     endTime: number,
     includeResources?: boolean,
   ) => Promise<WclEvent[]>,
+  faerieFireAbilityIds: Set<number>,
+  bossActorIds: Set<number>,
 ): EpicSummaryStatus {
   const [state, setState] = useState<TaggedState | null>(null);
 
@@ -87,12 +90,20 @@ export function useLifebloomDisciplineSummary(
           druidId,
           lifebloomAbilityIds,
         );
+        const faerieFireDuty = computeFaerieFireDuty(
+          castEvents,
+          druidId,
+          faerieFireAbilityIds,
+          bossActorIds,
+          fight.endTime - fight.startTime,
+        );
         const restack = computeRestackTax(
           buffEvents,
           castEvents,
           druidId,
           lifebloomAbilityIds,
           fight.endTime - fight.startTime,
+          faerieFireDuty.onDuty,
         );
         const concurrent = computeConcurrentLb3Targets(
           buffEvents,
@@ -138,6 +149,8 @@ export function useLifebloomDisciplineSummary(
     lifebloomAbilityIds,
     fetchEvents,
     fetchLookbackEvents,
+    faerieFireAbilityIds,
+    bossActorIds,
   ]);
 
   if (state === null || state.accessToken !== accessToken) {

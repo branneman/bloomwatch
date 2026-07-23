@@ -326,6 +326,14 @@ export async function computeFightResult(
       druidId,
       ctx.lifebloomAbilityIds,
       durationMs,
+      // Deliberately false, not faerieFireDuty.onDuty: this calibration corpus
+      // is the mitigation's own measurement baseline (docs/specs/
+      // faerie-fire-duty-mitigation-design.md) and must keep reporting raw,
+      // unmitigated re-stack tax so a future recalibration -- e.g. once story
+      // 916 changes the underlying unit -- can re-derive an allowance from real
+      // ground truth, rather than validating the mitigation against its own
+      // already-mitigated output.
+      false,
     );
     const concurrentLb3Targets = computeConcurrentLb3Targets(
       buffEvents,

@@ -5,6 +5,7 @@ import {
   fetchReportFights,
   fetchCastsTable,
   fetchMasterDataAbilities,
+  fetchBossActorIds,
   type ReportFights,
   type CastTableEntry,
 } from "./wcl/client";
@@ -79,6 +80,9 @@ function App() {
     number,
     ResolvedAbility
   > | null>(null);
+  const [faerieFireAbilityIds, setFaerieFireAbilityIds] =
+    useState<Set<number> | null>(null);
+  const [bossActorIds, setBossActorIds] = useState<Set<number> | null>(null);
   const [eventFetcher] = useState(() => createEventFetcher());
   const pendingRouteRef = useRef<Route | null>(null);
   // Which reportCode the currently-loaded report-scoped state belongs to, so a
@@ -137,6 +141,14 @@ function App() {
       ),
     [reportRateLimited, reportError],
   );
+  const wrappedFetchBossActorIds = useMemo(
+    () =>
+      withErrorReporting(
+        withRateLimitDetection(fetchBossActorIds, reportRateLimited),
+        reportError,
+      ),
+    [reportRateLimited, reportError],
+  );
   const wrappedFetchEvents = useMemo(
     () =>
       withErrorReporting(
@@ -163,8 +175,23 @@ function App() {
     setActorNames(new Map());
     setActorClasses(new Map());
     setResolvedAbilities(null);
+    setFaerieFireAbilityIds(null);
+    setBossActorIds(null);
     setPickedDruidId(null);
   }
+
+  const handleAbilitiesResolved = useCallback(
+    (
+      resolved: Map<number, ResolvedAbility>,
+      ffAbilityIds: Set<number>,
+      bossIds: Set<number>,
+    ) => {
+      setResolvedAbilities(resolved);
+      setFaerieFireAbilityIds(ffAbilityIds);
+      setBossActorIds(bossIds);
+    },
+    [],
+  );
 
   // Report-scoped state (loadedReport/druidCandidates/resolvedAbilities/etc.)
   // is tied to whichever report it was fetched for. handleReportSubmit and
@@ -537,7 +564,8 @@ function App() {
               accessToken={accessToken}
               reportCode={reportCode}
               fetchMasterDataAbilities={wrappedFetchMasterDataAbilities}
-              onResolved={setResolvedAbilities}
+              fetchBossActorIds={wrappedFetchBossActorIds}
+              onResolved={handleAbilitiesResolved}
             />
           )}
 
@@ -618,6 +646,8 @@ function App() {
             host !== null &&
             selectedDruid !== null &&
             resolvedAbilities !== null &&
+            faerieFireAbilityIds !== null &&
+            bossActorIds !== null &&
             lifebloomAbilityIds !== null &&
             rejuvenationAbilityIds !== null &&
             regrowthAbilityIds !== null &&
@@ -638,6 +668,8 @@ function App() {
                   swiftmendAbilityIds={swiftmendAbilityIds}
                   naturesSwiftnessAbilityIds={naturesSwiftnessAbilityIds}
                   resolvedAbilities={resolvedAbilities}
+                  faerieFireAbilityIds={faerieFireAbilityIds}
+                  bossActorIds={bossActorIds}
                   targetNames={actorNames}
                   actorClasses={actorClasses}
                   fetchEvents={wrappedFetchEvents}

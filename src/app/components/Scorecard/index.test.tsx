@@ -31,6 +31,8 @@ const baseProps = {
   resolvedAbilities: new Map([
     [33763, { kind: "spell" as const, spell: "Lifebloom" as const, rank: 1 }],
   ]),
+  faerieFireAbilityIds: new Set<number>(),
+  bossActorIds: new Set<number>(),
   targetNames: new Map(),
   actorClasses: new Map(),
   fetchLookbackEvents: () => Promise.resolve([]),
