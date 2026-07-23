@@ -246,7 +246,9 @@ export function Scorecard({
               label="GCD economy"
               onOpen={() => onSelectEpic("gcd")}
               judgement={
-                gcdSummary.status === "ready" ? gcdSummary.judgement : undefined
+                gcdSummary.status === "ready"
+                  ? (gcdSummary.judgement ?? undefined)
+                  : undefined
               }
               stats={
                 gcdSummary.status === "ready" ? gcdSummary.stats : undefined
@@ -264,12 +266,14 @@ export function Scorecard({
               label="Lifebloom discipline"
               onOpen={() => onSelectEpic("lifebloom")}
               judgement={
-                lifebloomSummary.status === "ready"
+                lifebloomSummary.status === "ready" &&
+                lifebloomSummary.judgement !== null
                   ? lifebloomSummary.judgement
                   : undefined
               }
               stats={
-                lifebloomSummary.status === "ready"
+                lifebloomSummary.status === "ready" &&
+                lifebloomSummary.judgement !== null
                   ? lifebloomSummary.stats
                   : undefined
               }
@@ -278,7 +282,10 @@ export function Scorecard({
                   ? "Calculating…"
                   : lifebloomSummary.status === "error"
                     ? lifebloomSummary.error
-                    : undefined
+                    : lifebloomSummary.status === "ready" &&
+                        lifebloomSummary.judgement === null
+                      ? "No Lifebloom casts this fight"
+                      : undefined
               }
             />
             <Widget
@@ -287,7 +294,7 @@ export function Scorecard({
               onOpen={() => onSelectEpic("spell")}
               judgement={
                 spellSummary.status === "ready"
-                  ? spellSummary.judgement
+                  ? (spellSummary.judgement ?? undefined)
                   : undefined
               }
               stats={
@@ -307,7 +314,7 @@ export function Scorecard({
               onOpen={() => onSelectEpic("mana")}
               judgement={
                 manaSummary.status === "ready"
-                  ? manaSummary.judgement
+                  ? (manaSummary.judgement ?? undefined)
                   : undefined
               }
               stats={
@@ -327,7 +334,7 @@ export function Scorecard({
               onOpen={() => onSelectEpic("death")}
               judgement={
                 deathSummary.status === "ready"
-                  ? deathSummary.judgement
+                  ? (deathSummary.judgement ?? undefined)
                   : undefined
               }
               stats={
@@ -347,7 +354,7 @@ export function Scorecard({
               onOpen={() => onSelectEpic("crisis")}
               judgement={
                 crisisSummary.status === "ready"
-                  ? crisisSummary.judgement
+                  ? (crisisSummary.judgement ?? undefined)
                   : undefined
               }
               stats={
@@ -369,7 +376,7 @@ export function Scorecard({
               onOpen={() => onSelectEpic("prep")}
               judgement={
                 prepSummary.status === "ready"
-                  ? prepSummary.judgement
+                  ? (prepSummary.judgement ?? undefined)
                   : undefined
               }
               stats={
@@ -399,7 +406,7 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={GCD_ECONOMY_ICON} />
             <h2 className={styles.epicTitle}>GCD economy</h2>
-            {gcdSummary.status === "ready" && (
+            {gcdSummary.status === "ready" && gcdSummary.judgement !== null && (
               <JudgementChip judgement={gcdSummary.judgement} />
             )}
           </div>
@@ -426,14 +433,21 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={lifebloomIcon} />
             <h2 className={styles.epicTitle}>Lifebloom discipline</h2>
-            {lifebloomSummary.status === "ready" && (
-              <JudgementChip judgement={lifebloomSummary.judgement} />
-            )}
+            {lifebloomSummary.status === "ready" &&
+              lifebloomSummary.judgement !== null && (
+                <JudgementChip judgement={lifebloomSummary.judgement} />
+              )}
           </div>
           <LifebloomDisciplineContent
             accessToken={accessToken}
             reportCode={reportCode}
             host={host}
+            showCards={
+              !(
+                lifebloomSummary.status === "ready" &&
+                lifebloomSummary.judgement === null
+              )
+            }
             fight={fight}
             druidId={druidId}
             lifebloomAbilityIds={lifebloomAbilityIds}
@@ -458,9 +472,10 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={SPELL_DISCIPLINE_ICON} />
             <h2 className={styles.epicTitle}>Spell discipline</h2>
-            {spellSummary.status === "ready" && (
-              <JudgementChip judgement={spellSummary.judgement} />
-            )}
+            {spellSummary.status === "ready" &&
+              spellSummary.judgement !== null && (
+                <JudgementChip judgement={spellSummary.judgement} />
+              )}
           </div>
           <SpellDisciplineContent
             accessToken={accessToken}
@@ -491,9 +506,10 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={MANA_ECONOMY_ICON} />
             <h2 className={styles.epicTitle}>Mana economy</h2>
-            {manaSummary.status === "ready" && (
-              <JudgementChip judgement={manaSummary.judgement} />
-            )}
+            {manaSummary.status === "ready" &&
+              manaSummary.judgement !== null && (
+                <JudgementChip judgement={manaSummary.judgement} />
+              )}
           </div>
           <ManaEconomyContent
             accessToken={accessToken}
@@ -521,9 +537,10 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={DEATH_FORENSICS_ICON} />
             <h2 className={styles.epicTitle}>Death forensics</h2>
-            {deathSummary.status === "ready" && (
-              <JudgementChip judgement={deathSummary.judgement} />
-            )}
+            {deathSummary.status === "ready" &&
+              deathSummary.judgement !== null && (
+                <JudgementChip judgement={deathSummary.judgement} />
+              )}
           </div>
           <DeathForensicsContent
             accessToken={accessToken}
@@ -552,9 +569,10 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={CRISIS_RESPONSE_ICON} />
             <h2 className={styles.epicTitle}>Crisis response</h2>
-            {crisisSummary.status === "ready" && (
-              <JudgementChip judgement={crisisSummary.judgement} />
-            )}
+            {crisisSummary.status === "ready" &&
+              crisisSummary.judgement !== null && (
+                <JudgementChip judgement={crisisSummary.judgement} />
+              )}
           </div>
           <NearDeathResponseContent
             accessToken={accessToken}
@@ -587,9 +605,10 @@ export function Scorecard({
           <div className={styles.epicHeader}>
             <SpellIcon src={PREP_HYGIENE_ICON} />
             <h2 className={styles.epicTitle}>Prep hygiene</h2>
-            {prepSummary.status === "ready" && (
-              <JudgementChip judgement={prepSummary.judgement} />
-            )}
+            {prepSummary.status === "ready" &&
+              prepSummary.judgement !== null && (
+                <JudgementChip judgement={prepSummary.judgement} />
+              )}
           </div>
           <PrepHygieneContent
             accessToken={accessToken}

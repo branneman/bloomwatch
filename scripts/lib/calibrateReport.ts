@@ -29,7 +29,10 @@ import { computeRefreshCadence } from "../../src/metrics/refreshCadence";
 import { computeAccidentalBlooms } from "../../src/metrics/accidentalBlooms";
 import { computeRestackTax } from "../../src/metrics/restackTax";
 import { computeConcurrentLb3Targets } from "../../src/metrics/concurrentLb3Targets";
-import { detectCarryInTargets } from "../../src/metrics/lifebloomStacks";
+import {
+  detectCarryInTargets,
+  hasLifebloomCast,
+} from "../../src/metrics/lifebloomStacks";
 import { computeHotClipDetection } from "../../src/metrics/hotClipDetection";
 import { computeSwiftmendAudit } from "../../src/metrics/swiftmendAudit";
 import { computeDownrankingDiscipline } from "../../src/metrics/downrankingDiscipline";
@@ -350,6 +353,7 @@ export async function computeFightResult(
         accidentalBlooms,
         restackTax,
         concurrentLb3Targets,
+        hasLifebloomCast(castEvents, druidId, ctx.lifebloomAbilityIds),
       ),
       metrics: {
         lb3Uptime,

@@ -24,7 +24,7 @@ import type { ConcurrentLb3Result } from "./concurrentLb3Targets";
 import type { NaturesSwiftnessAuditResult } from "./naturesSwiftnessAudit";
 
 export interface EpicSummary {
-  judgement: Judgement;
+  judgement: Judgement | null;
   stats: string[];
 }
 
@@ -54,7 +54,12 @@ export function summarizeLifebloomDiscipline(
   blooms: AccidentalBloomsResult,
   restack: RestackTaxResult,
   concurrent: ConcurrentLb3Result,
+  hasLifebloomCast: boolean,
 ): EpicSummary {
+  if (!hasLifebloomCast) {
+    return { judgement: null, stats: ["No Lifebloom casts this fight"] };
+  }
+
   // Per-target LB3 judgements are reduced to one representative judgement
   // via weightedMedianJudgement (weighted by each target's own tracked-
   // uptime window) before joining the other siblings below — added

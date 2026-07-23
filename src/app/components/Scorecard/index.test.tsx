@@ -312,4 +312,50 @@ describe("Scorecard", () => {
       screen.queryByText(/isn't one Bloomwatch judges well yet/),
     ).not.toBeInTheDocument();
   });
+
+  it("excludes Lifebloom discipline from judgement when the druid cast none this fight, hiding its chip and detail cards", async () => {
+    const fight = aFight({
+      id: 6,
+      name: "Solarian",
+      kill: true,
+      startTime: 0,
+      endTime: 341000,
+    });
+    const fetchEvents = () => Promise.resolve([]);
+
+    const { rerender } = render(
+      <Scorecard {...baseProps} fight={fight} fetchEvents={fetchEvents} />,
+    );
+
+    const lifebloomWidget = await screen.findByRole("button", {
+      name: /Lifebloom discipline/,
+    });
+    await waitFor(() =>
+      expect(lifebloomWidget).toHaveTextContent(
+        "No Lifebloom casts this fight",
+      ),
+    );
+    expect(lifebloomWidget).not.toHaveTextContent(/Good|Fair|Bad/);
+
+    rerender(
+      <Scorecard
+        {...baseProps}
+        fight={fight}
+        fetchEvents={fetchEvents}
+        activeEpic="lifebloom"
+      />,
+    );
+
+    expect(
+      await screen.findByText(
+        "No Lifebloom casts this fight, so there's nothing to grade here.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "LB3 uptime per target" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Accidental blooms" }),
+    ).not.toBeInTheDocument();
+  });
 });

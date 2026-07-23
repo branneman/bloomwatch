@@ -54,7 +54,12 @@ export interface PrepHygieneMetrics {
 }
 
 export type EpicResult<M> =
-  | { status: "ready"; judgement: Judgement; stats: string[]; metrics: M }
+  | {
+      status: "ready";
+      judgement: Judgement | null;
+      stats: string[];
+      metrics: M;
+    }
   | { status: "error"; error: string };
 
 export interface FightResult {

@@ -18,6 +18,11 @@ const fair: EpicSummaryStatus = {
 };
 const bad: EpicSummaryStatus = { status: "ready", judgement: "bad", stats: [] };
 const errored: EpicSummaryStatus = { status: "error", error: "boom" };
+const excluded: EpicSummaryStatus = {
+  status: "ready",
+  judgement: null,
+  stats: ["No Lifebloom casts this fight"],
+};
 
 describe("combineFightEpicStatus", () => {
   it("stays loading until every epic has resolved", () => {
@@ -44,6 +49,13 @@ describe("combineFightEpicStatus", () => {
     expect(combineFightEpicStatus([loading, errored, good])).toEqual({
       status: "error",
       error: "boom",
+    });
+  });
+
+  it("excludes a ready-but-null-judgement epic from the worst-of, without blocking readiness", () => {
+    expect(combineFightEpicStatus([good, excluded, fair])).toEqual({
+      status: "ready",
+      judgement: "fair",
     });
   });
 });
@@ -99,5 +111,30 @@ describe("rollupEpicJudgement", () => {
         bad: [{ fightId: 3, label: "Boss C" }],
       },
     });
+  });
+
+  it("excludes a ready-but-null-judgement entry from the median, breakdown, and fights buckets", () => {
+    expect(
+      rollupEpicJudgement([
+        { status: good, weightMs: 8000, fightId: 1, label: "Boss A" },
+        { status: excluded, weightMs: 8000, fightId: 2, label: "Boss B" },
+      ]),
+    ).toEqual({
+      judgement: "good",
+      breakdown: { good: 1, fair: 0, bad: 0 },
+      fights: {
+        good: [{ fightId: 1, label: "Boss A" }],
+        fair: [],
+        bad: [],
+      },
+    });
+  });
+
+  it("returns null when every ready entry has a null judgement", () => {
+    expect(
+      rollupEpicJudgement([
+        { status: excluded, weightMs: 8000, fightId: 1, label: "Boss A" },
+      ]),
+    ).toBeNull();
   });
 });

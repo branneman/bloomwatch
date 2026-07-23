@@ -8,7 +8,10 @@ import { computeAccidentalBlooms } from "../../../metrics/accidentalBlooms";
 import { computeRestackTax } from "../../../metrics/restackTax";
 import { computeConcurrentLb3Targets } from "../../../metrics/concurrentLb3Targets";
 import { computeFaerieFireDuty } from "../../../metrics/faerieFireDuty";
-import { detectCarryInTargets } from "../../../metrics/lifebloomStacks";
+import {
+  detectCarryInTargets,
+  hasLifebloomCast,
+} from "../../../metrics/lifebloomStacks";
 import { summarizeLifebloomDiscipline } from "../../../metrics/epicSummary";
 import type { EpicSummaryStatus } from "./epicSummaryStatus";
 
@@ -123,6 +126,7 @@ export function useLifebloomDisciplineSummary(
               blooms,
               restack,
               concurrent,
+              hasLifebloomCast(castEvents, druidId, lifebloomAbilityIds),
             ),
           },
         });

@@ -6,8 +6,8 @@ import {
   anApplyBuffEvent,
   anApplyBuffStackEvent,
   aRefreshBuffEvent,
-  aFight,
   aCastEvent,
+  aFight,
 } from "../../../testUtils/factories";
 
 describe("useLifebloomDisciplineSummary", () => {
@@ -28,12 +28,22 @@ describe("useLifebloomDisciplineSummary", () => {
         stack: 3,
       }),
     ];
+    const castEvents = [
+      aCastEvent({ timestamp: 0, sourceID: 2, targetID: 42 }),
+    ];
     const fetchEvents = (
       _token: string,
       _report: string,
       _fight: unknown,
       dataType: string,
-    ) => Promise.resolve(dataType === "Buffs" ? buffEvents : []);
+    ) =>
+      Promise.resolve(
+        dataType === "Buffs"
+          ? buffEvents
+          : dataType === "Casts"
+            ? castEvents
+            : [],
+      );
     const fetchLookbackEvents = () => Promise.resolve([]);
 
     const { result } = renderHook(() =>
@@ -103,12 +113,27 @@ describe("useLifebloomDisciplineSummary", () => {
         sourceID: 2,
       }),
     ];
+    // A genuine in-fight 3-stack maintenance refresh (the aRefreshBuffEvent
+    // above) is always preceded by a real cast at essentially the same
+    // timestamp - without this, hasLifebloomCast would read false and the
+    // whole fight would be excluded rather than exercising carry-in
+    // resolution.
+    const castEvents = [
+      aCastEvent({ timestamp: 2016447, targetID: 5, sourceID: 2 }),
+    ];
     const fetchEvents = (
       _token: string,
       _report: string,
       _fight: unknown,
       dataType: string,
-    ) => Promise.resolve(dataType === "Buffs" ? buffEvents : []);
+    ) =>
+      Promise.resolve(
+        dataType === "Buffs"
+          ? buffEvents
+          : dataType === "Casts"
+            ? castEvents
+            : [],
+      );
     const fetchLookbackEvents = vi.fn().mockResolvedValue(lookbackEvents);
     // Hoisted so its identity is stable across re-renders (an inline
     // `new Set(...)` in the renderHook callback would be a new reference
@@ -169,12 +194,22 @@ describe("useLifebloomDisciplineSummary", () => {
         stack: 3,
       }),
     ];
+    const castEvents = [
+      aCastEvent({ timestamp: 0, sourceID: 2, targetID: 42 }),
+    ];
     const fetchEvents = (
       _token: string,
       _report: string,
       _fight: unknown,
       dataType: string,
-    ) => Promise.resolve(dataType === "Buffs" ? buffEvents : []);
+    ) =>
+      Promise.resolve(
+        dataType === "Buffs"
+          ? buffEvents
+          : dataType === "Casts"
+            ? castEvents
+            : [],
+      );
     const fetchLookbackEvents = vi.fn().mockResolvedValue([]);
     const lifebloomAbilityIds = new Set([33763]);
 
@@ -284,5 +319,32 @@ describe("useLifebloomDisciplineSummary", () => {
     // judgement) -- that boundary is unit-tested directly against
     // computeRestackTax/judgeRestackTax in restackTax.test.ts, which is the
     // load-bearing test for the numeric behavior.
+  });
+
+  it("excludes the epic when the druid cast zero Lifebloom-family spells this fight", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 10000 });
+    const fetchEvents = () => Promise.resolve([]);
+    const fetchLookbackEvents = () => Promise.resolve([]);
+
+    const { result } = renderHook(() =>
+      useLifebloomDisciplineSummary(
+        "test-token",
+        "4GYHZRdtL3bvhpc8",
+        fight,
+        2,
+        new Set([33763]),
+        fetchEvents,
+        fetchLookbackEvents,
+        new Set(),
+        new Set(),
+      ),
+    );
+
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+    expect(result.current).toEqual({
+      status: "ready",
+      judgement: null,
+      stats: ["No Lifebloom casts this fight"],
+    });
   });
 });

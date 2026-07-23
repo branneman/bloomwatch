@@ -67,11 +67,21 @@ export function rollupEpicJudgement(
     } => e.status.status === "ready",
   );
   if (ready.length === 0) return null;
-  const judgement = weightedMedianJudgement(
-    ready.map((e) => ({
-      judgement: e.status.judgement,
+  // A fight excluded from this epic (e.g. Lifebloom Discipline with zero
+  // Lifebloom casts) is "ready" but carries no judgement - drop it from
+  // the median/breakdown/fights buckets the same way a still-loading or
+  // errored fight already is, without touching combineFightEpicStatus's
+  // own per-fight worst-of (which tolerates null natively).
+  const judged = ready
+    .filter((e) => e.status.judgement !== null)
+    .map((e) => ({
+      judgement: e.status.judgement as Judgement,
       weightMs: e.weightMs,
-    })),
+      fightId: e.fightId,
+      label: e.label,
+    }));
+  const judgement = weightedMedianJudgement(
+    judged.map((e) => ({ judgement: e.judgement, weightMs: e.weightMs })),
   );
   if (judgement === null) return null;
   const fights: Record<Judgement, { fightId: number; label: string }[]> = {
@@ -79,13 +89,13 @@ export function rollupEpicJudgement(
     fair: [],
     bad: [],
   };
-  for (const e of ready) {
-    fights[e.status.judgement].push({ fightId: e.fightId, label: e.label });
+  for (const e of judged) {
+    fights[e.judgement].push({ fightId: e.fightId, label: e.label });
   }
   return {
     judgement,
     breakdown: judgementBreakdown(
-      ready.map((e) => ({ judgement: e.status.judgement })),
+      judged.map((e) => ({ judgement: e.judgement })),
     ),
     fights,
   };

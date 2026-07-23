@@ -35,7 +35,7 @@ function isReady<M>(
 
 interface ReadyEntry<M> {
   metrics: M;
-  judgement: Judgement;
+  judgement: Judgement | null;
   durationMs: number;
 }
 
@@ -65,12 +65,20 @@ function epicRollupBase<M>(
   totalCount: number,
   ready: ReadyEntry<M>[],
 ): EpicRollupBase {
+  // A fight excluded from this epic (e.g. Lifebloom Discipline with zero
+  // Lifebloom casts) is "ready" but carries no judgement - it still
+  // counts toward fightsReady (it didn't error), but is dropped from the
+  // judgement/breakdown pooling, same as reportAggregation.ts's
+  // rollupEpicJudgement handles the app-side equivalent.
+  const judged = ready.filter(
+    (r): r is ReadyEntry<M> & { judgement: Judgement } => r.judgement !== null,
+  );
   return {
     judgement: weightedMedianJudgement(
-      ready.map((r) => ({ judgement: r.judgement, weightMs: r.durationMs })),
+      judged.map((r) => ({ judgement: r.judgement, weightMs: r.durationMs })),
     ),
     judgementBreakdown: judgementBreakdown(
-      ready.map((r) => ({ judgement: r.judgement })),
+      judged.map((r) => ({ judgement: r.judgement })),
     ),
     fightsReady: ready.length,
     fightsErrored: totalCount - ready.length,

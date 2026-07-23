@@ -148,6 +148,7 @@ describe("summarizeLifebloomDiscipline", () => {
         blooms,
         restack,
         NEUTRAL_CONCURRENT,
+        true,
       ),
     ).toEqual({
       judgement: "fair",
@@ -193,6 +194,7 @@ describe("summarizeLifebloomDiscipline", () => {
         blooms,
         restack,
         NEUTRAL_CONCURRENT,
+        true,
       ),
     ).toEqual({
       judgement: "good",
@@ -227,6 +229,7 @@ describe("summarizeLifebloomDiscipline", () => {
         blooms,
         restack,
         NEUTRAL_CONCURRENT,
+        true,
       ).stats[0],
     ).toBe("LB3 uptime: no maintained targets");
   });
@@ -269,6 +272,7 @@ describe("summarizeLifebloomDiscipline", () => {
         blooms,
         restack,
         NEUTRAL_CONCURRENT,
+        true,
       ).judgement,
     ).toBe("fair");
   });
@@ -330,8 +334,14 @@ describe("summarizeLifebloomDiscipline", () => {
     };
 
     expect(
-      summarizeLifebloomDiscipline(lb3, refresh, blooms, restack, concurrent)
-        .judgement,
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        concurrent,
+        true,
+      ).judgement,
     ).toBe("good");
   });
 
@@ -381,8 +391,46 @@ describe("summarizeLifebloomDiscipline", () => {
         blooms,
         restack,
         NEUTRAL_CONCURRENT,
+        true,
       ).judgement,
     ).toBe("fair");
+  });
+
+  it("excludes the fight from judgement when hasLifebloomCast is false, regardless of what the sibling metrics computed", () => {
+    const lb3: Lb3UptimeResult = { targets: [] };
+    const refresh: RefreshCadenceResult = {
+      intervalCount: 0,
+      medianMs: null,
+      judgement: null,
+      buckets: [],
+    };
+    // These two would normally read "good" (0 is within their good band) -
+    // the whole point of the exclusion is that they're never consulted.
+    const blooms: AccidentalBloomsResult = {
+      accidentalBlooms: [],
+      count: 0,
+      judgement: "good",
+    };
+    const restack: RestackTaxResult = {
+      casts: [],
+      castCount: 0,
+      estimatedMana: 0,
+      judgement: "good",
+    };
+
+    expect(
+      summarizeLifebloomDiscipline(
+        lb3,
+        refresh,
+        blooms,
+        restack,
+        NEUTRAL_CONCURRENT,
+        false,
+      ),
+    ).toEqual({
+      judgement: null,
+      stats: ["No Lifebloom casts this fight"],
+    });
   });
 });
 

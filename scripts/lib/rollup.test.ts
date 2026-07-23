@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { rollupDruid } from "./rollup";
-import type { EpicResult, FightResult, GcdEconomyMetrics } from "./types";
+import type {
+  EpicResult,
+  FightResult,
+  GcdEconomyMetrics,
+  LifebloomDisciplineMetrics,
+} from "./types";
 import type { Judgement } from "../../src/metrics/judgement";
 
 function erroredEpic(): { status: "error"; error: string } {
@@ -30,6 +35,62 @@ function readyGcd(
         deadTimePct: 0,
         judgement,
       },
+    },
+  };
+}
+
+function readyLifebloom(
+  judgement: Judgement | null,
+): EpicResult<LifebloomDisciplineMetrics> {
+  return {
+    status: "ready",
+    judgement,
+    stats: [],
+    metrics: {
+      lb3Uptime: { targets: [] },
+      refreshCadence: {
+        intervalCount: 0,
+        medianMs: null,
+        judgement: null,
+        buckets: [],
+      },
+      accidentalBlooms: { accidentalBlooms: [], count: 0, judgement: "good" },
+      restackTax: {
+        casts: [],
+        castCount: 0,
+        estimatedMana: 0,
+        judgement: "good",
+      },
+      concurrentLb3Targets: {
+        avgConcurrent: 0,
+        peakConcurrent: 0,
+        levels: [],
+        judgement: null,
+      },
+    },
+  };
+}
+
+function aFightResultWithLifebloom(
+  fightId: number,
+  lifebloomEpic: EpicResult<LifebloomDisciplineMetrics>,
+): FightResult {
+  return {
+    fightId,
+    bossName: "Test Boss",
+    kill: true,
+    bossPercentage: null,
+    pullNumber: 1,
+    durationMs: 5000,
+    hasNaturesSwiftness: false,
+    epics: {
+      gcdEconomy: erroredEpic(),
+      lifebloomDiscipline: lifebloomEpic,
+      spellDiscipline: erroredEpic(),
+      manaEconomy: erroredEpic(),
+      deathForensics: erroredEpic(),
+      crisisResponse: erroredEpic(),
+      prepHygiene: erroredEpic(),
     },
   };
 }
@@ -103,5 +164,20 @@ describe("rollupDruid", () => {
     expect(rollup.crisisResponse.fairUnmaintainedTotal).toBe(0);
     expect(rollup.crisisResponse.preppedTotal).toBe(0);
     expect(rollup.crisisResponse.preppedElsewhereTotal).toBe(0);
+  });
+
+  it("excludes a null-judgement (zero-cast) fight's lifebloomDiscipline from the judgement/breakdown, while still counting it toward fightsReady", () => {
+    const fights: FightResult[] = [
+      aFightResultWithLifebloom(1, readyLifebloom("good")),
+      aFightResultWithLifebloom(2, readyLifebloom(null)),
+    ];
+    const rollup = rollupDruid(fights);
+    expect(rollup.lifebloomDiscipline.judgement).toBe("good");
+    expect(rollup.lifebloomDiscipline.judgementBreakdown).toEqual({
+      good: 1,
+      fair: 0,
+      bad: 0,
+    });
+    expect(rollup.lifebloomDiscipline.fightsReady).toBe(2);
   });
 });

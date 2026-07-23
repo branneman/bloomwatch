@@ -13,6 +13,7 @@ export interface LifebloomDisciplineContentProps {
   accessToken: string;
   reportCode: string;
   host: Host;
+  showCards: boolean;
   fight: Fight;
   druidId: number;
   lifebloomAbilityIds: Set<number>;
@@ -39,6 +40,7 @@ export function LifebloomDisciplineContent({
   accessToken,
   reportCode,
   host,
+  showCards,
   fight,
   druidId,
   lifebloomAbilityIds,
@@ -48,6 +50,14 @@ export function LifebloomDisciplineContent({
   fetchEvents,
   fetchLookbackEvents,
 }: LifebloomDisciplineContentProps) {
+  if (!showCards) {
+    return (
+      <p>
+        No Lifebloom casts this fight, so there&apos;s nothing to grade here.
+      </p>
+    );
+  }
+
   return (
     <div className={styles.group}>
       <LB3UptimeCard
