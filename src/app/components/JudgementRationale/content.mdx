@@ -23,7 +23,10 @@ import {
   FAIR_MAX_COUNT as BLOOM_FAIR_MAX_COUNT,
   ACCIDENTAL_WINDOW_MS,
 } from "../../../metrics/accidentalBlooms";
-import { LIFEBLOOM_MANA_COST } from "../../../metrics/restackTax";
+import {
+  LIFEBLOOM_MANA_COST,
+  FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE,
+} from "../../../metrics/restackTax";
 import { CONCURRENT_MIN_TIME_PCT } from "../../../metrics/concurrentLb3Targets";
 import {
   CLIP_THRESHOLD_MS,
@@ -226,6 +229,11 @@ already reached 3 stacks and then dropped it entirely; each one costs an
 estimated {LIFEBLOOM_MANA_COST} mana that a clean refresh cycle wouldn't have
 needed. The Good/Fair/Bad bar scales with fight length rather than a fixed
 count, since a longer fight has more opportunities for a stack to drop.
+
+A druid genuinely carrying Faerie Fire duty for the fight spends real GCDs
+that would otherwise go to Lifebloom upkeep; real corpus data confirmed this
+measurably raises re-stack tax. When that duty is detected for the fight, the
+good/fair allowance widens by {FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE} casts.
 
 <h3 id="concurrent-lb3-targets">Concurrent LB3 targets</h3>
 

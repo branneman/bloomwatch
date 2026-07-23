@@ -174,4 +174,89 @@ describe("RestackTaxCard", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("boom"),
     );
   });
+
+  it("shows the Faerie Fire duty callout and widened threshold text when on duty", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 300000 });
+    const FF_ID = 26993;
+    const BOSS_ID = 149;
+    const buffEvents = [
+      anApplyBuffEvent({ timestamp: 0, targetID: 42 }),
+      anApplyBuffStackEvent({ timestamp: 100, targetID: 42, stack: 2 }),
+      anApplyBuffStackEvent({ timestamp: 200, targetID: 42, stack: 3 }),
+    ];
+    const castEvents = [
+      aCastEvent({
+        timestamp: 5000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+      aCastEvent({
+        timestamp: 100000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+      aCastEvent({
+        timestamp: 150000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+      aCastEvent({
+        timestamp: 200000,
+        sourceID: 2,
+        targetID: BOSS_ID,
+        abilityGameID: FF_ID,
+      }),
+    ];
+
+    render(
+      <RestackTaxCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set([FF_ID])}
+        bossActorIds={new Set([BOSS_ID])}
+        targetNames={new Map()}
+        fetchEvents={makeFetchEvents(buffEvents, castEvents)}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/On Faerie Fire duty this fight/),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("does not show the Faerie Fire duty callout when not on duty", async () => {
+    const fight = aFight({ id: 6, startTime: 0, endTime: 300000 });
+    render(
+      <RestackTaxCard
+        accessToken="test-token"
+        reportCode="4GYHZRdtL3bvhpc8"
+        host="fresh"
+        fight={fight}
+        druidId={2}
+        lifebloomAbilityIds={new Set([33763])}
+        faerieFireAbilityIds={new Set()}
+        bossActorIds={new Set()}
+        targetNames={new Map()}
+        fetchEvents={makeFetchEvents([], [])}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("No re-stack tax this fight."),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText(/On Faerie Fire duty this fight/),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -5,12 +5,14 @@ import type { EventFetcherFight } from "../../../wcl/eventCache";
 import {
   computeRestackTax,
   type RestackTaxResult,
+  FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE,
 } from "../../../metrics/restackTax";
 import { computeFaerieFireDuty } from "../../../metrics/faerieFireDuty";
 import type { Host } from "../../../report/parseReportInput";
 import { formatDuration } from "../../../report/fightRows";
 import { buildFightTimeUrl } from "../../../report/wclLinks";
 import { MetricCard } from "../ui/MetricCard";
+import { Alert } from "../ui/Alert";
 import lifebloomIcon from "../../../assets/spell-icons/lifebloom.jpg";
 
 export interface RestackTaxCardProps {
@@ -143,6 +145,19 @@ export function RestackTaxCard({
   }
 
   const { casts, castCount, estimatedMana, judgement } = result.result;
+  const { onDuty } = result;
+
+  const fightMinutes = (fight.endTime - fight.startTime) / 60000;
+  const goodMax =
+    Math.floor(fightMinutes / 2) +
+    1 +
+    (onDuty ? FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE : 0);
+  const fairMax =
+    Math.floor(fightMinutes) +
+    (onDuty ? FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE : 0);
+  const threshold = onDuty
+    ? `${THRESHOLD} On Faerie Fire duty this fight, the good/fair allowance widens by ${FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE} casts (good ${goodMax} or fewer, fair ${fairMax} or fewer): real corpus data shows genuine Faerie Fire duty measurably raises re-stack tax, since GCDs spent maintaining it can't also go to Lifebloom.`
+    : THRESHOLD;
 
   return (
     <MetricCard
@@ -150,9 +165,18 @@ export function RestackTaxCard({
       title="Re-stack tax"
       value={`${castCount} casts · ~${estimatedMana} mana`}
       judgement={judgement}
-      threshold={THRESHOLD}
+      threshold={threshold}
       rationaleSlug="restack-tax"
     >
+      {onDuty && (
+        <div style={{ marginBottom: "var(--space-3)" }}>
+          <Alert tone="warning">
+            On Faerie Fire duty this fight; the good/fair allowance was widened
+            by {FAERIE_FIRE_DUTY_RESTACK_ALLOWANCE} casts to account for GCDs
+            spent keeping Faerie Fire on the boss.
+          </Alert>
+        </div>
+      )}
       {casts.length === 0 ? (
         <p>No re-stack tax this fight.</p>
       ) : (
